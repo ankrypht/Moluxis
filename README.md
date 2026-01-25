@@ -61,7 +61,7 @@ The app features a sleek, dark-themed UI designed for focus and clarity.
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/your-username/moluxis.git
+   git clone https://github.com/ankrypht/moluxis.git
    cd moluxis
    ```
 
