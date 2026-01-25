@@ -95,11 +95,11 @@ function MoleculeExplorer() {
 
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Molecule Explorer</Text>
+        <Text style={styles.title}>Moluxis</Text>
         <View style={styles.searchRow}>
           <TextInput
             style={styles.input}
-            placeholder="Search (e.g., Caffeine)"
+            placeholder="Search (e.g., Caffeine, Aspirin)"
             placeholderTextColor="#888"
             value={searchText}
             onChangeText={handleTextChange}
@@ -295,6 +295,20 @@ function MoleculeExplorer() {
                 </Text>
               </View>
             </View>
+            <View style={styles.statsGrid}>
+              <View style={styles.statCard}>
+                <Text style={styles.statLabel}>IUPAC Name</Text>
+                <Text style={styles.statValue}>
+                  {moleculeData.properties.iupacName || "N/A"}
+                </Text>
+              </View>
+              <View style={styles.statCard}>
+                <Text style={styles.statLabel}>Common Name</Text>
+                <Text style={styles.statValue}>
+                  {moleculeData.properties.commonName || "N/A"}
+                </Text>
+              </View>
+            </View>
 
             {/* Chemical Properties */}
             <CollapsibleSection
@@ -313,14 +327,6 @@ function MoleculeExplorer() {
               <PropertyRow
                 label="Rotatable Bonds"
                 value={moleculeData.properties.rotatableBonds}
-              />
-              <PropertyRow
-                label="IUPAC Name"
-                value={moleculeData.properties.iupacName}
-              />
-              <PropertyRow
-                label="Common Name"
-                value={moleculeData.properties.commonName}
               />
               <PropertyRow
                 label="LogP (Lipophilicity)"

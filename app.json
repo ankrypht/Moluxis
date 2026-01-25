@@ -4,9 +4,7 @@
     "slug": "Moluxis",
     "version": "1.0.0",
     "orientation": "portrait",
-    "platforms": [
-      "android"
-    ],
+    "platforms": ["android"],
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
@@ -28,9 +26,7 @@
       "predictiveBackGestureEnabled": false
     },
     "owner": "ankushsarkar",
-    "plugins": [
-      "expo-font"
-    ],
+    "plugins": ["expo-font"],
     "extra": {
       "eas": {
         "projectId": "81f557ce-7d0e-4091-bdcf-185d86410a5f"

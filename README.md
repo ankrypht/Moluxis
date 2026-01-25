@@ -20,10 +20,12 @@ The app features a sleek, dark-themed UI designed for focus and clarity.
 ## ✨ Features
 
 ### 🔍 **Smart Search**
+
 - **Instant Search:** Find compounds by common names (e.g., "Caffeine", "Aspirin") or IUPAC names.
 - **Autocomplete:** Intelligent suggestions help you find the exact compound you're looking for as you type.
 
 ### 🧪 **Interactive 3D Visualization**
+
 - **High-Performance Rendering:** Powered by `3Dmol.js` within a customized WebView.
 - **Multiple Visualization Modes:**
   - 🎾 **Ball & Stick:** Standard chemistry visualization.
@@ -33,12 +35,14 @@ The app features a sleek, dark-themed UI designed for focus and clarity.
 - **Controls:** Toggle atom labels and switch modes instantly.
 
 ### 📊 **Comprehensive Chemical Data**
+
 - **Physical Properties:** Molecular Weight, Formula, Density, Boiling/Melting Points, Solubility.
 - **Chemical Attributes:** H-Bond Donors/Acceptors, Rotatable Bonds, TPSA, LogP.
 - **Identifiers:** IUPAC Names (Preferred & Traditional), Common Synonyms.
 - **External Links:** Direct access to full PubChem records.
 
 ### ⚠️ **Safety & Hazards**
+
 - **GHS Classification:** Displays standard GHS Signal Words (e.g., "Danger", "Warning").
 - **Hazard Statements:** clear list of specific hazard warnings and safety precautions.
 
@@ -53,6 +57,7 @@ The app features a sleek, dark-themed UI designed for focus and clarity.
 ## 🤝 Contributing
 
 ### Prerequisites
+
 - Node.js (LTS recommended)
 - npm or yarn
 - Expo Go app on your physical device (Android) OR an Android Emulator.
@@ -60,17 +65,20 @@ The app features a sleek, dark-themed UI designed for focus and clarity.
 ### Installation
 
 1. **Clone the repository:**
+
    ```bash
    git clone https://github.com/ankrypht/moluxis.git
    cd moluxis
    ```
 
 2. **Install dependencies:**
+
    ```bash
    npm install
    ```
 
 3. **Start the development server:**
+
    ```bash
    npx expo start
    ```
