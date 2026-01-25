@@ -81,7 +81,9 @@ The app features a sleek, dark-themed UI designed for focus and clarity.
 
 ## 📄 License
 
-This project is open-source and available under the [Apache License 2.0](LICENSE).
+Copyright © 2026 Ankush Sarkar
+
+Licensed under the Apache License, Version 2.0.
 
 ## 🙏 Acknowledgments
 
