@@ -9,6 +9,19 @@
   </p>
 </div>
 
+![GitHub Release](https://img.shields.io/github/v/release/ankrypht/Moluxis?label=Latest%20Release&logo=github&logoColor=white)
+![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/ankrypht/Moluxis/total?label=Downloads&logo=refinedgithub&logoColor=white)
+![GitHub commits since latest release](https://img.shields.io/github/commits-since/ankrypht/Moluxis/latest)
+![GitHub License](https://img.shields.io/github/license/ankrypht/Moluxis?label=License&logo=gnu&logoColor=white)
+![GitHub last commit (branch)](https://img.shields.io/github/last-commit/ankrypht/Moluxis/main?label=Last%20Commit&logo=Git&logoColor=white)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/t/ankrypht/Moluxis?label=Total%20Commits)
+![GitHub top language](https://img.shields.io/github/languages/top/ankrypht/Moluxis?label=TypeScript&logo=typescript&logoColor=white)
+![GitHub language count](https://img.shields.io/github/languages/count/ankrypht/Moluxis?label=Languages%20Used)
+![GitHub issues](https://img.shields.io/github/issues/ankrypht/Moluxis?label=Issues)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/ankrypht/Moluxis?label=Pull%20Requests)
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/ankrypht/Moluxis?label=Code%20Size)
+
+
 ---
 
 ## 📖 Overview
@@ -54,7 +67,16 @@ The app features a sleek, dark-themed UI designed for focus and clarity.
 - **Data Source:** [PubChem PUG REST API](https://pubchem.ncbi.nlm.nih.gov/docs/pug-rest)
 - **UI Components:** Custom components.
 
+## 📲 Installation
+
+[<img src="./assets/getItGithub.png" alt="GitHub" height="80">](https://github.com/ankrypht/Moluxis/releases/latest)
+
 ## 🤝 Contributing
+
+### Pull requests are welcome
+
+- If you want to **develop new functions** or **fix a bug**, fork the repository and send a pull request.
+
 
 ### Prerequisites
 
@@ -62,7 +84,7 @@ The app features a sleek, dark-themed UI designed for focus and clarity.
 - npm or yarn
 - Expo Go app on your physical device (Android) OR an Android Emulator.
 
-### Installation
+### Running On Your System
 
 1. **Clone the repository:**
 
