@@ -7,9 +7,9 @@
     "android": "expo start --android",
     "lint": "expo lint",
     "doctor": "npx expo-doctor@latest",
-    "build": "eas build --platform android --profile preview",
+    "build": "eas build --platform android --profile preview --local",
     "build-eas": "eas build --platform android --profile preview",
-    "build-prod": "eas build --platform android --profile production",
+    "build-prod": "eas build --platform android --profile production --local",
     "build-prod-eas": "eas build --platform android --profile production",
     "format": "npx prettier@latest --write ."
   },
