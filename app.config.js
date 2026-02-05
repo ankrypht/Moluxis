@@ -7,7 +7,7 @@ const getVersionCode = (version) => {
 
 export default {
   name: "Moluxis",
-  slug: "moluxis",
+  slug: "Moluxis",
   version: pkg.version,
   orientation: "portrait",
   platforms: ["android"],
