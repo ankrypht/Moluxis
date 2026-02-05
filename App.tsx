@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Keyboard,
-  Alert,
   FlatList,
   ScrollView,
   Linking,
@@ -69,7 +68,7 @@ function MoleculeExplorer() {
       `;
       webViewRef.current.injectJavaScript(script);
     }
-  }, [vizStyle, showLabels]);
+  }, [moleculeData, vizStyle, showLabels]);
 
   const renderSuggestionItem = ({ item }: { item: string }) => (
     <TouchableOpacity
@@ -132,7 +131,7 @@ function MoleculeExplorer() {
           <View style={styles.suggestionsContainer}>
             <FlatList
               data={suggestions}
-              keyExtractor={(item, index) => index.toString()}
+              keyExtractor={(_item, index) => index.toString()}
               renderItem={renderSuggestionItem}
               keyboardShouldPersistTaps="handled"
               style={{ maxHeight: 200 }}
@@ -459,7 +458,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#121212",
   },
-
   // Header
   header: {
     padding: 16,
@@ -503,7 +501,6 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontSize: 14,
   },
-
   // Suggestions Dropdown
   suggestionsContainer: {
     position: "absolute",
@@ -532,7 +529,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#DDD",
   },
-
   // Controls
   controlsContainer: {
     height: 60,
@@ -567,7 +563,6 @@ const styles = StyleSheet.create({
   chipTextActive: {
     color: "#FFFFFF",
   },
-
   // Viewer
   viewerContainer: {
     flex: 1,
@@ -589,7 +584,6 @@ const styles = StyleSheet.create({
     color: "#666",
     marginTop: 15,
   },
-
   // Info Panel
   infoPanel: {
     maxHeight: "50%",
@@ -602,7 +596,6 @@ const styles = StyleSheet.create({
   infoScroll: {
     padding: 16,
   },
-
   // Stats Grid
   statsGrid: {
     flexDirection: "row",
@@ -628,7 +621,6 @@ const styles = StyleSheet.create({
     color: "#FFF",
     fontWeight: "700",
   },
-
   noDataText: {
     fontSize: 14,
     color: "#666",
@@ -636,7 +628,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     paddingVertical: 12,
   },
-
   // Safety Section
   safetySection: {
     marginBottom: 16,
@@ -665,7 +656,6 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     lineHeight: 20,
   },
-
   // Description
   descriptionText: {
     fontSize: 14,
@@ -691,7 +681,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#DDD",
   },
-
   // Info Text
   infoText: {
     fontSize: 14,
@@ -709,7 +698,6 @@ const styles = StyleSheet.create({
     color: "#0A84FF",
     fontWeight: "600",
   },
-
   // Footer
   footer: {
     paddingTop: 16,
