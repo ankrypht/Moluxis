@@ -21,7 +21,6 @@
 ![GitHub pull requests](https://img.shields.io/github/issues-pr/ankrypht/Moluxis?label=Pull%20Requests)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/ankrypht/Moluxis?label=Code%20Size)
 
-
 ---
 
 ## 📖 Overview
@@ -76,7 +75,6 @@ The app features a sleek, dark-themed UI designed for focus and clarity.
 ### Pull requests are welcome
 
 - If you want to **develop new functions** or **fix a bug**, fork the repository and send a pull request.
-
 
 ### Prerequisites
 
