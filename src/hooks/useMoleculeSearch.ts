@@ -23,7 +23,7 @@ export const useMoleculeSearch = () => {
         setShowSuggestions(true);
       }
     } catch (e) {
-      console.log("Autocomplete error", e);
+      // Autocomplete error ignored
     }
   };
 
@@ -150,7 +150,7 @@ export const useMoleculeSearch = () => {
           }
         }
       } catch (e) {
-        console.log("Error fetching experimental properties", e);
+        // Experimental properties error ignored
       }
 
       // Fetch GHS and Safety data
@@ -178,7 +178,7 @@ export const useMoleculeSearch = () => {
           }
         }
       } catch (e) {
-        console.log("Error fetching GHS data", e);
+        // GHS data error ignored
       }
 
       // Get synonyms
@@ -225,7 +225,6 @@ export const useMoleculeSearch = () => {
         safety,
       });
     } catch (error) {
-      console.log(error);
       Alert.alert("Error", "Network error. Please try again.");
     } finally {
       setIsLoading(false);
