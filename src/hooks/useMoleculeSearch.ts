@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Alert, Keyboard } from "react-native";
 import { MoleculeInfo, ChemicalProperties, SafetyInfo } from "../types";
 
@@ -8,6 +8,15 @@ export const useMoleculeSearch = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [moleculeData, setMoleculeData] = useState<MoleculeInfo | null>(null);
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+    };
+  }, []);
 
   const fetchSuggestions = async (text: string) => {
     if (text.length < 3) {
@@ -29,7 +38,14 @@ export const useMoleculeSearch = () => {
 
   const handleTextChange = (text: string) => {
     setSearchText(text);
-    fetchSuggestions(text);
+
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+
+    debounceTimer.current = setTimeout(() => {
+      fetchSuggestions(text);
+    }, 300);
   };
 
   const searchMolecule = async (queryName?: string) => {
