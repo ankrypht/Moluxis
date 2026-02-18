@@ -56,62 +56,39 @@ export const useMoleculeSearch = () => {
       const compound = searchJson.PC_Compounds[0];
       const cid = compound.id.id.cid;
 
-      // Extract molecular formula and weight
+      // Extract properties from compound props
       let formula = "";
       let molecularWeight = "";
-
-      if (compound.props) {
-        const formulaProp = compound.props.find(
-          (p: any) => p.urn?.label === "Molecular Formula",
-        );
-        const weightProp = compound.props.find(
-          (p: any) => p.urn?.label === "Molecular Weight",
-        );
-
-        formula = formulaProp?.value?.sval || "";
-        molecularWeight = weightProp?.value?.sval
-          ? `${weightProp.value.sval} g/mol`
-          : "";
-      }
-
-      // Extract chemical properties from compound props
       const properties: ChemicalProperties = {};
 
       if (compound.props) {
-        const hAcceptorProp = compound.props.find(
-          (p: any) => p.urn?.name === "Hydrogen Bond Acceptor",
-        );
-        const hDonorProp = compound.props.find(
-          (p: any) => p.urn?.name === "Hydrogen Bond Donor",
-        );
-        const rotatableProp = compound.props.find(
-          (p: any) => p.urn?.name === "Rotatable Bond",
-        );
-        const iupacProp = compound.props.find(
-          (p: any) =>
-            p.urn?.label === "IUPAC Name" && p.urn?.name === "Preferred",
-        );
-        const iupacTradProp = compound.props.find(
-          (p: any) =>
-            p.urn?.label === "IUPAC Name" && p.urn?.name === "Traditional",
-        );
-        const logPProp = compound.props.find(
-          (p: any) => p.urn?.label === "Log P",
-        );
-        const tpsaProp = compound.props.find(
-          (p: any) => p.urn?.name === "Polar Surface Area",
-        );
+        for (const p of compound.props) {
+          const urn = p.urn;
+          const value = p.value;
+          if (!urn) continue;
 
-        properties.hBondAcceptors = hAcceptorProp?.value?.ival?.toString();
-        properties.hBondDonors = hDonorProp?.value?.ival?.toString();
-        properties.rotatableBonds = rotatableProp?.value?.ival?.toString();
-        properties.iupacName = iupacProp?.value?.sval;
-        properties.commonName = iupacTradProp?.value?.sval;
-        properties.logP =
-          logPProp?.value?.fval?.toString() || logPProp?.value?.sval;
-        properties.tpsa = tpsaProp?.value?.fval
-          ? `${tpsaProp.value.fval} Å²`
-          : undefined;
+          if (urn.label === "Molecular Formula") {
+            formula = value?.sval || "";
+          } else if (urn.label === "Molecular Weight") {
+            molecularWeight = value?.sval ? `${value.sval} g/mol` : "";
+          } else if (urn.name === "Hydrogen Bond Acceptor") {
+            properties.hBondAcceptors = value?.ival?.toString();
+          } else if (urn.name === "Hydrogen Bond Donor") {
+            properties.hBondDonors = value?.ival?.toString();
+          } else if (urn.name === "Rotatable Bond") {
+            properties.rotatableBonds = value?.ival?.toString();
+          } else if (urn.label === "IUPAC Name") {
+            if (urn.name === "Preferred") {
+              properties.iupacName = value?.sval;
+            } else if (urn.name === "Traditional") {
+              properties.commonName = value?.sval;
+            }
+          } else if (urn.label === "Log P") {
+            properties.logP = value?.fval?.toString() || value?.sval;
+          } else if (urn.name === "Polar Surface Area") {
+            properties.tpsa = value?.fval ? `${value.fval} Å²` : undefined;
+          }
+        }
       }
 
       // Fetch additional experimental properties
