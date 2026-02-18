@@ -15,7 +15,9 @@ export const useMoleculeSearch = () => {
       return;
     }
     try {
-      const url = `https://pubchem.ncbi.nlm.nih.gov/rest/autocomplete/compound/${text}/json?limit=6`;
+      const url = `https://pubchem.ncbi.nlm.nih.gov/rest/autocomplete/compound/${encodeURIComponent(
+        text,
+      )}/json?limit=6`;
       const res = await fetch(url);
       const json = await res.json();
       if (json.dictionary_terms && json.dictionary_terms.compound) {
@@ -43,7 +45,9 @@ export const useMoleculeSearch = () => {
 
     try {
       // Get compound data
-      const searchUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${term}/JSON`;
+      const searchUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(
+        term,
+      )}/JSON`;
       const searchRes = await fetch(searchUrl);
       const searchJson = await searchRes.json();
 
