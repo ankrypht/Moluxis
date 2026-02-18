@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Alert, Keyboard } from "react-native";
 import { MoleculeInfo, ChemicalProperties, SafetyInfo } from "../types";
 
@@ -8,6 +8,12 @@ export const useMoleculeSearch = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [moleculeData, setMoleculeData] = useState<MoleculeInfo | null>(null);
+
+  const searchTextRef = useRef(searchText);
+
+  useEffect(() => {
+    searchTextRef.current = searchText;
+  }, [searchText]);
 
   const fetchSuggestions = async (text: string) => {
     if (text.length < 3) {
@@ -32,8 +38,8 @@ export const useMoleculeSearch = () => {
     fetchSuggestions(text);
   };
 
-  const searchMolecule = async (queryName?: string) => {
-    const term = queryName || searchText;
+  const searchMolecule = useCallback(async (queryName?: string) => {
+    const term = queryName || searchTextRef.current;
     if (!term.trim()) return;
 
     Keyboard.dismiss();
@@ -229,13 +235,16 @@ export const useMoleculeSearch = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const selectSuggestion = (item: string) => {
-    setSearchText(item);
-    setShowSuggestions(false);
-    searchMolecule(item);
-  };
+  const selectSuggestion = useCallback(
+    (item: string) => {
+      setSearchText(item);
+      setShowSuggestions(false);
+      searchMolecule(item);
+    },
+    [searchMolecule],
+  );
 
   return {
     searchText,
