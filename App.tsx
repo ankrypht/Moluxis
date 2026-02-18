@@ -131,7 +131,7 @@ function MoleculeExplorer() {
           <View style={styles.suggestionsContainer}>
             <FlatList
               data={suggestions}
-              keyExtractor={(_item, index) => index.toString()}
+              keyExtractor={(item) => item}
               renderItem={renderSuggestionItem}
               keyboardShouldPersistTaps="handled"
               style={{ maxHeight: 200 }}

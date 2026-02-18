@@ -19,7 +19,8 @@ export const useMoleculeSearch = () => {
       const res = await fetch(url);
       const json = await res.json();
       if (json.dictionary_terms && json.dictionary_terms.compound) {
-        setSuggestions(json.dictionary_terms.compound);
+        // Remove duplicates
+        setSuggestions(Array.from(new Set(json.dictionary_terms.compound)));
         setShowSuggestions(true);
       }
     } catch (e) {
