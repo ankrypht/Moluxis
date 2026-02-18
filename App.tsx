@@ -253,7 +253,7 @@ function MoleculeExplorer() {
       <View style={styles.viewerContainer}>
         <WebView
           ref={webViewRef}
-          originWhitelist={["*"]}
+          originWhitelist={["about:blank"]}
           source={{ html: viewerHtml }}
           style={styles.webview}
           scrollEnabled={false}
