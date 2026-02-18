@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Alert, Keyboard } from "react-native";
 import { MoleculeInfo, ChemicalProperties, SafetyInfo } from "../types";
 
@@ -32,8 +32,7 @@ export const useMoleculeSearch = () => {
     fetchSuggestions(text);
   };
 
-  const searchMolecule = async (queryName?: string) => {
-    const term = queryName || searchText;
+  const performSearch = useCallback(async (term: string) => {
     if (!term.trim()) return;
 
     Keyboard.dismiss();
@@ -229,13 +228,24 @@ export const useMoleculeSearch = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const selectSuggestion = (item: string) => {
-    setSearchText(item);
-    setShowSuggestions(false);
-    searchMolecule(item);
-  };
+  const searchMolecule = useCallback(
+    async (queryName?: string) => {
+      const term = queryName || searchText;
+      performSearch(term);
+    },
+    [searchText, performSearch],
+  );
+
+  const selectSuggestion = useCallback(
+    (item: string) => {
+      setSearchText(item);
+      setShowSuggestions(false);
+      performSearch(item);
+    },
+    [performSearch],
+  );
 
   return {
     searchText,

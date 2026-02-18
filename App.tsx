@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
   StyleSheet,
   Text,
@@ -70,22 +70,25 @@ function MoleculeExplorer() {
     }
   }, [moleculeData, vizStyle, showLabels]);
 
-  const renderSuggestionItem = ({ item }: { item: string }) => (
-    <TouchableOpacity
-      style={styles.suggestionItem}
-      onPress={() => {
-        selectSuggestion(item);
-        Keyboard.dismiss();
-      }}
-    >
-      <Ionicons
-        name="search-outline"
-        size={16}
-        color="#AAA"
-        style={{ marginRight: 10 }}
-      />
-      <Text style={styles.suggestionText}>{item}</Text>
-    </TouchableOpacity>
+  const renderSuggestionItem = useCallback(
+    ({ item }: { item: string }) => (
+      <TouchableOpacity
+        style={styles.suggestionItem}
+        onPress={() => {
+          selectSuggestion(item);
+          Keyboard.dismiss();
+        }}
+      >
+        <Ionicons
+          name="search-outline"
+          size={16}
+          color="#AAA"
+          style={{ marginRight: 10 }}
+        />
+        <Text style={styles.suggestionText}>{item}</Text>
+      </TouchableOpacity>
+    ),
+    [selectSuggestion],
   );
 
   return (
