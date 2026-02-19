@@ -22,7 +22,7 @@ export const useMoleculeSearch = () => {
         setSuggestions(json.dictionary_terms.compound);
         setShowSuggestions(true);
       }
-    } catch (e) {
+    } catch {
       // Autocomplete error ignored
     }
   };
@@ -126,7 +126,7 @@ export const useMoleculeSearch = () => {
             }
           }
         }
-      } catch (e) {
+      } catch {
         // Experimental properties error ignored
       }
 
@@ -154,7 +154,7 @@ export const useMoleculeSearch = () => {
             }
           }
         }
-      } catch (e) {
+      } catch {
         // GHS data error ignored
       }
 
@@ -201,7 +201,7 @@ export const useMoleculeSearch = () => {
         properties,
         safety,
       });
-    } catch (error) {
+    } catch {
       Alert.alert("Error", "Network error. Please try again.");
     } finally {
       setIsLoading(false);
