@@ -7,20 +7,22 @@ interface SuggestionItemProps {
   onSelect: (item: string) => void;
 }
 
-export const SuggestionItem = React.memo<SuggestionItemProps>(({ item, onSelect }) => (
-  <TouchableOpacity
-    style={styles.suggestionItem}
-    onPress={() => onSelect(item)}
-  >
-    <Ionicons
-      name="search-outline"
-      size={16}
-      color="#AAA"
-      style={{ marginRight: 10 }}
-    />
-    <Text style={styles.suggestionText}>{item}</Text>
-  </TouchableOpacity>
-));
+export const SuggestionItem = React.memo<SuggestionItemProps>(
+  ({ item, onSelect }) => (
+    <TouchableOpacity
+      style={styles.suggestionItem}
+      onPress={() => onSelect(item)}
+    >
+      <Ionicons
+        name="search-outline"
+        size={16}
+        color="#AAA"
+        style={{ marginRight: 10 }}
+      />
+      <Text style={styles.suggestionText}>{item}</Text>
+    </TouchableOpacity>
+  ),
+);
 
 const styles = StyleSheet.create({
   suggestionItem: {

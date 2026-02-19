@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
   Text,
   View,
@@ -71,7 +71,7 @@ function MoleculeExplorer() {
     }
   }, [moleculeData, vizStyle, showLabels]);
 
-  const handleSelectSuggestion = React.useCallback(
+  const handleSelectSuggestion = useCallback(
     (item: string) => {
       selectSuggestion(item);
       Keyboard.dismiss();
@@ -79,7 +79,7 @@ function MoleculeExplorer() {
     [selectSuggestion],
   );
 
-  const renderSuggestionItem = React.useCallback(
+  const renderSuggestionItem = useCallback(
     ({ item }: { item: string }) => (
       <SuggestionItem item={item} onSelect={handleSelectSuggestion} />
     ),
