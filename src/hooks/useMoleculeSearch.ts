@@ -112,12 +112,37 @@ export const useMoleculeSearch = () => {
         }
       }
 
-      // Fetch additional experimental properties
-      try {
-        const propsUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug_view/data/compound/${cid}/JSON?heading=Chemical+and+Physical+Properties`;
-        const propsRes = await fetch(propsUrl);
-        const propsJson = await propsRes.json();
+      // Prepare URLs
+      const propsUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug_view/data/compound/${cid}/JSON?heading=Chemical+and+Physical+Properties`;
+      const ghsUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug_view/data/compound/${cid}/JSON?heading=GHS+Classification`;
+      const synonymsUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/synonyms/JSON`;
+      const descUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/description/JSON`;
+      const structureUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/CID/${cid}/record/SDF/?record_type=3d&response_type=display`;
 
+      // Initiate Fetches
+      const propsPromise = fetch(propsUrl)
+        .then((res) => res.json())
+        .catch(() => null);
+
+      const ghsPromise = fetch(ghsUrl)
+        .then((res) => res.json())
+        .catch(() => null);
+
+      const synonymsPromise = fetch(synonymsUrl).then((res) => res.json());
+      const descPromise = fetch(descUrl).then((res) => res.json());
+      const structurePromise = fetch(structureUrl).then((res) => res.text());
+
+      const [propsJson, ghsJson, synonymsJson, descJson, sdfText] =
+        await Promise.all([
+          propsPromise,
+          ghsPromise,
+          synonymsPromise,
+          descPromise,
+          structurePromise,
+        ]);
+
+      // Process Experimental Properties
+      if (propsJson) {
         const physicalProps = propsJson.Record?.Section?.[0];
 
         if (physicalProps && physicalProps.Section) {
@@ -151,14 +176,10 @@ export const useMoleculeSearch = () => {
         // Experimental properties error ignored
       }
 
-      // Fetch GHS and Safety data
+      // Process GHS and Safety data
       const safety: SafetyInfo = {};
 
-      try {
-        const ghsUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug_view/data/compound/${cid}/JSON?heading=GHS+Classification`;
-        const ghsRes = await fetch(ghsUrl);
-        const ghsJson = await ghsRes.json();
-
+      if (ghsJson) {
         const ghsSection =
           ghsJson.Record?.Section?.[0]?.Section?.[0]?.Section?.[0];
 
@@ -179,28 +200,16 @@ export const useMoleculeSearch = () => {
         // GHS data error ignored
       }
 
-      // Get synonyms
-      const synonymsUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/synonyms/JSON`;
-      const synonymsRes = await fetch(synonymsUrl);
-      const synonymsJson = await synonymsRes.json();
+      // Process Synonyms
       const synonyms =
         synonymsJson.InformationList?.Information?.[0]?.Synonym?.slice(0, 10) ||
         [];
 
-      // Get description
-      const descUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/description/JSON`;
-      const descRes = await fetch(descUrl);
-      const descJson = await descRes.json();
-
+      // Process Description
       const descInfo = descJson.InformationList?.Information?.find(
         (info: any) => info.Description,
       );
       const description = descInfo?.Description || "No description available.";
-
-      // Get 3D structure
-      const structureUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/CID/${cid}/record/SDF/?record_type=3d&response_type=display`;
-      const structureRes = await fetch(structureUrl);
-      const sdfText = await structureRes.text();
 
       if (!sdfText || sdfText.length < 50) {
         Alert.alert(
