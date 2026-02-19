@@ -141,9 +141,17 @@ export const useMoleculeSearch = () => {
         .then((res) => res.json())
         .catch(() => null);
 
-      const synonymsPromise = fetch(synonymsUrl).then((res) => res.json());
-      const descPromise = fetch(descUrl).then((res) => res.json());
-      const structurePromise = fetch(structureUrl).then((res) => res.text());
+      const synonymsPromise = fetch(synonymsUrl)
+        .then((res) => res.json())
+        .catch(() => ({}));
+
+      const descPromise = fetch(descUrl)
+        .then((res) => res.json())
+        .catch(() => ({}));
+
+      const structurePromise = fetch(structureUrl)
+        .then((res) => res.text())
+        .catch(() => "");
 
       const [propsJson, ghsJson, synonymsJson, descJson, sdfText] =
         await Promise.all([
@@ -156,61 +164,67 @@ export const useMoleculeSearch = () => {
 
       // Process Experimental Properties
       if (propsJson) {
-        const physicalProps = propsJson.Record?.Section?.[0];
+        try {
+          const physicalProps = propsJson.Record?.Section?.[0];
 
-        if (physicalProps && physicalProps.Section) {
-          for (const subsection of physicalProps.Section) {
-            if (
-              subsection.TOCHeading === "Experimental Properties" &&
-              subsection.Section
-            ) {
-              for (const expSection of subsection.Section) {
-                const heading = expSection.TOCHeading;
-                const info = expSection.Information?.[0];
-                const value = info?.Value?.StringWithMarkup?.[0]?.String;
+          if (physicalProps && physicalProps.Section) {
+            for (const subsection of physicalProps.Section) {
+              if (
+                subsection.TOCHeading === "Experimental Properties" &&
+                subsection.Section
+              ) {
+                for (const expSection of subsection.Section) {
+                  const heading = expSection.TOCHeading;
+                  const info = expSection.Information?.[0];
+                  const value = info?.Value?.StringWithMarkup?.[0]?.String;
 
-                if (heading === "Boiling Point" && value) {
-                  // Show boiling point in C
-                  properties.boilingPoint = value;
-                } else if (heading === "Melting Point" && value) {
-                  properties.meltingPoint = value;
-                } else if (heading === "Solubility" && value) {
-                  properties.solubility = value;
-                } else if (heading === "Density" && value) {
-                  properties.density = value;
-                } else if (heading === "pH" && value) {
-                  properties.pH = value;
+                  if (heading === "Boiling Point" && value) {
+                    // Show boiling point in C
+                    properties.boilingPoint = value;
+                  } else if (heading === "Melting Point" && value) {
+                    properties.meltingPoint = value;
+                  } else if (heading === "Solubility" && value) {
+                    properties.solubility = value;
+                  } else if (heading === "Density" && value) {
+                    properties.density = value;
+                  } else if (heading === "pH" && value) {
+                    properties.pH = value;
+                  }
                 }
               }
             }
           }
+        } catch {
+          // Experimental properties error ignored
         }
-      } catch {
-        // Experimental properties error ignored
       }
 
       // Process GHS and Safety data
       const safety: SafetyInfo = {};
 
       if (ghsJson) {
-        const ghsSection =
-          ghsJson.Record?.Section?.[0]?.Section?.[0]?.Section?.[0];
+        try {
+          const ghsSection =
+            ghsJson.Record?.Section?.[0]?.Section?.[0]?.Section?.[0];
 
-        if (ghsSection && ghsSection.Information) {
-          for (const info of ghsSection.Information) {
-            const name = info.Name;
-            const values =
-              info.Value?.StringWithMarkup?.map((v) => v.String || "") || [];
+          if (ghsSection && ghsSection.Information) {
+            for (const info of ghsSection.Information) {
+              const name = info.Name;
+              const values =
+                info.Value?.StringWithMarkup?.map(
+                  (v: { String?: string }) => v.String || "",
+                ) || [];
 
-            if (name === "Signal") {
-              safety.signal = values;
-            } else if (name === "GHS Hazard Statements") {
-              safety.hazardStatements = values;
+              if (name === "Signal") {
+                safety.signal = values;
+              } else if (name === "GHS Hazard Statements") {
+                safety.hazardStatements = values;
+              }
             }
           }
+        } catch {
+          // GHS data error ignored
         }
-      } catch {
-        // GHS data error ignored
       }
 
       // Process Synonyms
