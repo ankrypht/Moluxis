@@ -24,6 +24,7 @@ import { viewerHtml } from "./src/constants/viewerHtml";
 import { ChemicalFormula } from "./src/components/ChemicalFormula";
 import { CollapsibleSection } from "./src/components/CollapsibleSection";
 import { PropertyRow } from "./src/components/PropertyRow";
+import { SuggestionItem } from "./src/components/SuggestionItem";
 import { useMoleculeSearch } from "./src/hooks/useMoleculeSearch";
 import { styles } from "./App.styles";
 
@@ -70,22 +71,19 @@ function MoleculeExplorer() {
     }
   }, [moleculeData, vizStyle, showLabels]);
 
-  const renderSuggestionItem = ({ item }: { item: string }) => (
-    <TouchableOpacity
-      style={styles.suggestionItem}
-      onPress={() => {
-        selectSuggestion(item);
-        Keyboard.dismiss();
-      }}
-    >
-      <Ionicons
-        name="search-outline"
-        size={16}
-        color="#AAA"
-        style={{ marginRight: 10 }}
-      />
-      <Text style={styles.suggestionText}>{item}</Text>
-    </TouchableOpacity>
+  const handleSelectSuggestion = React.useCallback(
+    (item: string) => {
+      selectSuggestion(item);
+      Keyboard.dismiss();
+    },
+    [selectSuggestion],
+  );
+
+  const renderSuggestionItem = React.useCallback(
+    ({ item }: { item: string }) => (
+      <SuggestionItem item={item} onSelect={handleSelectSuggestion} />
+    ),
+    [handleSelectSuggestion],
   );
 
   return (
