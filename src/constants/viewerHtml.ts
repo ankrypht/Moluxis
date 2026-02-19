@@ -2,6 +2,7 @@ export const viewerHtml = `
 <!DOCTYPE html>
 <html>
 <head>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' https://3Dmol.csb.pitt.edu; style-src 'unsafe-inline'; img-src 'self' data: https://3Dmol.csb.pitt.edu; connect-src 'self' https://3Dmol.csb.pitt.edu;">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="https://3Dmol.csb.pitt.edu/build/3Dmol-min.js"></script>
   <style>
