@@ -10,7 +10,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 interface CollapsibleSectionProps {
   title: string;
-  icon: string;
+  icon: keyof typeof Ionicons.glyphMap;
   children: React.ReactNode;
   defaultExpanded?: boolean;
 }
@@ -41,7 +41,7 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
     <View style={styles.section}>
       <TouchableOpacity style={styles.sectionHeader} onPress={toggleExpand}>
         <View style={styles.sectionHeaderLeft}>
-          <Ionicons name={icon as any} size={20} color="#0A84FF" />
+          <Ionicons name={icon} size={20} color="#0A84FF" />
           <Text style={styles.sectionTitle}>{title}</Text>
         </View>
         <Ionicons
