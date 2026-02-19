@@ -24,6 +24,8 @@ export const SuggestionItem = React.memo<SuggestionItemProps>(
   ),
 );
 
+SuggestionItem.displayName = "SuggestionItem";
+
 const styles = StyleSheet.create({
   suggestionItem: {
     padding: 15,
