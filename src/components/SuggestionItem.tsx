@@ -4,26 +4,24 @@ import { Ionicons } from "@expo/vector-icons";
 
 interface SuggestionItemProps {
   item: string;
-  onPress: (item: string) => void;
+  onSelect: (item: string) => void;
 }
 
-export const SuggestionItem = React.memo(
-  ({ item, onPress }: SuggestionItemProps) => {
-    return (
-      <TouchableOpacity
-        style={styles.suggestionItem}
-        onPress={() => onPress(item)}
-      >
-        <Ionicons
-          name="search-outline"
-          size={16}
-          color="#AAA"
-          style={{ marginRight: 10 }}
-        />
-        <Text style={styles.suggestionText}>{item}</Text>
-      </TouchableOpacity>
-    );
-  },
+export const SuggestionItem = React.memo<SuggestionItemProps>(
+  ({ item, onSelect }) => (
+    <TouchableOpacity
+      style={styles.suggestionItem}
+      onPress={() => onSelect(item)}
+    >
+      <Ionicons
+        name="search-outline"
+        size={16}
+        color="#AAA"
+        style={{ marginRight: 10 }}
+      />
+      <Text style={styles.suggestionText}>{item}</Text>
+    </TouchableOpacity>
+  ),
 );
 
 const styles = StyleSheet.create({

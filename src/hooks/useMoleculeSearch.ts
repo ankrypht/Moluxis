@@ -1,6 +1,12 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Alert, Keyboard } from "react-native";
 import { MoleculeInfo, ChemicalProperties, SafetyInfo } from "../types";
+import {
+  PubChemCompoundResponse,
+  PubChemAutocompleteResponse,
+  PubChemCompound,
+  PubChemInformation,
+} from "../types/pubchem";
 
 export const useMoleculeSearch = () => {
   const [searchText, setSearchText] = useState("");
@@ -8,12 +14,21 @@ export const useMoleculeSearch = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [moleculeData, setMoleculeData] = useState<MoleculeInfo | null>(null);
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Keep searchTextRef updated for use in useCallback
   const searchTextRef = useRef(searchText);
-
   useEffect(() => {
     searchTextRef.current = searchText;
   }, [searchText]);
+
+  useEffect(() => {
+    return () => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+    };
+  }, []);
 
   const fetchSuggestions = async (text: string) => {
     if (text.length < 3) {
@@ -21,24 +36,35 @@ export const useMoleculeSearch = () => {
       return;
     }
     try {
-      const url = `https://pubchem.ncbi.nlm.nih.gov/rest/autocomplete/compound/${text}/json?limit=6`;
+      const url = `https://pubchem.ncbi.nlm.nih.gov/rest/autocomplete/compound/${encodeURIComponent(
+        text,
+      )}/json?limit=6`;
       const res = await fetch(url);
-      const json = await res.json();
+      const json: PubChemAutocompleteResponse = await res.json();
       if (json.dictionary_terms && json.dictionary_terms.compound) {
-        setSuggestions(json.dictionary_terms.compound);
+        // Remove duplicates
+        setSuggestions(Array.from(new Set(json.dictionary_terms.compound)));
         setShowSuggestions(true);
       }
-    } catch (e) {
+    } catch {
       // Autocomplete error ignored
     }
   };
 
   const handleTextChange = (text: string) => {
     setSearchText(text);
-    fetchSuggestions(text);
+
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+
+    debounceTimer.current = setTimeout(() => {
+      fetchSuggestions(text);
+    }, 300);
   };
 
   const searchMolecule = useCallback(async (queryName?: string) => {
+    // Use the ref to get the current search text without adding it to dependency array
     const term = queryName || searchTextRef.current;
     if (!term.trim()) return;
 
@@ -49,9 +75,11 @@ export const useMoleculeSearch = () => {
 
     try {
       // Get compound data
-      const searchUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${term}/JSON`;
+      const searchUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(
+        term,
+      )}/JSON`;
       const searchRes = await fetch(searchUrl);
-      const searchJson = await searchRes.json();
+      const searchJson: PubChemCompoundResponse = await searchRes.json();
 
       if (!searchJson.PC_Compounds) {
         Alert.alert("Not Found", "Could not find a molecule with that name.");
@@ -59,73 +87,75 @@ export const useMoleculeSearch = () => {
         return;
       }
 
-      const compound = searchJson.PC_Compounds[0];
+      const compound: PubChemCompound = searchJson.PC_Compounds[0];
       const cid = compound.id.id.cid;
 
-      // Extract molecular formula and weight
+      // Extract properties from compound props
       let formula = "";
       let molecularWeight = "";
-
-      if (compound.props) {
-        const formulaProp = compound.props.find(
-          (p: any) => p.urn?.label === "Molecular Formula",
-        );
-        const weightProp = compound.props.find(
-          (p: any) => p.urn?.label === "Molecular Weight",
-        );
-
-        formula = formulaProp?.value?.sval || "";
-        molecularWeight = weightProp?.value?.sval
-          ? `${weightProp.value.sval} g/mol`
-          : "";
-      }
-
-      // Extract chemical properties from compound props
       const properties: ChemicalProperties = {};
 
       if (compound.props) {
-        const hAcceptorProp = compound.props.find(
-          (p: any) => p.urn?.name === "Hydrogen Bond Acceptor",
-        );
-        const hDonorProp = compound.props.find(
-          (p: any) => p.urn?.name === "Hydrogen Bond Donor",
-        );
-        const rotatableProp = compound.props.find(
-          (p: any) => p.urn?.name === "Rotatable Bond",
-        );
-        const iupacProp = compound.props.find(
-          (p: any) =>
-            p.urn?.label === "IUPAC Name" && p.urn?.name === "Preferred",
-        );
-        const iupacTradProp = compound.props.find(
-          (p: any) =>
-            p.urn?.label === "IUPAC Name" && p.urn?.name === "Traditional",
-        );
-        const logPProp = compound.props.find(
-          (p: any) => p.urn?.label === "Log P",
-        );
-        const tpsaProp = compound.props.find(
-          (p: any) => p.urn?.name === "Polar Surface Area",
-        );
+        for (const p of compound.props) {
+          const urn = p.urn;
+          const value = p.value;
+          if (!urn) continue;
 
-        properties.hBondAcceptors = hAcceptorProp?.value?.ival?.toString();
-        properties.hBondDonors = hDonorProp?.value?.ival?.toString();
-        properties.rotatableBonds = rotatableProp?.value?.ival?.toString();
-        properties.iupacName = iupacProp?.value?.sval;
-        properties.commonName = iupacTradProp?.value?.sval;
-        properties.logP =
-          logPProp?.value?.fval?.toString() || logPProp?.value?.sval;
-        properties.tpsa = tpsaProp?.value?.fval
-          ? `${tpsaProp.value.fval} Å²`
-          : undefined;
+          if (urn.label === "Molecular Formula") {
+            formula = value?.sval || "";
+          } else if (urn.label === "Molecular Weight") {
+            molecularWeight = value?.sval ? `${value.sval} g/mol` : "";
+          } else if (urn.name === "Hydrogen Bond Acceptor") {
+            properties.hBondAcceptors = value?.ival?.toString();
+          } else if (urn.name === "Hydrogen Bond Donor") {
+            properties.hBondDonors = value?.ival?.toString();
+          } else if (urn.name === "Rotatable Bond") {
+            properties.rotatableBonds = value?.ival?.toString();
+          } else if (urn.label === "IUPAC Name") {
+            if (urn.name === "Preferred") {
+              properties.iupacName = value?.sval;
+            } else if (urn.name === "Traditional") {
+              properties.commonName = value?.sval;
+            }
+          } else if (urn.label === "Log P") {
+            properties.logP = value?.fval?.toString() || value?.sval;
+          } else if (urn.name === "Polar Surface Area") {
+            properties.tpsa = value?.fval ? `${value.fval} Å²` : undefined;
+          }
+        }
       }
 
-      // Fetch additional experimental properties
-      try {
-        const propsUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug_view/data/compound/${cid}/JSON?heading=Chemical+and+Physical+Properties`;
-        const propsRes = await fetch(propsUrl);
-        const propsJson = await propsRes.json();
+      // Prepare URLs
+      const propsUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug_view/data/compound/${cid}/JSON?heading=Chemical+and+Physical+Properties`;
+      const ghsUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug_view/data/compound/${cid}/JSON?heading=GHS+Classification`;
+      const synonymsUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/synonyms/JSON`;
+      const descUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/description/JSON`;
+      const structureUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/CID/${cid}/record/SDF/?record_type=3d&response_type=display`;
 
+      // Initiate Fetches
+      const propsPromise = fetch(propsUrl)
+        .then((res) => res.json())
+        .catch(() => null);
+
+      const ghsPromise = fetch(ghsUrl)
+        .then((res) => res.json())
+        .catch(() => null);
+
+      const synonymsPromise = fetch(synonymsUrl).then((res) => res.json());
+      const descPromise = fetch(descUrl).then((res) => res.json());
+      const structurePromise = fetch(structureUrl).then((res) => res.text());
+
+      const [propsJson, ghsJson, synonymsJson, descJson, sdfText] =
+        await Promise.all([
+          propsPromise,
+          ghsPromise,
+          synonymsPromise,
+          descPromise,
+          structurePromise,
+        ]);
+
+      // Process Experimental Properties
+      if (propsJson) {
         const physicalProps = propsJson.Record?.Section?.[0];
 
         if (physicalProps && physicalProps.Section) {
@@ -155,18 +185,12 @@ export const useMoleculeSearch = () => {
             }
           }
         }
-      } catch (e) {
-        // Experimental properties error ignored
       }
 
-      // Fetch GHS and Safety data
+      // Process GHS and Safety data
       const safety: SafetyInfo = {};
 
-      try {
-        const ghsUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug_view/data/compound/${cid}/JSON?heading=GHS+Classification`;
-        const ghsRes = await fetch(ghsUrl);
-        const ghsJson = await ghsRes.json();
-
+      if (ghsJson) {
         const ghsSection =
           ghsJson.Record?.Section?.[0]?.Section?.[0]?.Section?.[0];
 
@@ -174,7 +198,7 @@ export const useMoleculeSearch = () => {
           for (const info of ghsSection.Information) {
             const name = info.Name;
             const values =
-              info.Value?.StringWithMarkup?.map((v: any) => v.String) || [];
+              info.Value?.StringWithMarkup?.map((v) => v.String || "") || [];
 
             if (name === "Signal") {
               safety.signal = values;
@@ -183,32 +207,18 @@ export const useMoleculeSearch = () => {
             }
           }
         }
-      } catch (e) {
-        // GHS data error ignored
       }
 
-      // Get synonyms
-      const synonymsUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/synonyms/JSON`;
-      const synonymsRes = await fetch(synonymsUrl);
-      const synonymsJson = await synonymsRes.json();
+      // Process Synonyms
       const synonyms =
         synonymsJson.InformationList?.Information?.[0]?.Synonym?.slice(0, 10) ||
         [];
 
-      // Get description
-      const descUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/description/JSON`;
-      const descRes = await fetch(descUrl);
-      const descJson = await descRes.json();
-
+      // Process Description
       const descInfo = descJson.InformationList?.Information?.find(
-        (info: any) => info.Description,
+        (info: PubChemInformation) => info.Description,
       );
       const description = descInfo?.Description || "No description available.";
-
-      // Get 3D structure
-      const structureUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/CID/${cid}/record/SDF/?record_type=3d&response_type=display`;
-      const structureRes = await fetch(structureUrl);
-      const sdfText = await structureRes.text();
 
       if (!sdfText || sdfText.length < 50) {
         Alert.alert(
@@ -230,7 +240,7 @@ export const useMoleculeSearch = () => {
         properties,
         safety,
       });
-    } catch (error) {
+    } catch {
       Alert.alert("Error", "Network error. Please try again.");
     } finally {
       setIsLoading(false);
