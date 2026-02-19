@@ -1,6 +1,16 @@
 import { useState, useRef, useEffect } from "react";
 import { Alert, Keyboard } from "react-native";
 import { MoleculeInfo, ChemicalProperties, SafetyInfo } from "../types";
+import {
+  PubChemCompoundResponse,
+  PubChemViewResponse,
+  PubChemInformationResponse,
+  PubChemAutocompleteResponse,
+  PubChemCompound,
+  PubChemCompoundProp,
+  PubChemInformation,
+  PubChemSynonymResponse,
+} from "../types/pubchem";
 
 export const useMoleculeSearch = () => {
   const [searchText, setSearchText] = useState("");
@@ -28,7 +38,7 @@ export const useMoleculeSearch = () => {
         text,
       )}/json?limit=6`;
       const res = await fetch(url);
-      const json = await res.json();
+      const json: PubChemAutocompleteResponse = await res.json();
       if (json.dictionary_terms && json.dictionary_terms.compound) {
         // Remove duplicates
         setSuggestions(Array.from(new Set(json.dictionary_terms.compound)));
@@ -66,7 +76,7 @@ export const useMoleculeSearch = () => {
         term,
       )}/JSON`;
       const searchRes = await fetch(searchUrl);
-      const searchJson = await searchRes.json();
+      const searchJson: PubChemCompoundResponse = await searchRes.json();
 
       if (!searchJson.PC_Compounds) {
         Alert.alert("Not Found", "Could not find a molecule with that name.");
@@ -74,7 +84,7 @@ export const useMoleculeSearch = () => {
         return;
       }
 
-      const compound = searchJson.PC_Compounds[0];
+      const compound: PubChemCompound = searchJson.PC_Compounds[0];
       const cid = compound.id.id.cid;
 
       // Extract properties from compound props
@@ -187,7 +197,7 @@ export const useMoleculeSearch = () => {
           for (const info of ghsSection.Information) {
             const name = info.Name;
             const values =
-              info.Value?.StringWithMarkup?.map((v: any) => v.String) || [];
+              info.Value?.StringWithMarkup?.map((v) => v.String || "") || [];
 
             if (name === "Signal") {
               safety.signal = values;
@@ -207,7 +217,7 @@ export const useMoleculeSearch = () => {
 
       // Process Description
       const descInfo = descJson.InformationList?.Information?.find(
-        (info: any) => info.Description,
+        (info: PubChemInformation) => info.Description,
       );
       const description = descInfo?.Description || "No description available.";
 
