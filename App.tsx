@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
 import {
-  StyleSheet,
   Text,
   View,
   TextInput,
@@ -25,7 +24,9 @@ import { viewerHtml } from "./src/constants/viewerHtml";
 import { ChemicalFormula } from "./src/components/ChemicalFormula";
 import { CollapsibleSection } from "./src/components/CollapsibleSection";
 import { PropertyRow } from "./src/components/PropertyRow";
+import { SuggestionItem } from "./src/components/SuggestionItem";
 import { useMoleculeSearch } from "./src/hooks/useMoleculeSearch";
+import { styles } from "./App.styles";
 
 function MoleculeExplorer() {
   const {
@@ -70,22 +71,19 @@ function MoleculeExplorer() {
     }
   }, [moleculeData, vizStyle, showLabels]);
 
-  const renderSuggestionItem = ({ item }: { item: string }) => (
-    <TouchableOpacity
-      style={styles.suggestionItem}
-      onPress={() => {
-        selectSuggestion(item);
-        Keyboard.dismiss();
-      }}
-    >
-      <Ionicons
-        name="search-outline"
-        size={16}
-        color="#AAA"
-        style={{ marginRight: 10 }}
-      />
-      <Text style={styles.suggestionText}>{item}</Text>
-    </TouchableOpacity>
+  const handleSelectSuggestion = React.useCallback(
+    (item: string) => {
+      selectSuggestion(item);
+      Keyboard.dismiss();
+    },
+    [selectSuggestion],
+  );
+
+  const renderSuggestionItem = React.useCallback(
+    ({ item }: { item: string }) => (
+      <SuggestionItem item={item} onSelect={handleSelectSuggestion} />
+    ),
+    [handleSelectSuggestion],
   );
 
   return (
@@ -131,7 +129,7 @@ function MoleculeExplorer() {
           <View style={styles.suggestionsContainer}>
             <FlatList
               data={suggestions}
-              keyExtractor={(_item, index) => index.toString()}
+              keyExtractor={(item) => item}
               renderItem={renderSuggestionItem}
               keyboardShouldPersistTaps="handled"
               style={{ maxHeight: 200 }}
@@ -253,7 +251,7 @@ function MoleculeExplorer() {
       <View style={styles.viewerContainer}>
         <WebView
           ref={webViewRef}
-          originWhitelist={["*"]}
+          originWhitelist={["about:blank"]}
           source={{ html: viewerHtml }}
           style={styles.webview}
           scrollEnabled={false}
@@ -451,271 +449,3 @@ export default function App() {
     </SafeAreaProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  // Main Container
-  container: {
-    flex: 1,
-    backgroundColor: "#121212",
-  },
-  // Header
-  header: {
-    padding: 16,
-    backgroundColor: "#121212",
-    zIndex: 100,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "800",
-    color: "#FFFFFF",
-    marginBottom: 15,
-  },
-  searchRow: {
-    flexDirection: "row",
-    gap: 10,
-    zIndex: 101,
-  },
-  input: {
-    flex: 1,
-    backgroundColor: "#1E1E1E",
-    borderRadius: 12,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: "#333",
-    color: "#FFFFFF",
-  },
-  button: {
-    backgroundColor: "#0A84FF",
-    borderRadius: 12,
-    width: 60,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  buttonDisabled: {
-    backgroundColor: "#333",
-  },
-  buttonText: {
-    color: "#fff",
-    fontWeight: "700",
-    fontSize: 14,
-  },
-  // Suggestions Dropdown
-  suggestionsContainer: {
-    position: "absolute",
-    top: 130,
-    left: 16,
-    right: 16,
-    backgroundColor: "#1E1E1E",
-    borderRadius: 12,
-    elevation: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 6,
-    zIndex: 999,
-    borderWidth: 1,
-    borderColor: "#333",
-  },
-  suggestionItem: {
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: "#2C2C2C",
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  suggestionText: {
-    fontSize: 16,
-    color: "#DDD",
-  },
-  // Controls
-  controlsContainer: {
-    height: 60,
-    backgroundColor: "#121212",
-    borderBottomWidth: 1,
-    borderBottomColor: "#2C2C2C",
-  },
-  controlsScroll: {
-    paddingHorizontal: 16,
-    alignItems: "center",
-    gap: 8,
-  },
-  chip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: "#1E1E1E",
-    borderWidth: 1,
-    borderColor: "#333",
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  chipActive: {
-    backgroundColor: "#0A84FF",
-    borderColor: "#0A84FF",
-  },
-  chipText: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#AAA",
-  },
-  chipTextActive: {
-    color: "#FFFFFF",
-  },
-  // Viewer
-  viewerContainer: {
-    flex: 1,
-    backgroundColor: "#121212",
-  },
-  webview: {
-    flex: 1,
-    backgroundColor: "transparent",
-  },
-  placeholderOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "#121212",
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 10,
-  },
-  placeholderText: {
-    fontSize: 16,
-    color: "#666",
-    marginTop: 15,
-  },
-  // Info Panel
-  infoPanel: {
-    maxHeight: "50%",
-    backgroundColor: "#1A1A1A",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    borderTopWidth: 1,
-    borderTopColor: "#333",
-  },
-  infoScroll: {
-    padding: 16,
-  },
-  // Stats Grid
-  statsGrid: {
-    flexDirection: "row",
-    gap: 12,
-    marginBottom: 16,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: "#252525",
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: "#333",
-  },
-  statLabel: {
-    fontSize: 12,
-    color: "#888",
-    marginBottom: 4,
-    fontWeight: "600",
-  },
-  statValue: {
-    fontSize: 16,
-    color: "#FFF",
-    fontWeight: "700",
-  },
-  noDataText: {
-    fontSize: 14,
-    color: "#666",
-    fontStyle: "italic",
-    textAlign: "center",
-    paddingVertical: 12,
-  },
-  // Safety Section
-  safetySection: {
-    marginBottom: 16,
-  },
-  safetyLabel: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#FFF",
-    marginBottom: 8,
-  },
-  safetyText: {
-    fontSize: 13,
-    color: "#DDD",
-    marginBottom: 4,
-    lineHeight: 20,
-  },
-  hazardText: {
-    fontSize: 13,
-    color: "#FF9500",
-    marginBottom: 4,
-    lineHeight: 20,
-  },
-  warningText: {
-    fontSize: 13,
-    color: "#FF453A",
-    marginBottom: 4,
-    lineHeight: 20,
-  },
-  // Description
-  descriptionText: {
-    fontSize: 14,
-    lineHeight: 22,
-    color: "#CCC",
-  },
-
-  // Synonyms
-  synonymsContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  synonymChip: {
-    backgroundColor: "#1E1E1E",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "#444",
-  },
-  synonymText: {
-    fontSize: 13,
-    color: "#DDD",
-  },
-  // Info Text
-  infoText: {
-    fontSize: 14,
-    color: "#CCC",
-    marginBottom: 12,
-  },
-  linkButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    paddingVertical: 8,
-  },
-  linkButtonText: {
-    fontSize: 14,
-    color: "#0A84FF",
-    fontWeight: "600",
-  },
-  // Footer
-  footer: {
-    paddingTop: 16,
-    paddingHorizontal: 16,
-    paddingBottom: 40,
-    backgroundColor: "#121212",
-    borderTopWidth: 1,
-    borderTopColor: "#2C2C2C",
-    alignItems: "center",
-  },
-  moleculeName: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: "#FFFFFF",
-  },
-  sourceText: {
-    fontSize: 12,
-    color: "#666",
-    marginTop: 4,
-  },
-});
