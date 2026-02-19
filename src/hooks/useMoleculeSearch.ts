@@ -172,6 +172,8 @@ export const useMoleculeSearch = () => {
             }
           }
         }
+      } catch {
+        // Experimental properties error ignored
       }
 
       // Process GHS and Safety data
@@ -194,6 +196,8 @@ export const useMoleculeSearch = () => {
             }
           }
         }
+      } catch {
+        // GHS data error ignored
       }
 
       // Process Synonyms
