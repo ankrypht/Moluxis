@@ -8,6 +8,9 @@ import {
   PubChemInformation,
 } from "../types/pubchem";
 
+// Global cache for autocomplete suggestions to persist across renders and hook instances
+const suggestionCache = new Map<string, string[]>();
+
 export const useMoleculeSearch = () => {
   const [searchText, setSearchText] = useState("");
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -35,6 +38,14 @@ export const useMoleculeSearch = () => {
       setSuggestions([]);
       return;
     }
+
+    // Check cache first
+    if (suggestionCache.has(text)) {
+      setSuggestions(suggestionCache.get(text)!);
+      setShowSuggestions(true);
+      return;
+    }
+
     try {
       const url = `https://pubchem.ncbi.nlm.nih.gov/rest/autocomplete/compound/${encodeURIComponent(
         text,
@@ -43,7 +54,9 @@ export const useMoleculeSearch = () => {
       const json: PubChemAutocompleteResponse = await res.json();
       if (json.dictionary_terms && json.dictionary_terms.compound) {
         // Remove duplicates
-        setSuggestions(Array.from(new Set(json.dictionary_terms.compound)));
+        const deduplicated = Array.from(new Set(json.dictionary_terms.compound));
+        suggestionCache.set(text, deduplicated);
+        setSuggestions(deduplicated);
         setShowSuggestions(true);
       }
     } catch {
