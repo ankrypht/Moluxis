@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.0.2](https://github.com/ankrypht/Moluxis/compare/v1.0.1...v1.0.2) (2026-03-18)
+
+
+### Bug Fixes
+
+* 🔒 validate external compound ID to prevent path traversal ([#42](https://github.com/ankrypht/Moluxis/issues/42)) ([198cc05](https://github.com/ankrypht/Moluxis/commit/198cc0520eb90549354f2e9a78fd31cf2fa35a92))
+
+
+### Performance Improvements
+
+* extract inline array allocation to constant in App.tsx ([#40](https://github.com/ankrypht/Moluxis/issues/40)) ([2e808e6](https://github.com/ankrypht/Moluxis/commit/2e808e64bf5dee38d4652712bf3bd4416323adc6))
+* hoist regex literal out of ChemicalFormula render loop ([#38](https://github.com/ankrypht/Moluxis/issues/38)) ([7a52dc4](https://github.com/ankrypht/Moluxis/commit/7a52dc4ee6af696f6460c1192f9553b7b5d52b20))
+* implement caching for autocomplete API calls ([#33](https://github.com/ankrypht/Moluxis/issues/33)) ([98332ba](https://github.com/ankrypht/Moluxis/commit/98332baca267a6eaf38430e83cd8d2b1ed03c32d))
+* optimize inline mappings in App.tsx using useMemo ([#35](https://github.com/ankrypht/Moluxis/issues/35)) ([912eb36](https://github.com/ankrypht/Moluxis/commit/912eb36f3a7763e10fb9024ae167796eef41d1ec))
+
 ## [1.0.1](https://github.com/ankrypht/Moluxis/compare/v1.0.0...v1.0.1) (2026-02-19)
 
 
