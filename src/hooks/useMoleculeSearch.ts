@@ -94,14 +94,25 @@ export const useMoleculeSearch = () => {
       const searchRes = await fetch(searchUrl);
       const searchJson: PubChemCompoundResponse = await searchRes.json();
 
-      if (!searchJson.PC_Compounds) {
+      const compounds = searchJson.PC_Compounds;
+      if (!compounds || compounds.length === 0) {
         Alert.alert("Not Found", "Could not find a molecule with that name.");
         setIsLoading(false);
         return;
       }
 
-      const compound: PubChemCompound = searchJson.PC_Compounds[0];
-      const cid = compound.id.id.cid;
+      const compound: PubChemCompound = compounds[0];
+      const cid = compound?.id?.id?.cid;
+
+      // Validate Compound ID (Security: Prevent path traversal/malicious IDs)
+      if (typeof cid !== "number" || !Number.isInteger(cid) || cid <= 0) {
+        Alert.alert(
+          "Error",
+          "Received invalid data from the chemical database.",
+        );
+        setIsLoading(false);
+        return;
+      }
 
       // Extract properties from compound props
       let formula = "";
