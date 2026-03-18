@@ -1,11 +1,11 @@
-export const viewerHtml = `
+export const getViewerHtml = (nonce: string) => `
 <!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' https://3Dmol.csb.pitt.edu; style-src 'unsafe-inline'; img-src 'self' data: https://3Dmol.csb.pitt.edu; connect-src 'self' https://3Dmol.csb.pitt.edu;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}' https://3Dmol.csb.pitt.edu; style-src 'nonce-${nonce}'; img-src 'self' data: https://3Dmol.csb.pitt.edu; connect-src 'self' https://3Dmol.csb.pitt.edu;">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <script src="https://3Dmol.csb.pitt.edu/build/3Dmol-min.js"></script>
-  <style>
+  <script src="https://3Dmol.csb.pitt.edu/build/3Dmol-min.js" nonce="${nonce}"></script>
+  <style nonce="${nonce}">
     /* Dark Theme Background */
     body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background-color: #121212; }
     #container { width: 100%; height: 100%; position: relative; }
@@ -13,7 +13,7 @@ export const viewerHtml = `
 </head>
 <body>
   <div id="container"></div>
-  <script>
+  <script nonce="${nonce}">
     let viewer = null;
     let currentModel = null;
     let currentStyle = 'ballStick';
@@ -82,6 +82,19 @@ export const viewerHtml = `
       showLabels = labels;
       applyStyle();
     }
+
+    window.addEventListener('message', (event) => {
+      try {
+        const message = JSON.parse(event.data);
+        if (message.type === 'LOAD_STRUCTURE') {
+          window.loadStructure(message.data);
+        } else if (message.type === 'UPDATE_SETTINGS') {
+          window.updateSettings(message.style, message.labels);
+        }
+      } catch (err) {
+        // Silently ignore or handle parse errors
+      }
+    });
 
     init();
   </script>
