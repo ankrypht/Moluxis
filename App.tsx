@@ -1,4 +1,10 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useMemo,
+} from "react";
 import {
   Text,
   View,
@@ -20,7 +26,7 @@ import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 
 import { VisualizationType } from "./src/types";
-import { viewerHtml } from "./src/constants/viewerHtml";
+import { getViewerHtml } from "./src/constants/viewerHtml";
 import { ChemicalFormula } from "./src/components/ChemicalFormula";
 import { CollapsibleSection } from "./src/components/CollapsibleSection";
 import { PropertyRow } from "./src/components/PropertyRow";
@@ -48,6 +54,7 @@ function MoleculeExplorer() {
   const [showInfo, setShowInfo] = useState(false);
 
   const webViewRef = useRef<WebView>(null);
+  const nonce = useMemo(() => Math.random().toString(36).substring(2), []);
 
   useEffect(() => {
     if (moleculeData && webViewRef.current) {
@@ -252,7 +259,7 @@ function MoleculeExplorer() {
         <WebView
           ref={webViewRef}
           originWhitelist={["about:blank"]}
-          source={{ html: viewerHtml }}
+          source={{ html: getViewerHtml(nonce) }}
           style={styles.webview}
           scrollEnabled={false}
         />
