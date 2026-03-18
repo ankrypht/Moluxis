@@ -28,6 +28,9 @@ import { SuggestionItem } from "./src/components/SuggestionItem";
 import { useMoleculeSearch } from "./src/hooks/useMoleculeSearch";
 import { styles } from "./App.styles";
 
+// Extract constant to avoid inline allocation and trigger unnecessary re-renders
+const SAFE_AREA_EDGES = ["top", "left", "right"] as const;
+
 function MoleculeExplorer() {
   const {
     searchText,
@@ -87,7 +90,7 @@ function MoleculeExplorer() {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
+    <SafeAreaView style={styles.container} edges={SAFE_AREA_EDGES}>
       <StatusBar style="light" />
 
       {/* Header */}
