@@ -1,0 +1,43 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ChemicalFormula handles empty formula string 1`] = `
+<Text
+  style={
+    {
+      "color": "#FFF",
+      "fontSize": 16,
+      "fontWeight": "700",
+    }
+  }
+/>
+`;
+
+exports[`ChemicalFormula matches snapshot 1`] = `
+<Text
+  style={
+    {
+      "color": "#FFF",
+      "fontSize": 16,
+      "fontWeight": "700",
+    }
+  }
+>
+  <Text>
+    H
+  </Text>
+  <Text
+    style={
+      {
+        "fontSize": 12,
+        "lineHeight": 18,
+        "textAlignVertical": "bottom",
+      }
+    }
+  >
+    2
+  </Text>
+  <Text>
+    O
+  </Text>
+</Text>
+`;
