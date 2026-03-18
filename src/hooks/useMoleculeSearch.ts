@@ -77,11 +77,12 @@ export const useMoleculeSearch = () => {
   };
 
   const searchMolecule = useCallback(async (queryName?: string) => {
+    Keyboard.dismiss();
+
     // Use the ref to get the current search text without adding it to dependency array
     const term = queryName || searchTextRef.current;
     if (!term.trim()) return;
 
-    Keyboard.dismiss();
     setShowSuggestions(false);
     setIsLoading(true);
     setMoleculeData(null);

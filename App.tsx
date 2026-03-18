@@ -74,7 +74,6 @@ function MoleculeExplorer() {
   const handleSelectSuggestion = useCallback(
     (item: string) => {
       selectSuggestion(item);
-      Keyboard.dismiss();
     },
     [selectSuggestion],
   );
@@ -102,18 +101,12 @@ function MoleculeExplorer() {
             onChangeText={handleTextChange}
             onFocus={() => setShowSuggestions(true)}
             returnKeyType="search"
-            onSubmitEditing={() => {
-              searchMolecule();
-              Keyboard.dismiss();
-            }}
+            onSubmitEditing={() => searchMolecule()}
             keyboardAppearance="dark"
           />
           <TouchableOpacity
             style={[styles.button, isLoading && styles.buttonDisabled]}
-            onPress={() => {
-              searchMolecule();
-              Keyboard.dismiss();
-            }}
+            onPress={() => searchMolecule()}
             disabled={isLoading}
           >
             {isLoading ? (
