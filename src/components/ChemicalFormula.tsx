@@ -5,13 +5,15 @@ interface ChemicalFormulaProps {
   formula: string;
 }
 
+const DIGIT_REGEX = /\d/;
+
 export const ChemicalFormula: React.FC<ChemicalFormulaProps> = ({
   formula,
 }) => {
   return (
     <Text style={styles.statValue}>
       {formula.split("").map((char, index) =>
-        /\d/.test(char) ? (
+        DIGIT_REGEX.test(char) ? (
           <Text key={index} style={styles.subscript}>
             {char}
           </Text>

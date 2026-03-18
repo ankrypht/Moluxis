@@ -8,6 +8,9 @@ import {
   PubChemInformation,
 } from "../types/pubchem";
 
+// Global cache for autocomplete suggestions to persist across renders and hook instances
+const suggestionCache = new Map<string, string[]>();
+
 export const useMoleculeSearch = () => {
   const [searchText, setSearchText] = useState("");
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -35,6 +38,14 @@ export const useMoleculeSearch = () => {
       setSuggestions([]);
       return;
     }
+
+    // Check cache first
+    if (suggestionCache.has(text)) {
+      setSuggestions(suggestionCache.get(text)!);
+      setShowSuggestions(true);
+      return;
+    }
+
     try {
       const url = `https://pubchem.ncbi.nlm.nih.gov/rest/autocomplete/compound/${encodeURIComponent(
         text,
@@ -43,11 +54,13 @@ export const useMoleculeSearch = () => {
       const json: PubChemAutocompleteResponse = await res.json();
       if (json.dictionary_terms && json.dictionary_terms.compound) {
         // Remove duplicates
-        setSuggestions(Array.from(new Set(json.dictionary_terms.compound)));
+        const deduplicated = Array.from(new Set(json.dictionary_terms.compound));
+        suggestionCache.set(text, deduplicated);
+        setSuggestions(deduplicated);
         setShowSuggestions(true);
       }
-    } catch {
-      // Autocomplete error ignored
+    } catch (error) {
+      console.error("Autocomplete error:", error);
     }
   };
 
@@ -64,11 +77,12 @@ export const useMoleculeSearch = () => {
   };
 
   const searchMolecule = useCallback(async (queryName?: string) => {
+    Keyboard.dismiss();
+
     // Use the ref to get the current search text without adding it to dependency array
     const term = queryName || searchTextRef.current;
     if (!term.trim()) return;
 
-    Keyboard.dismiss();
     setShowSuggestions(false);
     setIsLoading(true);
     setMoleculeData(null);
@@ -81,14 +95,25 @@ export const useMoleculeSearch = () => {
       const searchRes = await fetch(searchUrl);
       const searchJson: PubChemCompoundResponse = await searchRes.json();
 
-      if (!searchJson.PC_Compounds) {
+      const compounds = searchJson.PC_Compounds;
+      if (!compounds || compounds.length === 0) {
         Alert.alert("Not Found", "Could not find a molecule with that name.");
         setIsLoading(false);
         return;
       }
 
-      const compound: PubChemCompound = searchJson.PC_Compounds[0];
-      const cid = compound.id.id.cid;
+      const compound: PubChemCompound = compounds[0];
+      const cid = compound?.id?.id?.cid;
+
+      // Validate Compound ID (Security: Prevent path traversal/malicious IDs)
+      if (typeof cid !== "number" || !Number.isInteger(cid) || cid <= 0) {
+        Alert.alert(
+          "Error",
+          "Received invalid data from the chemical database.",
+        );
+        setIsLoading(false);
+        return;
+      }
 
       // Extract properties from compound props
       let formula = "";
@@ -194,8 +219,8 @@ export const useMoleculeSearch = () => {
               }
             }
           }
-        } catch {
-          // Experimental properties error ignored
+        } catch (error) {
+          console.error("Error processing experimental properties:", error);
         }
       }
 
@@ -222,8 +247,8 @@ export const useMoleculeSearch = () => {
               }
             }
           }
-        } catch {
-          // GHS data error ignored
+        } catch (error) {
+          console.error("Error processing GHS data:", error);
         }
       }
 
@@ -258,7 +283,8 @@ export const useMoleculeSearch = () => {
         properties,
         safety,
       });
-    } catch {
+    } catch (error) {
+      console.error("Molecule search error:", error);
       Alert.alert("Error", "Network error. Please try again.");
     } finally {
       setIsLoading(false);

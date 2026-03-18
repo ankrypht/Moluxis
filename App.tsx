@@ -28,6 +28,9 @@ import { SuggestionItem } from "./src/components/SuggestionItem";
 import { useMoleculeSearch } from "./src/hooks/useMoleculeSearch";
 import { styles } from "./App.styles";
 
+// Extract constant to avoid inline allocation and trigger unnecessary re-renders
+const SAFE_AREA_EDGES = ["top", "left", "right"] as const;
+
 function MoleculeExplorer() {
   const {
     searchText,
@@ -53,6 +56,32 @@ function MoleculeExplorer() {
     () => Math.random().toString(36).substring(2, 15),
     [],
   );
+  const signalWords = useMemo(() => {
+    if (!moleculeData?.safety?.signal) return null;
+    return moleculeData.safety.signal.map((item, idx) => (
+      <Text key={idx} style={styles.warningText}>
+        ⚠ {item}
+      </Text>
+    ));
+  }, [moleculeData]);
+
+  const hazardStatements = useMemo(() => {
+    if (!moleculeData?.safety?.hazardStatements) return null;
+    return moleculeData.safety.hazardStatements.map((item, idx) => (
+      <Text key={idx} style={styles.hazardText}>
+        ⚠ {item}
+      </Text>
+    ));
+  }, [moleculeData]);
+
+  const synonymsList = useMemo(() => {
+    if (!moleculeData?.synonyms) return null;
+    return moleculeData.synonyms.map((synonym, index) => (
+      <View key={index} style={styles.synonymChip}>
+        <Text style={styles.synonymText}>{synonym}</Text>
+      </View>
+    ));
+  }, [moleculeData]);
 
   useEffect(() => {
     if (moleculeData && webViewRef.current) {
@@ -78,7 +107,6 @@ function MoleculeExplorer() {
   const handleSelectSuggestion = useCallback(
     (item: string) => {
       selectSuggestion(item);
-      Keyboard.dismiss();
     },
     [selectSuggestion],
   );
@@ -91,7 +119,7 @@ function MoleculeExplorer() {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
+    <SafeAreaView style={styles.container} edges={SAFE_AREA_EDGES}>
       <StatusBar style="light" />
 
       {/* Header */}
@@ -106,18 +134,12 @@ function MoleculeExplorer() {
             onChangeText={handleTextChange}
             onFocus={() => setShowSuggestions(true)}
             returnKeyType="search"
-            onSubmitEditing={() => {
-              searchMolecule();
-              Keyboard.dismiss();
-            }}
+            onSubmitEditing={() => searchMolecule()}
             keyboardAppearance="dark"
           />
           <TouchableOpacity
             style={[styles.button, isLoading && styles.buttonDisabled]}
-            onPress={() => {
-              searchMolecule();
-              Keyboard.dismiss();
-            }}
+            onPress={() => searchMolecule()}
             disabled={isLoading}
           >
             {isLoading ? (
@@ -375,22 +397,14 @@ function MoleculeExplorer() {
                   moleculeData.safety.signal.length > 0 && (
                     <View style={styles.safetySection}>
                       <Text style={styles.safetyLabel}>Signal Words</Text>
-                      {moleculeData.safety.signal.map((item, idx) => (
-                        <Text key={idx} style={styles.warningText}>
-                          ⚠ {item}
-                        </Text>
-                      ))}
+                      {signalWords}
                     </View>
                   )}
                 {moleculeData.safety.hazardStatements &&
                   moleculeData.safety.hazardStatements.length > 0 && (
                     <View style={styles.safetySection}>
                       <Text style={styles.safetyLabel}>Hazard Statements</Text>
-                      {moleculeData.safety.hazardStatements.map((item, idx) => (
-                        <Text key={idx} style={styles.hazardText}>
-                          ⚠ {item}
-                        </Text>
-                      ))}
+                      {hazardStatements}
                     </View>
                   )}
               </CollapsibleSection>
@@ -407,13 +421,7 @@ function MoleculeExplorer() {
             </CollapsibleSection>
 
             <CollapsibleSection title="Synonyms" icon="list-outline">
-              <View style={styles.synonymsContainer}>
-                {moleculeData.synonyms.map((synonym, index) => (
-                  <View key={index} style={styles.synonymChip}>
-                    <Text style={styles.synonymText}>{synonym}</Text>
-                  </View>
-                ))}
-              </View>
+              <View style={styles.synonymsContainer}>{synonymsList}</View>
             </CollapsibleSection>
 
             <CollapsibleSection title="PubChem Data" icon="link-outline">
