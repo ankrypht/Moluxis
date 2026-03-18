@@ -43,7 +43,7 @@ export interface PubChemCompoundResponse {
 
 export interface PubChemStringWithMarkup {
   String: string;
-  Markup?: any[];
+  Markup?: unknown[];
 }
 
 export interface PubChemInfoValue {
@@ -96,6 +96,6 @@ export interface PubChemAutocompleteResponse {
   total?: number;
   dictionary_terms?: {
     compound?: string[];
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
