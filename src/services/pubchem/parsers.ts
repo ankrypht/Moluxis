@@ -7,7 +7,7 @@ import {
 } from "../../types/pubchem";
 
 /**
- * Extracts basic properties (formula, weight, etc.) from a PubChem compound object.
+ * Extracts basic properties (formula, molecular weight, etc.) from a PubChem compound object.
  */
 export const parseCompoundProps = (compound: PubChemCompound) => {
   let formula = "";
