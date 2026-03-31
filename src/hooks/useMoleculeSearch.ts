@@ -1,7 +1,11 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Alert, Keyboard } from "react-native";
 import { MoleculeInfo } from "../types";
-import { fetchAutocomplete, fetchCompoundByName, fetchMoleculeDetails } from "../services/pubchem/api";
+import {
+  fetchAutocomplete,
+  fetchCompoundByName,
+  fetchMoleculeDetails,
+} from "../services/pubchem/api";
 import {
   parseCompoundProps,
   parseExperimentalProperties,
@@ -9,6 +13,9 @@ import {
   parseSynonyms,
   parseDescription,
 } from "../services/pubchem/parsers";
+
+// Global cache for autocomplete suggestions to persist across renders and hook instances
+const suggestionCache = new Map<string, string[]>();
 
 export const useMoleculeSearch = () => {
   const [searchText, setSearchText] = useState("");
@@ -37,10 +44,23 @@ export const useMoleculeSearch = () => {
       setSuggestions([]);
       return;
     }
-    const results = await fetchAutocomplete(text);
-    if (results.length > 0) {
-      setSuggestions(results);
+
+    // Check cache first
+    if (suggestionCache.has(text)) {
+      setSuggestions(suggestionCache.get(text)!);
       setShowSuggestions(true);
+      return;
+    }
+
+    try {
+      const results = await fetchAutocomplete(text);
+      if (results.length > 0) {
+        suggestionCache.set(text, results);
+        setSuggestions(results);
+        setShowSuggestions(true);
+      }
+    } catch (error) {
+      console.error("Autocomplete error:", error);
     }
   };
 
@@ -57,10 +77,12 @@ export const useMoleculeSearch = () => {
   };
 
   const searchMolecule = useCallback(async (queryName?: string) => {
+    Keyboard.dismiss();
+
+    // Use the ref to get the current search text without adding it to dependency array
     const term = queryName || searchTextRef.current;
     if (!term.trim()) return;
 
-    Keyboard.dismiss();
     setShowSuggestions(false);
     setIsLoading(true);
     setMoleculeData(null);
@@ -77,8 +99,19 @@ export const useMoleculeSearch = () => {
       const compound = searchJson.PC_Compounds[0];
       const cid = compound.id.id.cid;
 
+      // Validate Compound ID (Security: Prevent path traversal/malicious IDs)
+      if (typeof cid !== "number" || !Number.isInteger(cid) || cid <= 0) {
+        Alert.alert(
+          "Error",
+          "Received invalid data from the chemical database.",
+        );
+        setIsLoading(false);
+        return;
+      }
+
       // Extract basic props
-      const { formula, molecularWeight, properties } = parseCompoundProps(compound);
+      const { formula, molecularWeight, properties } =
+        parseCompoundProps(compound);
 
       // Fetch all remaining details in parallel
       const { propsJson, ghsJson, synonymsJson, descJson, sdfText } =
@@ -113,7 +146,7 @@ export const useMoleculeSearch = () => {
         safety,
       });
     } catch (error) {
-      console.error("Search error:", error);
+      console.error("Molecule search error:", error);
       Alert.alert("Error", "Network error. Please try again.");
     } finally {
       setIsLoading(false);
