@@ -14,8 +14,9 @@ import {
   parseDescription,
 } from "../services/pubchem/parsers";
 
-// Global cache for autocomplete suggestions to persist across renders and hook instances
+// Global cache for autocomplete suggestions and molecule data to persist across renders and hook instances
 const suggestionCache = new Map<string, string[]>();
+const moleculeCache = new Map<string, MoleculeInfo>();
 
 export const useMoleculeSearch = () => {
   const [searchText, setSearchText] = useState("");
@@ -83,7 +84,16 @@ export const useMoleculeSearch = () => {
     const term = queryName || searchTextRef.current;
     if (!term.trim()) return;
 
+    const normalizedTerm = term.trim().toLowerCase();
+
     setShowSuggestions(false);
+
+    // Check cache first
+    if (moleculeCache.has(normalizedTerm)) {
+      setMoleculeData(moleculeCache.get(normalizedTerm)!);
+      return;
+    }
+
     setIsLoading(true);
     setMoleculeData(null);
 
@@ -134,7 +144,7 @@ export const useMoleculeSearch = () => {
         return;
       }
 
-      setMoleculeData({
+      const result: MoleculeInfo = {
         name: term,
         sdf: sdfText,
         formula,
@@ -144,7 +154,11 @@ export const useMoleculeSearch = () => {
         cid: cid.toString(),
         properties,
         safety,
-      });
+      };
+
+      // Store in cache
+      moleculeCache.set(normalizedTerm, result);
+      setMoleculeData(result);
     } catch (error) {
       console.error("Molecule search error:", error);
       Alert.alert("Error", "Network error. Please try again.");
