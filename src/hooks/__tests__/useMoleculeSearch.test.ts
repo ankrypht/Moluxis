@@ -93,7 +93,7 @@ describe("useMoleculeSearch", () => {
       const { result } = renderHook(() => useMoleculeSearch());
 
       act(() => {
-        result.current.handleTextChange("wat");
+        result.current.handleTextChange("err");
       });
 
       await act(async () => {
