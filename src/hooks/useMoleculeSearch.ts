@@ -61,7 +61,10 @@ export const useMoleculeSearch = () => {
         setShowSuggestions(true);
       }
     } catch (error) {
-      console.error("Autocomplete error:", error);
+      console.error(
+        "Autocomplete error:",
+        error instanceof Error ? error.message : error,
+      );
     }
   };
 
@@ -160,7 +163,10 @@ export const useMoleculeSearch = () => {
       moleculeCache.set(normalizedTerm, result);
       setMoleculeData(result);
     } catch (error) {
-      console.error("Molecule search error:", error);
+      console.error(
+        "Molecule search error:",
+        error instanceof Error ? error.message : error,
+      );
       Alert.alert("Error", "Network error. Please try again.");
     } finally {
       setIsLoading(false);
