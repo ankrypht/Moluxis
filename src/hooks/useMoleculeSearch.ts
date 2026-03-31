@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Alert, Keyboard } from "react-native";
 import { MoleculeInfo, ChemicalProperties, SafetyInfo } from "../types";
+import { parseExperimentalProperties } from "../services/pubchem/parsers";
 import {
   PubChemCompoundResponse,
   PubChemAutocompleteResponse,
@@ -194,29 +195,7 @@ export const useMoleculeSearch = () => {
 
           if (physicalProps && physicalProps.Section) {
             for (const subsection of physicalProps.Section) {
-              if (
-                subsection.TOCHeading === "Experimental Properties" &&
-                subsection.Section
-              ) {
-                for (const expSection of subsection.Section) {
-                  const heading = expSection.TOCHeading;
-                  const info = expSection.Information?.[0];
-                  const value = info?.Value?.StringWithMarkup?.[0]?.String;
-
-                  if (heading === "Boiling Point" && value) {
-                    // Show boiling point in C
-                    properties.boilingPoint = value;
-                  } else if (heading === "Melting Point" && value) {
-                    properties.meltingPoint = value;
-                  } else if (heading === "Solubility" && value) {
-                    properties.solubility = value;
-                  } else if (heading === "Density" && value) {
-                    properties.density = value;
-                  } else if (heading === "pH" && value) {
-                    properties.pH = value;
-                  }
-                }
-              }
+              parseExperimentalProperties(subsection, properties);
             }
           }
         } catch (error) {
