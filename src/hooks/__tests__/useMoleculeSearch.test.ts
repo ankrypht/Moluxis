@@ -84,10 +84,14 @@ describe("useMoleculeSearch", () => {
       });
 
       expect(mockFetch).toHaveBeenCalledWith(
-        "https://pubchem.ncbi.nlm.nih.gov/rest/autocomplete/compound/wat/json?limit=6"
+        "https://pubchem.ncbi.nlm.nih.gov/rest/autocomplete/compound/wat/json?limit=6",
       );
       // Verify duplicates are removed
-      expect(result.current.suggestions).toEqual(["water", "water gas", "water vapor"]);
+      expect(result.current.suggestions).toEqual([
+        "water",
+        "water gas",
+        "water vapor",
+      ]);
       expect(result.current.showSuggestions).toBe(true);
     });
 
@@ -139,7 +143,7 @@ describe("useMoleculeSearch", () => {
       expect(mockFetch).toHaveBeenCalledTimes(1);
       expect(Alert.alert).toHaveBeenCalledWith(
         "Not Found",
-        "Could not find a molecule with that name."
+        "Could not find a molecule with that name.",
       );
       expect(result.current.isLoading).toBe(false);
     });
@@ -153,7 +157,10 @@ describe("useMoleculeSearch", () => {
         await result.current.searchMolecule("water");
       });
 
-      expect(Alert.alert).toHaveBeenCalledWith("Error", "Network error. Please try again.");
+      expect(Alert.alert).toHaveBeenCalledWith(
+        "Error",
+        "Network error. Please try again.",
+      );
       expect(result.current.isLoading).toBe(false);
     });
 
@@ -166,11 +173,21 @@ describe("useMoleculeSearch", () => {
       });
 
       // Mock subsequent calls
-      mockFetch.mockResolvedValueOnce({ json: jest.fn().mockResolvedValue({}) }); // props
-      mockFetch.mockResolvedValueOnce({ json: jest.fn().mockResolvedValue({}) }); // ghs
-      mockFetch.mockResolvedValueOnce({ json: jest.fn().mockResolvedValue({}) }); // synonyms
-      mockFetch.mockResolvedValueOnce({ json: jest.fn().mockResolvedValue({}) }); // desc
-      mockFetch.mockResolvedValueOnce({ text: jest.fn().mockResolvedValue("short text") }); // sdf
+      mockFetch.mockResolvedValueOnce({
+        json: jest.fn().mockResolvedValue({}),
+      }); // props
+      mockFetch.mockResolvedValueOnce({
+        json: jest.fn().mockResolvedValue({}),
+      }); // ghs
+      mockFetch.mockResolvedValueOnce({
+        json: jest.fn().mockResolvedValue({}),
+      }); // synonyms
+      mockFetch.mockResolvedValueOnce({
+        json: jest.fn().mockResolvedValue({}),
+      }); // desc
+      mockFetch.mockResolvedValueOnce({
+        text: jest.fn().mockResolvedValue("short text"),
+      }); // sdf
 
       const { result } = renderHook(() => useMoleculeSearch());
 
@@ -178,7 +195,10 @@ describe("useMoleculeSearch", () => {
         await result.current.searchMolecule("water");
       });
 
-      expect(Alert.alert).toHaveBeenCalledWith("No 3D Data", "No 3D structure available for this compound.");
+      expect(Alert.alert).toHaveBeenCalledWith(
+        "No 3D Data",
+        "No 3D structure available for this compound.",
+      );
       expect(result.current.isLoading).toBe(false);
       expect(result.current.moleculeData).toBeNull();
     });
@@ -192,12 +212,21 @@ describe("useMoleculeSearch", () => {
               id: { id: { cid: 962 } },
               props: [
                 { urn: { label: "Molecular Formula" }, value: { sval: "H2O" } },
-                { urn: { label: "Molecular Weight" }, value: { sval: "18.015" } },
+                {
+                  urn: { label: "Molecular Weight" },
+                  value: { sval: "18.015" },
+                },
                 { urn: { name: "Hydrogen Bond Acceptor" }, value: { ival: 1 } },
                 { urn: { name: "Hydrogen Bond Donor" }, value: { ival: 2 } },
                 { urn: { name: "Rotatable Bond" }, value: { ival: 0 } },
-                { urn: { label: "IUPAC Name", name: "Preferred" }, value: { sval: "oxidane" } },
-                { urn: { label: "IUPAC Name", name: "Traditional" }, value: { sval: "water" } },
+                {
+                  urn: { label: "IUPAC Name", name: "Preferred" },
+                  value: { sval: "oxidane" },
+                },
+                {
+                  urn: { label: "IUPAC Name", name: "Traditional" },
+                  value: { sval: "water" },
+                },
                 { urn: { label: "Log P" }, value: { fval: -1.38 } },
                 { urn: { name: "Polar Surface Area" }, value: { fval: 25.2 } },
               ],
@@ -210,55 +239,101 @@ describe("useMoleculeSearch", () => {
       mockFetch.mockResolvedValueOnce({
         json: jest.fn().mockResolvedValue({
           Record: {
-            Section: [{
-              Section: [{
-                TOCHeading: "Experimental Properties",
+            Section: [
+              {
                 Section: [
-                  { TOCHeading: "Boiling Point", Information: [{ Value: { StringWithMarkup: [{ String: "100 °C" }] } }] },
-                  { TOCHeading: "Melting Point", Information: [{ Value: { StringWithMarkup: [{ String: "0 °C" }] } }] }
-                ]
-              }]
-            }]
-          }
-        })
+                  {
+                    TOCHeading: "Experimental Properties",
+                    Section: [
+                      {
+                        TOCHeading: "Boiling Point",
+                        Information: [
+                          {
+                            Value: { StringWithMarkup: [{ String: "100 °C" }] },
+                          },
+                        ],
+                      },
+                      {
+                        TOCHeading: "Melting Point",
+                        Information: [
+                          { Value: { StringWithMarkup: [{ String: "0 °C" }] } },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        }),
       });
 
       // 3. GHS response
       mockFetch.mockResolvedValueOnce({
         json: jest.fn().mockResolvedValue({
           Record: {
-            Section: [{
-              Section: [{
-                Section: [{
-                  Information: [
-                    { Name: "Signal", Value: { StringWithMarkup: [{ String: "Warning" }] } },
-                    { Name: "GHS Hazard Statements", Value: { StringWithMarkup: [{ String: "H302" }, { String: "H315" }] } }
-                  ]
-                }]
-              }]
-            }]
-          }
-        })
+            Section: [
+              {
+                Section: [
+                  {
+                    Section: [
+                      {
+                        Information: [
+                          {
+                            Name: "Signal",
+                            Value: {
+                              StringWithMarkup: [{ String: "Warning" }],
+                            },
+                          },
+                          {
+                            Name: "GHS Hazard Statements",
+                            Value: {
+                              StringWithMarkup: [
+                                { String: "H302" },
+                                { String: "H315" },
+                              ],
+                            },
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        }),
       });
 
       // 4. Synonyms response
       mockFetch.mockResolvedValueOnce({
         json: jest.fn().mockResolvedValue({
-          InformationList: { Information: [{ Synonym: ["H2O", "oxidane", "water"] }] }
-        })
+          InformationList: {
+            Information: [{ Synonym: ["H2O", "oxidane", "water"] }],
+          },
+        }),
       });
 
       // 5. Description response
       mockFetch.mockResolvedValueOnce({
         json: jest.fn().mockResolvedValue({
-          InformationList: { Information: [{ Description: "A clear, colorless, odorless, and tasteless liquid." }] }
-        })
+          InformationList: {
+            Information: [
+              {
+                Description:
+                  "A clear, colorless, odorless, and tasteless liquid.",
+              },
+            ],
+          },
+        }),
       });
 
       // 6. SDF Structure response
-      const mockSdf = "header\n".repeat(20) + "valid sdf string data > 50 chars to bypass validation";
+      const mockSdf =
+        "header\n".repeat(20) +
+        "valid sdf string data > 50 chars to bypass validation";
       mockFetch.mockResolvedValueOnce({
-        text: jest.fn().mockResolvedValue(mockSdf)
+        text: jest.fn().mockResolvedValue(mockSdf),
       });
 
       const { result } = renderHook(() => useMoleculeSearch());
@@ -296,8 +371,8 @@ describe("useMoleculeSearch", () => {
     });
 
     it("should handle partial failures in Promise.all gracefully", async () => {
-       // Search response
-       mockFetch.mockResolvedValueOnce({
+      // Search response
+      mockFetch.mockResolvedValueOnce({
         json: jest.fn().mockResolvedValue({
           PC_Compounds: [{ id: { id: { cid: 123 } }, props: [] }],
         }),
@@ -313,9 +388,11 @@ describe("useMoleculeSearch", () => {
       mockFetch.mockRejectedValueOnce(new Error("Desc error"));
 
       // 6. SDF Structure response (Succeeds)
-      const mockSdf = "header\n".repeat(20) + "valid sdf string data > 50 chars to bypass validation";
+      const mockSdf =
+        "header\n".repeat(20) +
+        "valid sdf string data > 50 chars to bypass validation";
       mockFetch.mockResolvedValueOnce({
-        text: jest.fn().mockResolvedValue(mockSdf)
+        text: jest.fn().mockResolvedValue(mockSdf),
       });
 
       const { result } = renderHook(() => useMoleculeSearch());
@@ -326,7 +403,9 @@ describe("useMoleculeSearch", () => {
 
       // Should still succeed with missing optional data
       expect(result.current.moleculeData?.name).toBe("test");
-      expect(result.current.moleculeData?.description).toBe("No description available.");
+      expect(result.current.moleculeData?.description).toBe(
+        "No description available.",
+      );
       expect(result.current.moleculeData?.synonyms).toEqual([]);
       expect(result.current.moleculeData?.properties).toEqual({});
       expect(result.current.moleculeData?.safety).toEqual({});
@@ -341,12 +420,24 @@ describe("useMoleculeSearch", () => {
           PC_Compounds: [{ id: { id: { cid: 123 } }, props: [] }],
         }),
       });
-      mockFetch.mockResolvedValueOnce({ json: jest.fn().mockResolvedValue({}) }); // props
-      mockFetch.mockResolvedValueOnce({ json: jest.fn().mockResolvedValue({}) }); // ghs
-      mockFetch.mockResolvedValueOnce({ json: jest.fn().mockResolvedValue({}) }); // synonyms
-      mockFetch.mockResolvedValueOnce({ json: jest.fn().mockResolvedValue({}) }); // desc
-      const mockSdf = "header\n".repeat(20) + "valid sdf string data > 50 chars to bypass validation";
-      mockFetch.mockResolvedValueOnce({ text: jest.fn().mockResolvedValue(mockSdf) }); // sdf
+      mockFetch.mockResolvedValueOnce({
+        json: jest.fn().mockResolvedValue({}),
+      }); // props
+      mockFetch.mockResolvedValueOnce({
+        json: jest.fn().mockResolvedValue({}),
+      }); // ghs
+      mockFetch.mockResolvedValueOnce({
+        json: jest.fn().mockResolvedValue({}),
+      }); // synonyms
+      mockFetch.mockResolvedValueOnce({
+        json: jest.fn().mockResolvedValue({}),
+      }); // desc
+      const mockSdf =
+        "header\n".repeat(20) +
+        "valid sdf string data > 50 chars to bypass validation";
+      mockFetch.mockResolvedValueOnce({
+        text: jest.fn().mockResolvedValue(mockSdf),
+      }); // sdf
 
       const { result } = renderHook(() => useMoleculeSearch());
 

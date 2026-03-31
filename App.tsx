@@ -1,4 +1,10 @@
-import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useMemo,
+} from "react";
 import {
   Text,
   View,
@@ -52,10 +58,6 @@ function MoleculeExplorer() {
 
   const webViewRef = useRef<WebView>(null);
 
-  const nonce = useMemo(
-    () => Math.random().toString(36).substring(2, 15),
-    [],
-  );
   const signalWords = useMemo(() => {
     if (!moleculeData?.safety?.signal) return null;
     return moleculeData.safety.signal.map((item, idx) => (
@@ -89,7 +91,11 @@ function MoleculeExplorer() {
         type: "LOAD_STRUCTURE",
         data: moleculeData.sdf,
       });
-      webViewRef.current.postMessage(message);
+      // Small timeout to ensure WebView is fully loaded and listener is attached
+      const timer = setTimeout(() => {
+        webViewRef.current?.postMessage(message);
+      }, 500);
+      return () => clearTimeout(timer);
     }
   }, [moleculeData]);
 
@@ -103,6 +109,28 @@ function MoleculeExplorer() {
       webViewRef.current.postMessage(message);
     }
   }, [moleculeData, vizStyle, showLabels]);
+
+  const onWebViewMessage = useCallback(
+    (event: any) => {
+      try {
+        const data = JSON.parse(event.nativeEvent.data);
+        if (
+          data.type === "WEBVIEW_READY" &&
+          moleculeData &&
+          webViewRef.current
+        ) {
+          const message = JSON.stringify({
+            type: "LOAD_STRUCTURE",
+            data: moleculeData.sdf,
+          });
+          webViewRef.current.postMessage(message);
+        }
+      } catch (e) {
+        // Silently handle non-JSON messages
+      }
+    },
+    [moleculeData],
+  );
 
   const handleSelectSuggestion = useCallback(
     (item: string) => {
@@ -277,11 +305,11 @@ function MoleculeExplorer() {
       <View style={styles.viewerContainer}>
         <WebView
           ref={webViewRef}
-          originWhitelist={["about:blank"]}
-          source={{ html: getViewerHtml(nonce) }}
+          originWhitelist={["*"]}
+          source={{ html: getViewerHtml() }}
           style={styles.webview}
           scrollEnabled={false}
-          onMessage={() => {}}
+          onMessage={onWebViewMessage}
         />
 
         {!moleculeData && !isLoading && (

@@ -1,8 +1,7 @@
 import React from "react";
 import { render, fireEvent, waitFor } from "@testing-library/react-native";
-import { Animated, View } from "react-native";
+import { Animated, Text, View } from "react-native";
 import { CollapsibleSection } from "../CollapsibleSection";
-import { Text } from "react-native";
 
 // Mock @expo/vector-icons
 jest.mock("@expo/vector-icons", () => {
@@ -18,11 +17,14 @@ describe("CollapsibleSection Component", () => {
 
   beforeEach(() => {
     // Spy on Animated.spring
-    springSpy = jest.spyOn(Animated, "spring").mockImplementation(() => ({
-      start: jest.fn(),
-      stop: jest.fn(),
-      reset: jest.fn(),
-    }) as unknown as Animated.CompositeAnimation);
+    springSpy = jest.spyOn(Animated, "spring").mockImplementation(
+      () =>
+        ({
+          start: jest.fn(),
+          stop: jest.fn(),
+          reset: jest.fn(),
+        }) as unknown as Animated.CompositeAnimation,
+    );
   });
 
   afterEach(() => {
@@ -33,7 +35,7 @@ describe("CollapsibleSection Component", () => {
     const { getByText, getByTestId } = render(
       <CollapsibleSection title="Test Section" icon="information-circle">
         <Text testID="child-text">Child Content</Text>
-      </CollapsibleSection>
+      </CollapsibleSection>,
     );
 
     // Wait for vector icons to finish loading to avoid unhandled act() warnings.
@@ -47,9 +49,13 @@ describe("CollapsibleSection Component", () => {
 
   it("renders correctly when defaultExpanded is true", async () => {
     const { getByText, getByTestId } = render(
-      <CollapsibleSection title="Test Section" icon="information-circle" defaultExpanded={true}>
+      <CollapsibleSection
+        title="Test Section"
+        icon="information-circle"
+        defaultExpanded={true}
+      >
         <Text testID="child-text">Child Content</Text>
-      </CollapsibleSection>
+      </CollapsibleSection>,
     );
 
     await waitFor(() => {
@@ -62,7 +68,7 @@ describe("CollapsibleSection Component", () => {
     const { getByText } = render(
       <CollapsibleSection title="Test Section" icon="information-circle">
         <Text>Child Content</Text>
-      </CollapsibleSection>
+      </CollapsibleSection>,
     );
 
     await waitFor(() => {
@@ -80,7 +86,7 @@ describe("CollapsibleSection Component", () => {
         useNativeDriver: false,
         tension: 50,
         friction: 8,
-      })
+      }),
     );
 
     // Press again to collapse
@@ -94,7 +100,7 @@ describe("CollapsibleSection Component", () => {
         useNativeDriver: false,
         tension: 50,
         friction: 8,
-      })
+      }),
     );
   });
 });

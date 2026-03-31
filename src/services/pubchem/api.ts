@@ -10,9 +10,7 @@ const BASE_URL = "https://pubchem.ncbi.nlm.nih.gov/rest";
 /**
  * Fetches compound name suggestions for the autocomplete.
  */
-export const fetchAutocomplete = async (
-  text: string,
-): Promise<string[]> => {
+export const fetchAutocomplete = async (text: string): Promise<string[]> => {
   try {
     const url = `${BASE_URL}/autocomplete/compound/${encodeURIComponent(
       text,

@@ -1,4 +1,5 @@
 import pkg from "./package.json";
+const IS_DEV = process.env.APP_VARIANT === "development";
 
 const getVersionCode = (version) => {
   const [major, minor, patch] = version.split(".").map(Number);
@@ -6,7 +7,7 @@ const getVersionCode = (version) => {
 };
 
 export default {
-  name: "Moluxis",
+  name: IS_DEV ? "Moluxis (Dev)" : "Moluxis",
   slug: "Moluxis",
   version: pkg.version,
   orientation: "portrait",
@@ -21,7 +22,9 @@ export default {
     backgroundColor: "#000000",
   },
   android: {
-    package: "com.ankushsarkar.moluxis",
+    package: IS_DEV
+      ? "com.ankushsarkar.moluxis.dev"
+      : "com.ankushsarkar.moluxis",
     versionCode: getVersionCode(pkg.version),
     adaptiveIcon: {
       foregroundImage: "./assets/adaptive-icon.png",

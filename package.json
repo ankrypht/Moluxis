@@ -11,12 +11,15 @@
     "build-eas": "eas build --platform android --profile preview",
     "build-prod": "eas build --platform android --profile production --local",
     "build-prod-eas": "eas build --platform android --profile production",
+    "build-dev": "eas build --platform android --profile development --local",
+    "build-dev-eas": "eas build --platform android --profile development",
     "format": "npx prettier@latest --write .",
     "test": "jest"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",
     "expo": "^55.0.9",
+    "expo-dev-client": "~55.0.19",
     "expo-font": "~55.0.4",
     "expo-status-bar": "~55.0.4",
     "react": "19.2.0",
