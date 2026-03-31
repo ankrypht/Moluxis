@@ -17,14 +17,18 @@ const mockFetch = jest.fn();
 global.fetch = mockFetch as any;
 
 describe("useMoleculeSearch", () => {
+  let consoleSpy: jest.SpyInstance;
+
   beforeEach(() => {
     jest.useFakeTimers();
     jest.clearAllMocks();
     mockFetch.mockReset();
+    consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
   });
 
   afterEach(() => {
     jest.useRealTimers();
+    consoleSpy.mockRestore();
   });
 
   it("should initialize with default values", () => {
@@ -93,7 +97,7 @@ describe("useMoleculeSearch", () => {
       const { result } = renderHook(() => useMoleculeSearch());
 
       act(() => {
-        result.current.handleTextChange("wat");
+        result.current.handleTextChange("err");
       });
 
       await act(async () => {

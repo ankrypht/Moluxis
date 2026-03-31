@@ -1,15 +1,22 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Alert, Keyboard } from "react-native";
-import { MoleculeInfo, ChemicalProperties, SafetyInfo } from "../types";
+import { MoleculeInfo } from "../types";
 import {
-  PubChemCompoundResponse,
-  PubChemAutocompleteResponse,
-  PubChemCompound,
-  PubChemInformation,
-} from "../types/pubchem";
+  fetchAutocomplete,
+  fetchCompoundByName,
+  fetchMoleculeDetails,
+} from "../services/pubchem/api";
+import {
+  parseCompoundProps,
+  parseExperimentalProperties,
+  parseSafetyInfo,
+  parseSynonyms,
+  parseDescription,
+} from "../services/pubchem/parsers";
 
-// Global cache for autocomplete suggestions to persist across renders and hook instances
+// Global cache for autocomplete suggestions and molecule data to persist across renders and hook instances
 const suggestionCache = new Map<string, string[]>();
+const moleculeCache = new Map<string, MoleculeInfo>();
 
 export const useMoleculeSearch = () => {
   const [searchText, setSearchText] = useState("");
@@ -47,16 +54,10 @@ export const useMoleculeSearch = () => {
     }
 
     try {
-      const url = `https://pubchem.ncbi.nlm.nih.gov/rest/autocomplete/compound/${encodeURIComponent(
-        text,
-      )}/json?limit=6`;
-      const res = await fetch(url);
-      const json: PubChemAutocompleteResponse = await res.json();
-      if (json.dictionary_terms && json.dictionary_terms.compound) {
-        // Remove duplicates
-        const deduplicated = Array.from(new Set(json.dictionary_terms.compound));
-        suggestionCache.set(text, deduplicated);
-        setSuggestions(deduplicated);
+      const results = await fetchAutocomplete(text);
+      if (results.length > 0) {
+        suggestionCache.set(text, results);
+        setSuggestions(results);
         setShowSuggestions(true);
       }
     } catch (error) {
@@ -86,27 +87,30 @@ export const useMoleculeSearch = () => {
     const term = queryName || searchTextRef.current;
     if (!term.trim()) return;
 
+    const normalizedTerm = term.trim().toLowerCase();
+
     setShowSuggestions(false);
+
+    // Check cache first
+    if (moleculeCache.has(normalizedTerm)) {
+      setMoleculeData(moleculeCache.get(normalizedTerm)!);
+      return;
+    }
+
     setIsLoading(true);
     setMoleculeData(null);
 
     try {
-      // Get compound data
-      const searchUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/${encodeURIComponent(
-        term,
-      )}/JSON`;
-      const searchRes = await fetch(searchUrl);
-      const searchJson: PubChemCompoundResponse = await searchRes.json();
-
-      const compounds = searchJson.PC_Compounds;
-      if (!compounds || compounds.length === 0) {
+      // Get initial compound data by name
+      const searchJson = await fetchCompoundByName(term);
+      if (!searchJson.PC_Compounds || searchJson.PC_Compounds.length === 0) {
         Alert.alert("Not Found", "Could not find a molecule with that name.");
         setIsLoading(false);
         return;
       }
 
-      const compound: PubChemCompound = compounds[0];
-      const cid = compound?.id?.id?.cid;
+      const compound = searchJson.PC_Compounds[0];
+      const cid = compound.id.id.cid;
 
       // Validate Compound ID (Security: Prevent path traversal/malicious IDs)
       if (typeof cid !== "number" || !Number.isInteger(cid) || cid <= 0) {
@@ -118,159 +122,21 @@ export const useMoleculeSearch = () => {
         return;
       }
 
-      // Extract properties from compound props
-      let formula = "";
-      let molecularWeight = "";
-      const properties: ChemicalProperties = {};
+      // Extract basic props
+      const { formula, molecularWeight, properties } =
+        parseCompoundProps(compound);
 
-      if (compound.props) {
-        for (const p of compound.props) {
-          const urn = p.urn;
-          const value = p.value;
-          if (!urn) continue;
+      // Fetch all remaining details in parallel
+      const { propsJson, ghsJson, synonymsJson, descJson, sdfText } =
+        await fetchMoleculeDetails(cid);
 
-          if (urn.label === "Molecular Formula") {
-            formula = value?.sval || "";
-          } else if (urn.label === "Molecular Weight") {
-            molecularWeight = value?.sval ? `${value.sval} g/mol` : "";
-          } else if (urn.name === "Hydrogen Bond Acceptor") {
-            properties.hBondAcceptors = value?.ival?.toString();
-          } else if (urn.name === "Hydrogen Bond Donor") {
-            properties.hBondDonors = value?.ival?.toString();
-          } else if (urn.name === "Rotatable Bond") {
-            properties.rotatableBonds = value?.ival?.toString();
-          } else if (urn.label === "IUPAC Name") {
-            if (urn.name === "Preferred") {
-              properties.iupacName = value?.sval;
-            } else if (urn.name === "Traditional") {
-              properties.commonName = value?.sval;
-            }
-          } else if (urn.label === "Log P") {
-            properties.logP = value?.fval?.toString() || value?.sval;
-          } else if (urn.name === "Polar Surface Area") {
-            properties.tpsa = value?.fval ? `${value.fval} Å²` : undefined;
-          }
-        }
-      }
+      // Parse additional data
+      const experimentalProps = parseExperimentalProperties(propsJson);
+      Object.assign(properties, experimentalProps);
 
-      // Prepare URLs
-      const propsUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug_view/data/compound/${cid}/JSON?heading=Chemical+and+Physical+Properties`;
-      const ghsUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug_view/data/compound/${cid}/JSON?heading=GHS+Classification`;
-      const synonymsUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/synonyms/JSON`;
-      const descUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/${cid}/description/JSON`;
-      const structureUrl = `https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/CID/${cid}/record/SDF/?record_type=3d&response_type=display`;
-
-      // Initiate Fetches
-      const propsPromise = fetch(propsUrl)
-        .then((res) => res.json())
-        .catch(() => null);
-
-      const ghsPromise = fetch(ghsUrl)
-        .then((res) => res.json())
-        .catch(() => null);
-
-      const synonymsPromise = fetch(synonymsUrl)
-        .then((res) => res.json())
-        .catch(() => ({}));
-
-      const descPromise = fetch(descUrl)
-        .then((res) => res.json())
-        .catch(() => ({}));
-
-      const structurePromise = fetch(structureUrl)
-        .then((res) => res.text())
-        .catch(() => "");
-
-      const [propsJson, ghsJson, synonymsJson, descJson, sdfText] =
-        await Promise.all([
-          propsPromise,
-          ghsPromise,
-          synonymsPromise,
-          descPromise,
-          structurePromise,
-        ]);
-
-      // Process Experimental Properties
-      if (propsJson) {
-        try {
-          const physicalProps = propsJson.Record?.Section?.[0];
-
-          if (physicalProps && physicalProps.Section) {
-            for (const subsection of physicalProps.Section) {
-              if (
-                subsection.TOCHeading === "Experimental Properties" &&
-                subsection.Section
-              ) {
-                for (const expSection of subsection.Section) {
-                  const heading = expSection.TOCHeading;
-                  const info = expSection.Information?.[0];
-                  const value = info?.Value?.StringWithMarkup?.[0]?.String;
-
-                  if (heading === "Boiling Point" && value) {
-                    // Show boiling point in C
-                    properties.boilingPoint = value;
-                  } else if (heading === "Melting Point" && value) {
-                    properties.meltingPoint = value;
-                  } else if (heading === "Solubility" && value) {
-                    properties.solubility = value;
-                  } else if (heading === "Density" && value) {
-                    properties.density = value;
-                  } else if (heading === "pH" && value) {
-                    properties.pH = value;
-                  }
-                }
-              }
-            }
-          }
-        } catch (error) {
-          console.error(
-            "Error processing experimental properties:",
-            error instanceof Error ? error.message : error,
-          );
-        }
-      }
-
-      // Process GHS and Safety data
-      const safety: SafetyInfo = {};
-
-      if (ghsJson) {
-        try {
-          const ghsSection =
-            ghsJson.Record?.Section?.[0]?.Section?.[0]?.Section?.[0];
-
-          if (ghsSection && ghsSection.Information) {
-            for (const info of ghsSection.Information) {
-              const name = info.Name;
-              const values =
-                info.Value?.StringWithMarkup?.map(
-                  (v: { String?: string }) => v.String || "",
-                ) || [];
-
-              if (name === "Signal") {
-                safety.signal = values;
-              } else if (name === "GHS Hazard Statements") {
-                safety.hazardStatements = values;
-              }
-            }
-          }
-        } catch (error) {
-          console.error(
-            "Error processing GHS data:",
-            error instanceof Error ? error.message : error,
-          );
-        }
-      }
-
-      // Process Synonyms
-      const synonyms =
-        synonymsJson.InformationList?.Information?.[0]?.Synonym?.slice(0, 10) ||
-        [];
-
-      // Process Description
-      const descInfo = descJson.InformationList?.Information?.find(
-        (info: PubChemInformation) => info.Description,
-      );
-      const description = descInfo?.Description || "No description available.";
+      const safety = parseSafetyInfo(ghsJson);
+      const synonyms = parseSynonyms(synonymsJson);
+      const description = parseDescription(descJson);
 
       if (!sdfText || sdfText.length < 50) {
         Alert.alert(
@@ -281,7 +147,7 @@ export const useMoleculeSearch = () => {
         return;
       }
 
-      setMoleculeData({
+      const result: MoleculeInfo = {
         name: term,
         sdf: sdfText,
         formula,
@@ -291,7 +157,11 @@ export const useMoleculeSearch = () => {
         cid: cid.toString(),
         properties,
         safety,
-      });
+      };
+
+      // Store in cache
+      moleculeCache.set(normalizedTerm, result);
+      setMoleculeData(result);
     } catch (error) {
       console.error(
         "Molecule search error:",
