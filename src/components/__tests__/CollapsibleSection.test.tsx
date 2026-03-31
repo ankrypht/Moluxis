@@ -1,8 +1,17 @@
 import React from "react";
 import { render, fireEvent, waitFor } from "@testing-library/react-native";
-import { Animated } from "react-native";
+import { Animated, View } from "react-native";
 import { CollapsibleSection } from "../CollapsibleSection";
 import { Text } from "react-native";
+
+// Mock @expo/vector-icons
+jest.mock("@expo/vector-icons", () => {
+  const React = require("react");
+  const { View } = require("react-native");
+  return {
+    Ionicons: (props: any) => React.createElement(View, props),
+  };
+});
 
 describe("CollapsibleSection Component", () => {
   let springSpy: jest.SpyInstance;
