@@ -60,7 +60,10 @@ export const useMoleculeSearch = () => {
         setShowSuggestions(true);
       }
     } catch (error) {
-      console.error("Autocomplete error:", error);
+      console.error(
+        "Autocomplete error:",
+        error instanceof Error ? error.message : error,
+      );
     }
   };
 
@@ -220,7 +223,10 @@ export const useMoleculeSearch = () => {
             }
           }
         } catch (error) {
-          console.error("Error processing experimental properties:", error);
+          console.error(
+            "Error processing experimental properties:",
+            error instanceof Error ? error.message : error,
+          );
         }
       }
 
@@ -248,7 +254,10 @@ export const useMoleculeSearch = () => {
             }
           }
         } catch (error) {
-          console.error("Error processing GHS data:", error);
+          console.error(
+            "Error processing GHS data:",
+            error instanceof Error ? error.message : error,
+          );
         }
       }
 
@@ -284,7 +293,10 @@ export const useMoleculeSearch = () => {
         safety,
       });
     } catch (error) {
-      console.error("Molecule search error:", error);
+      console.error(
+        "Molecule search error:",
+        error instanceof Error ? error.message : error,
+      );
       Alert.alert("Error", "Network error. Please try again.");
     } finally {
       setIsLoading(false);
