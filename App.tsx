@@ -11,7 +11,6 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  Keyboard,
   FlatList,
   ScrollView,
   Linking,
@@ -87,11 +86,14 @@ function MoleculeExplorer() {
 
   useEffect(() => {
     if (moleculeData && webViewRef.current) {
+      const useCif =
+        moleculeData.structureFormat === "cif" && !!moleculeData.cif;
       const message = JSON.stringify({
         type: "LOAD_STRUCTURE",
-        data: moleculeData.sdf,
+        data: useCif ? moleculeData.cif : moleculeData.sdf,
+        format: useCif ? "cif" : "sdf",
       });
-      // Small timeout to ensure WebView is fully loaded and listener is attached
+
       const timer = setTimeout(() => {
         webViewRef.current?.postMessage(message);
       }, 500);
@@ -119,13 +121,16 @@ function MoleculeExplorer() {
           moleculeData &&
           webViewRef.current
         ) {
+          const useCif =
+            moleculeData.structureFormat === "cif" && !!moleculeData.cif;
           const message = JSON.stringify({
             type: "LOAD_STRUCTURE",
-            data: moleculeData.sdf,
+            data: useCif ? moleculeData.cif : moleculeData.sdf,
+            format: useCif ? "cif" : "sdf",
           });
           webViewRef.current.postMessage(message);
         }
-      } catch (e) {
+      } catch {
         // Silently handle non-JSON messages
       }
     },
@@ -303,6 +308,42 @@ function MoleculeExplorer() {
 
       {/* Viewer Area */}
       <View style={styles.viewerContainer}>
+        {moleculeData && !isLoading && (
+          <View style={styles.badgeContainer}>
+            <View
+              style={[
+                styles.badge,
+                moleculeData.structureFormat === "2d_sdf" && styles.badgeActive,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.badgeText,
+                  moleculeData.structureFormat === "2d_sdf" &&
+                    styles.badgeTextActive,
+                ]}
+              >
+                2D
+              </Text>
+            </View>
+            <View
+              style={[
+                styles.badge,
+                moleculeData.structureFormat !== "2d_sdf" && styles.badgeActive,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.badgeText,
+                  moleculeData.structureFormat !== "2d_sdf" &&
+                    styles.badgeTextActive,
+                ]}
+              >
+                3D
+              </Text>
+            </View>
+          </View>
+        )}
         <WebView
           ref={webViewRef}
           originWhitelist={["*"]}
@@ -452,8 +493,10 @@ function MoleculeExplorer() {
               <View style={styles.synonymsContainer}>{synonymsList}</View>
             </CollapsibleSection>
 
-            <CollapsibleSection title="PubChem Data" icon="link-outline">
-              <Text style={styles.infoText}>CID: {moleculeData.cid}</Text>
+            <CollapsibleSection title="Databases" icon="link-outline">
+              <Text style={styles.infoText}>
+                PubChem CID: {moleculeData.cid}
+              </Text>
               <TouchableOpacity
                 style={styles.linkButton}
                 onPress={() =>
@@ -465,6 +508,28 @@ function MoleculeExplorer() {
                 <Text style={styles.linkButtonText}>View on PubChem</Text>
                 <Ionicons name="open-outline" size={16} color="#0A84FF" />
               </TouchableOpacity>
+
+              {/* NEW: Add COD link if available */}
+              {moleculeData.codId && (
+                <>
+                  <Text style={[styles.infoText, { marginTop: 15 }]}>
+                    COD ID: {moleculeData.codId}
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.linkButton}
+                    onPress={() =>
+                      Linking.openURL(
+                        `https://www.crystallography.net/cod/${moleculeData.codId}.html`,
+                      )
+                    }
+                  >
+                    <Text style={styles.linkButtonText}>
+                      View Crystal Data (COD)
+                    </Text>
+                    <Ionicons name="open-outline" size={16} color="#0A84FF" />
+                  </TouchableOpacity>
+                </>
+              )}
             </CollapsibleSection>
           </ScrollView>
         </View>

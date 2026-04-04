@@ -25,7 +25,7 @@
 
 ## 📖 Overview
 
-**Moluxis** is a powerful Android application built with Expo that allows students, chemists, and enthusiasts to explore the molecular world. Powered by the **PubChem** database, Moluxis provides real-time access to millions of chemical compounds, offering detailed chemical properties, safety data, and fully interactive 3D structures directly on your mobile device.
+**Moluxis** is a powerful Android application built with Expo that allows students, chemists, and enthusiasts to explore the molecular world. Powered by the **PubChem** database and the **Crystallography Open Database (COD)**, Moluxis provides real-time access to millions of chemical compounds, offering detailed chemical properties, safety data, and fully interactive 3D structures or crystal lattices directly on your mobile device.
 
 The app features a sleek, dark-themed UI designed for focus and clarity.
 
@@ -44,6 +44,7 @@ The app features a sleek, dark-themed UI designed for focus and clarity.
   - 🥢 **Sticks:** Clean view emphasizing bond connectivity.
   - 🔴 **Space-Fill:** Realistic volume representation.
   - 🕸️ **Wireframe:** Minimalist view for complex structures.
+- **Crystal Structures:** Visualizes 3D crystal lattices for inorganic compounds via COD integration.
 - **Controls:** Toggle atom labels and switch modes instantly.
 
 ### 📊 **Comprehensive Chemical Data**
@@ -63,7 +64,9 @@ The app features a sleek, dark-themed UI designed for focus and clarity.
 - **Framework:** [React Native](https://reactnative.dev/) (via [Expo](https://expo.dev/))
 - **Language:** TypeScript
 - **3D Engine:** [3Dmol.js](https://3Dmol.csb.pitt.edu/) (embedded via `react-native-webview`)
-- **Data Source:** [PubChem PUG REST API](https://pubchem.ncbi.nlm.nih.gov/docs/pug-rest)
+- **Data Sources:**
+  - [PubChem PUG REST API](https://pubchem.ncbi.nlm.nih.gov/docs/pug-rest)
+  - [Crystallography Open Database (COD)](https://www.crystallography.net/)
 - **UI Components:** Custom components.
 
 ## 📲 Installation
@@ -117,3 +120,4 @@ Licensed under the Apache License, Version 2.0.
 
 - **PubChem:** For providing the extensive chemical database and API.
 - **3Dmol.js:** For the excellent JavaScript-based molecular visualization library.
+- **Crystallography Open Database (COD):** For providing the open-access collection of crystal structures.

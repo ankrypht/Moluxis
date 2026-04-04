@@ -1,11 +1,13 @@
 import React from "react";
 import { render, fireEvent, waitFor } from "@testing-library/react-native";
-import { Animated, Text, View } from "react-native";
+import { Animated, Text } from "react-native";
 import { CollapsibleSection } from "../CollapsibleSection";
 
 // Mock @expo/vector-icons
 jest.mock("@expo/vector-icons", () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const React = require("react");
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { View } = require("react-native");
   return {
     Ionicons: (props: any) => React.createElement(View, props),

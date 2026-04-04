@@ -88,13 +88,17 @@ export const getViewerHtml = () => `
       }
     }
 
-    window.loadStructure = function(sdfData) {
+    window.loadStructure = function(structureData, format) {
       if (!viewer) init();
       if (!viewer) return;
       
       try {
         viewer.clear();
-        currentModel = viewer.addModel(sdfData, "sdf");
+        
+        // If it's a CIF file, assemble the unit cell first
+        let options = {};
+        currentModel = viewer.addModel(structureData, format, options);
+
         viewer.zoomTo();
         applyStyle();
       } catch (e) {
@@ -112,7 +116,8 @@ export const getViewerHtml = () => `
       try {
         const message = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
         if (message.type === 'LOAD_STRUCTURE') {
-          window.loadStructure(message.data);
+          // Pass the new format
+          window.loadStructure(message.data, message.format);
         } else if (message.type === 'UPDATE_SETTINGS') {
           window.updateSettings(message.style, message.labels);
         }

@@ -115,6 +115,35 @@ export const styles = StyleSheet.create({
   viewerContainer: {
     flex: 1,
     backgroundColor: "#121212",
+    position: "relative",
+  },
+  badgeContainer: {
+    position: "absolute",
+    top: 16,
+    right: 16,
+    flexDirection: "row",
+    gap: 6,
+    zIndex: 20,
+  },
+  badge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    backgroundColor: "rgba(30, 30, 30, 0.8)",
+    borderWidth: 1,
+    borderColor: "#444",
+  },
+  badgeActive: {
+    backgroundColor: "rgba(10, 132, 255, 0.2)",
+    borderColor: "#0A84FF",
+  },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#888",
+  },
+  badgeTextActive: {
+    color: "#0A84FF",
   },
   webview: {
     flex: 1,

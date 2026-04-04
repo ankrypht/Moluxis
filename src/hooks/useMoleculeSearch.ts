@@ -127,21 +127,31 @@ export const useMoleculeSearch = () => {
         parseCompoundProps(compound);
 
       // Fetch all remaining details in parallel
-      const { propsJson, ghsJson, synonymsJson, descJson, sdfText } =
-        await fetchMoleculeDetails(cid);
+      const {
+        propsJson,
+        ghsJson,
+        synonymsJson,
+        descJson,
+        sdfText,
+        cifText,
+        codId,
+        structureFormat,
+      } = await fetchMoleculeDetails(cid);
 
       // Parse additional data
       const experimentalProps = parseExperimentalProperties(propsJson);
       Object.assign(properties, experimentalProps);
 
       const safety = parseSafetyInfo(ghsJson);
-      const synonyms = parseSynonyms(synonymsJson);
-      const description = parseDescription(descJson);
+      const synonyms = synonymsJson ? parseSynonyms(synonymsJson) : [];
+      const description = descJson
+        ? parseDescription(descJson)
+        : "No description available.";
 
-      if (!sdfText || sdfText.length < 50) {
+      if (!sdfText && !cifText) {
         Alert.alert(
-          "No 3D Data",
-          "No 3D structure available for this compound.",
+          "No Structure Data",
+          "No structure available for this compound.",
         );
         setIsLoading(false);
         return;
@@ -150,6 +160,9 @@ export const useMoleculeSearch = () => {
       const result: MoleculeInfo = {
         name: term,
         sdf: sdfText,
+        cif: cifText,
+        codId: codId,
+        structureFormat,
         formula,
         molecularWeight,
         synonyms,
