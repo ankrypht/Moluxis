@@ -18,7 +18,7 @@ export const fetchAutocomplete = async (text: string): Promise<string[]> => {
     const res = await fetch(url);
     const json: PubChemAutocompleteResponse = await res.json();
     if (json.dictionary_terms && json.dictionary_terms.compound) {
-      return Array.from(new Set(json.dictionary_terms.compound));
+      return [...new Set(json.dictionary_terms.compound)];
     }
     return [];
   } catch (error) {
