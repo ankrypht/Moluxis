@@ -19,7 +19,9 @@ describe("getViewerHtml", () => {
 
   it("should include the 3Dmol.js script", () => {
     const html = getViewerHtml();
-    expect(html).toContain('<script src="https://3Dmol.csb.pitt.edu/build/3Dmol-min.js"></script>');
+    expect(html).toContain(
+      '<script src="https://3Dmol.csb.pitt.edu/build/3Dmol-min.js"></script>',
+    );
   });
 
   it("should contain key JavaScript functions and logic", () => {
@@ -29,7 +31,9 @@ describe("getViewerHtml", () => {
     expect(html).toContain("window.loadStructure = function");
     expect(html).toContain("window.updateSettings = function");
     expect(html).toContain("window.ReactNativeWebView.postMessage");
-    expect(html).toContain("window.addEventListener('message', messageHandler)");
+    expect(html).toContain(
+      "window.addEventListener('message', messageHandler)",
+    );
     expect(html).toContain("const check3Dmol = setInterval");
   });
 

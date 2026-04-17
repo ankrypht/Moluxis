@@ -129,11 +129,7 @@ function MoleculeExplorer() {
     (event: any) => {
       try {
         const data = JSON.parse(event.nativeEvent.data);
-        if (
-          isWebViewReadyMessage(data) &&
-          moleculeData &&
-          webViewRef.current
-        ) {
+        if (isWebViewReadyMessage(data) && moleculeData && webViewRef.current) {
           const useCif =
             moleculeData.structureFormat === "cif" && !!moleculeData.cif;
           const message = JSON.stringify({

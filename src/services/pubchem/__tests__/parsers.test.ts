@@ -5,7 +5,11 @@ import {
   parseSynonyms,
   parseDescription,
 } from "../parsers";
-import { PubChemCompound, PubChemViewResponse, PubChemInformationResponse } from "../../../types/pubchem";
+import {
+  PubChemCompound,
+  PubChemViewResponse,
+  PubChemInformationResponse,
+} from "../../../types/pubchem";
 
 describe("PubChem Parsers", () => {
   describe("parseCompoundProps", () => {
@@ -18,8 +22,14 @@ describe("PubChem Parsers", () => {
           { urn: { name: "Hydrogen Bond Acceptor" }, value: { ival: 1 } },
           { urn: { name: "Hydrogen Bond Donor" }, value: { ival: 2 } },
           { urn: { name: "Rotatable Bond" }, value: { ival: 0 } },
-          { urn: { label: "IUPAC Name", name: "Preferred" }, value: { sval: "oxidane" } },
-          { urn: { label: "IUPAC Name", name: "Traditional" }, value: { sval: "water" } },
+          {
+            urn: { label: "IUPAC Name", name: "Preferred" },
+            value: { sval: "oxidane" },
+          },
+          {
+            urn: { label: "IUPAC Name", name: "Traditional" },
+            value: { sval: "water" },
+          },
           { urn: { label: "Log P" }, value: { fval: -1.38 } },
           { urn: { name: "Polar Surface Area" }, value: { fval: 1.0 } },
         ],
@@ -52,12 +62,12 @@ describe("PubChem Parsers", () => {
     });
 
     it("should handle compound with no props field", () => {
-        const mockCompound: PubChemCompound = {
-            id: { id: { cid: 123 } }
-        };
-        const result = parseCompoundProps(mockCompound);
-        expect(result.formula).toBe("");
-        expect(result.properties).toEqual({});
+      const mockCompound: PubChemCompound = {
+        id: { id: { cid: 123 } },
+      };
+      const result = parseCompoundProps(mockCompound);
+      expect(result.formula).toBe("");
+      expect(result.properties).toEqual({});
     });
   });
 
@@ -73,23 +83,39 @@ describe("PubChem Parsers", () => {
                   Section: [
                     {
                       TOCHeading: "Boiling Point",
-                      Information: [{ Value: { StringWithMarkup: [{ String: "100 °C" }] } }],
+                      Information: [
+                        { Value: { StringWithMarkup: [{ String: "100 °C" }] } },
+                      ],
                     },
                     {
                       TOCHeading: "Melting Point",
-                      Information: [{ Value: { StringWithMarkup: [{ String: "0 °C" }] } }],
+                      Information: [
+                        { Value: { StringWithMarkup: [{ String: "0 °C" }] } },
+                      ],
                     },
                     {
                       TOCHeading: "Solubility",
-                      Information: [{ Value: { StringWithMarkup: [{ String: "Miscible" }] } }],
+                      Information: [
+                        {
+                          Value: { StringWithMarkup: [{ String: "Miscible" }] },
+                        },
+                      ],
                     },
                     {
                       TOCHeading: "Density",
-                      Information: [{ Value: { StringWithMarkup: [{ String: "1.0 g/cm³" }] } }],
+                      Information: [
+                        {
+                          Value: {
+                            StringWithMarkup: [{ String: "1.0 g/cm³" }],
+                          },
+                        },
+                      ],
                     },
                     {
                       TOCHeading: "pH",
-                      Information: [{ Value: { StringWithMarkup: [{ String: "7" }] } }],
+                      Information: [
+                        { Value: { StringWithMarkup: [{ String: "7" }] } },
+                      ],
                     },
                   ],
                 },
@@ -113,12 +139,12 @@ describe("PubChem Parsers", () => {
     });
 
     it("should handle missing experimental properties section", () => {
-        const mockView: PubChemViewResponse = {
-            Record: {
-                Section: [{ Section: [{ TOCHeading: "Other Properties" }] }]
-            }
-        };
-        expect(parseExperimentalProperties(mockView)).toEqual({});
+      const mockView: PubChemViewResponse = {
+        Record: {
+          Section: [{ Section: [{ TOCHeading: "Other Properties" }] }],
+        },
+      };
+      expect(parseExperimentalProperties(mockView)).toEqual({});
     });
   });
 
@@ -141,7 +167,10 @@ describe("PubChem Parsers", () => {
                           Name: "GHS Hazard Statements",
                           Value: {
                             StringWithMarkup: [
-                              { String: "H225: Highly flammable liquid and vapor" },
+                              {
+                                String:
+                                  "H225: Highly flammable liquid and vapor",
+                              },
                               { String: "H319: Causes serious eye irritation" },
                             ],
                           },
@@ -176,7 +205,20 @@ describe("PubChem Parsers", () => {
         InformationList: {
           Information: [
             {
-              Synonym: ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l"],
+              Synonym: [
+                "a",
+                "b",
+                "c",
+                "d",
+                "e",
+                "f",
+                "g",
+                "h",
+                "i",
+                "j",
+                "k",
+                "l",
+              ],
             },
           ],
         },
@@ -185,14 +227,25 @@ describe("PubChem Parsers", () => {
       const synonyms = parseSynonyms(mockResponse);
 
       expect(synonyms).toHaveLength(10);
-      expect(synonyms).toEqual(["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]);
+      expect(synonyms).toEqual([
+        "a",
+        "b",
+        "c",
+        "d",
+        "e",
+        "f",
+        "g",
+        "h",
+        "i",
+        "j",
+      ]);
     });
 
     it("should return empty array if no synonyms found", () => {
-        const mockResponse: PubChemInformationResponse = {
-            InformationList: { Information: [{}] }
-        };
-        expect(parseSynonyms(mockResponse)).toEqual([]);
+      const mockResponse: PubChemInformationResponse = {
+        InformationList: { Information: [{}] },
+      };
+      expect(parseSynonyms(mockResponse)).toEqual([]);
     });
   });
 
@@ -200,10 +253,7 @@ describe("PubChem Parsers", () => {
     it("should extract description correctly", () => {
       const mockResponse: PubChemInformationResponse = {
         InformationList: {
-          Information: [
-            {},
-            { Description: "This is a test description." },
-          ],
+          Information: [{}, { Description: "This is a test description." }],
         },
       };
 
