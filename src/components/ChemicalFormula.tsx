@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Text, StyleSheet } from "react-native";
 
 interface ChemicalFormulaProps {
@@ -7,23 +7,27 @@ interface ChemicalFormulaProps {
 
 const DIGIT_REGEX = /\d/;
 
-export const ChemicalFormula: React.FC<ChemicalFormulaProps> = ({
-  formula,
-}) => {
-  return (
-    <Text style={styles.statValue}>
-      {formula.split("").map((char, index) =>
-        DIGIT_REGEX.test(char) ? (
-          <Text key={index} style={styles.subscript}>
-            {char}
-          </Text>
-        ) : (
-          <Text key={index}>{char}</Text>
+export const ChemicalFormula: React.FC<ChemicalFormulaProps> = React.memo(
+  ({ formula }) => {
+    const formulaElements = useMemo(
+      () =>
+        formula.split("").map((char, index) =>
+          DIGIT_REGEX.test(char) ? (
+            <Text key={index} style={styles.subscript}>
+              {char}
+            </Text>
+          ) : (
+            <Text key={index}>{char}</Text>
+          ),
         ),
-      )}
-    </Text>
-  );
-};
+      [formula],
+    );
+
+    return <Text style={styles.statValue}>{formulaElements}</Text>;
+  },
+);
+
+ChemicalFormula.displayName = "ChemicalFormula";
 
 const styles = StyleSheet.create({
   statValue: {
