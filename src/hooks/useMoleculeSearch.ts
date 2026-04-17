@@ -13,6 +13,7 @@ import {
   parseSynonyms,
   parseDescription,
 } from "../services/pubchem/parsers";
+import { isValidId } from "../services/pubchem/utils";
 
 // Global cache for autocomplete suggestions and molecule data to persist across renders and hook instances
 const suggestionCache = new Map<string, string[]>();
@@ -161,7 +162,7 @@ export const useMoleculeSearch = () => {
         name: term,
         sdf: sdfText,
         cif: cifText,
-        codId: codId,
+        codId: isValidId(codId) ? codId : null,
         structureFormat,
         formula,
         molecularWeight,
