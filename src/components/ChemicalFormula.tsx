@@ -1,29 +1,35 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Text, StyleSheet } from "react-native";
 
 interface ChemicalFormulaProps {
   formula: string;
 }
 
-const DIGIT_REGEX = /\d/;
+export const ChemicalFormula: React.FC<ChemicalFormulaProps> = React.memo(
+  ({ formula }) => {
+    const renderedFormula = useMemo(() => {
+      const len = formula.length;
+      const elements = new Array(len);
 
-export const ChemicalFormula: React.FC<ChemicalFormulaProps> = ({
-  formula,
-}) => {
-  return (
-    <Text style={styles.statValue}>
-      {formula.split("").map((char, index) =>
-        DIGIT_REGEX.test(char) ? (
-          <Text key={index} style={styles.subscript}>
+      for (let i = 0; i < len; i++) {
+        const char = formula[i];
+        const isDigit = char >= "0" && char <= "9";
+
+        elements[i] = (
+          <Text key={i} style={isDigit ? styles.subscript : undefined}>
             {char}
           </Text>
-        ) : (
-          <Text key={index}>{char}</Text>
-        ),
-      )}
-    </Text>
-  );
-};
+        );
+      }
+
+      return elements;
+    }, [formula]);
+
+    return <Text style={styles.statValue}>{renderedFormula}</Text>;
+  },
+);
+
+ChemicalFormula.displayName = "ChemicalFormula";
 
 const styles = StyleSheet.create({
   statValue: {
