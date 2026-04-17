@@ -364,8 +364,11 @@ function MoleculeExplorer() {
         )}
         <WebView
           ref={webViewRef}
-          originWhitelist={["*"]}
-          source={{ html: getViewerHtml() }}
+          originWhitelist={["https://3Dmol.csb.pitt.edu"]}
+          source={{
+            html: getViewerHtml(),
+            baseUrl: "https://3Dmol.csb.pitt.edu",
+          }}
           style={styles.webview}
           scrollEnabled={false}
           onMessage={onWebViewMessage}
