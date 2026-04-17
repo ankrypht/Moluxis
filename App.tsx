@@ -157,7 +157,9 @@ function MoleculeExplorer() {
 
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Moluxis</Text>
+        <Text style={styles.title} maxFontSizeMultiplier={1.2}>
+          Moluxis
+        </Text>
         <View style={styles.searchRow}>
           <TextInput
             style={styles.input}
@@ -169,6 +171,7 @@ function MoleculeExplorer() {
             returnKeyType="search"
             onSubmitEditing={() => searchMolecule()}
             keyboardAppearance="dark"
+            maxFontSizeMultiplier={1.2}
           />
           <TouchableOpacity
             style={[styles.button, isLoading && styles.buttonDisabled]}
@@ -178,7 +181,9 @@ function MoleculeExplorer() {
             {isLoading ? (
               <ActivityIndicator color="#000" size="small" />
             ) : (
-              <Text style={styles.buttonText}>GO</Text>
+              <Text style={styles.buttonText} maxFontSizeMultiplier={1.1}>
+                GO
+              </Text>
             )}
           </TouchableOpacity>
         </View>
@@ -356,7 +361,7 @@ function MoleculeExplorer() {
         {!moleculeData && !isLoading && (
           <View style={styles.placeholderOverlay}>
             <Ionicons name="cube-outline" size={60} color="#444" />
-            <Text style={styles.placeholderText}>
+            <Text style={styles.placeholderText} maxFontSizeMultiplier={1.2}>
               Search for a compound to view 3D structure
             </Text>
           </View>
@@ -538,10 +543,12 @@ function MoleculeExplorer() {
       {/* Footer Info */}
       {moleculeData && !isLoading && !showInfo && (
         <View style={styles.footer}>
-          <Text style={styles.moleculeName}>
+          <Text style={styles.moleculeName} maxFontSizeMultiplier={1.2}>
             {moleculeData.name.toUpperCase()}
           </Text>
-          <Text style={styles.sourceText}>Source: PubChem</Text>
+          <Text style={styles.sourceText} maxFontSizeMultiplier={1.2}>
+            Source: PubChem
+          </Text>
         </View>
       )}
     </SafeAreaView>

@@ -37,7 +37,8 @@ export const styles = StyleSheet.create({
   button: {
     backgroundColor: "#0A84FF",
     borderRadius: 12,
-    width: 60,
+    minWidth: 60,
+    paddingHorizontal: 12,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -79,7 +80,8 @@ export const styles = StyleSheet.create({
   },
   // Controls
   controlsContainer: {
-    height: 60,
+    minHeight: 60,
+    paddingVertical: 10,
     backgroundColor: "#121212",
     borderBottomWidth: 1,
     borderBottomColor: "#2C2C2C",
@@ -155,11 +157,13 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     zIndex: 10,
+    paddingHorizontal: 20,
   },
   placeholderText: {
     fontSize: 16,
     color: "#666",
     marginTop: 15,
+    textAlign: "center",
   },
   // Info Panel
   infoPanel: {
