@@ -85,8 +85,8 @@ export const parseExperimentalProperties = (
         }
       }
     }
-  } catch (error) {
-    console.error("Error parsing experimental properties:", error);
+  } catch {
+    // Gracefully handle parsing errors by returning current properties
   }
   return properties;
 };
@@ -118,8 +118,8 @@ export const parseSafetyInfo = (
         }
       }
     }
-  } catch (error) {
-    console.error("Error parsing safety info:", error);
+  } catch {
+    // Gracefully handle parsing errors by returning an empty/partial object
   }
   return safety;
 };
