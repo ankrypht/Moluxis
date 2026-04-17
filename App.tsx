@@ -33,6 +33,18 @@ import { SuggestionItem } from "./src/components/SuggestionItem";
 import { useMoleculeSearch } from "./src/hooks/useMoleculeSearch";
 import { styles } from "./App.styles";
 
+interface WebViewReadyMessage {
+  type: "WEBVIEW_READY";
+}
+
+function isWebViewReadyMessage(data: unknown): data is WebViewReadyMessage {
+  return (
+    typeof data === "object" &&
+    data !== null &&
+    (data as Record<string, unknown>).type === "WEBVIEW_READY"
+  );
+}
+
 // Extract constant to avoid inline allocation and trigger unnecessary re-renders
 const SAFE_AREA_EDGES = ["top", "left", "right"] as const;
 
@@ -117,7 +129,7 @@ function MoleculeExplorer() {
       try {
         const data = JSON.parse(event.nativeEvent.data);
         if (
-          data.type === "WEBVIEW_READY" &&
+          isWebViewReadyMessage(data) &&
           moleculeData &&
           webViewRef.current
         ) {
