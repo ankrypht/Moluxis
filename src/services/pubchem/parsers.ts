@@ -7,6 +7,15 @@ import {
 } from "../../types/pubchem";
 
 /**
+ * Maps PubChem property URN names to ChemicalProperties keys.
+ */
+const PROPERTY_NAME_MAP: Record<string, keyof ChemicalProperties> = {
+  "Hydrogen Bond Acceptor": "hBondAcceptors",
+  "Hydrogen Bond Donor": "hBondDonors",
+  "Rotatable Bond": "rotatableBonds",
+};
+
+/**
  * Extracts basic properties (formula, molecular weight, etc.) from a PubChem compound object.
  */
 export const parseCompoundProps = (compound: PubChemCompound) => {
@@ -14,35 +23,38 @@ export const parseCompoundProps = (compound: PubChemCompound) => {
   let molecularWeight = "";
   const properties: ChemicalProperties = {};
 
-  if (compound.props) {
-    for (const p of compound.props) {
-      const urn = p.urn;
-      const value = p.value;
-      if (!urn) continue;
+  compound.props?.forEach(({ urn, value }) => {
+    if (!urn) return;
 
-      if (urn.label === "Molecular Formula") {
-        formula = value?.sval || "";
-      } else if (urn.label === "Molecular Weight") {
-        molecularWeight = value?.sval ? `${value.sval} g/mol` : "";
-      } else if (urn.name === "Hydrogen Bond Acceptor") {
-        properties.hBondAcceptors = value?.ival?.toString();
-      } else if (urn.name === "Hydrogen Bond Donor") {
-        properties.hBondDonors = value?.ival?.toString();
-      } else if (urn.name === "Rotatable Bond") {
-        properties.rotatableBonds = value?.ival?.toString();
-      } else if (urn.label === "IUPAC Name") {
-        if (urn.name === "Preferred") {
-          properties.iupacName = value?.sval;
-        } else if (urn.name === "Traditional") {
-          properties.commonName = value?.sval;
-        }
-      } else if (urn.label === "Log P") {
-        properties.logP = value?.fval?.toString() || value?.sval;
-      } else if (urn.name === "Polar Surface Area") {
-        properties.tpsa = value?.fval ? `${value.fval} Å²` : undefined;
-      }
+    const { label, name } = urn;
+
+    // Handle simple integer-to-string properties via mapping
+    if (name && PROPERTY_NAME_MAP[name]) {
+      properties[PROPERTY_NAME_MAP[name]] = value?.ival?.toString();
+      return;
     }
-  }
+
+    // Handle properties requiring specific logic or formatting
+    switch (label) {
+      case "Molecular Formula":
+        formula = value?.sval || "";
+        break;
+      case "Molecular Weight":
+        molecularWeight = value?.sval ? `${value.sval} g/mol` : "";
+        break;
+      case "IUPAC Name":
+        if (name === "Preferred") properties.iupacName = value?.sval;
+        else if (name === "Traditional") properties.commonName = value?.sval;
+        break;
+      case "Log P":
+        properties.logP = value?.fval?.toString() || value?.sval;
+        break;
+      default:
+        if (name === "Polar Surface Area") {
+          properties.tpsa = value?.fval ? `${value.fval} Å²` : undefined;
+        }
+    }
+  });
 
   return { formula, molecularWeight, properties };
 };
