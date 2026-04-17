@@ -29,6 +29,7 @@ import { getViewerHtml } from "./src/constants/viewerHtml";
 import { ChemicalFormula } from "./src/components/ChemicalFormula";
 import { CollapsibleSection } from "./src/components/CollapsibleSection";
 import { PropertyRow } from "./src/components/PropertyRow";
+import { isValidId } from "./src/services/pubchem/utils";
 import { SuggestionItem } from "./src/components/SuggestionItem";
 import { useMoleculeSearch } from "./src/hooks/useMoleculeSearch";
 import { styles } from "./App.styles";
@@ -516,11 +517,13 @@ function MoleculeExplorer() {
               </Text>
               <TouchableOpacity
                 style={styles.linkButton}
-                onPress={() =>
-                  Linking.openURL(
-                    `https://pubchem.ncbi.nlm.nih.gov/compound/${moleculeData.cid}`,
-                  )
-                }
+                onPress={() => {
+                  if (isValidId(moleculeData.cid)) {
+                    Linking.openURL(
+                      `https://pubchem.ncbi.nlm.nih.gov/compound/${moleculeData.cid}`,
+                    );
+                  }
+                }}
               >
                 <Text style={styles.linkButtonText}>View on PubChem</Text>
                 <Ionicons name="open-outline" size={16} color="#0A84FF" />
@@ -534,11 +537,13 @@ function MoleculeExplorer() {
                   </Text>
                   <TouchableOpacity
                     style={styles.linkButton}
-                    onPress={() =>
-                      Linking.openURL(
-                        `https://www.crystallography.net/cod/${moleculeData.codId}.html`,
-                      )
-                    }
+                    onPress={() => {
+                      if (isValidId(moleculeData.codId)) {
+                        Linking.openURL(
+                          `https://www.crystallography.net/cod/${moleculeData.codId}.html`,
+                        );
+                      }
+                    }}
                   >
                     <Text style={styles.linkButtonText}>
                       View Crystal Data (COD)
