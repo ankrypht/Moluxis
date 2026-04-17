@@ -115,6 +115,10 @@ export const getViewerHtml = () => `
     const messageHandler = (event) => {
       try {
         const message = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+
+        // Structural validation
+        if (!message || typeof message !== 'object') return;
+
         if (message.type === 'LOAD_STRUCTURE') {
           // Pass the new format
           window.loadStructure(message.data, message.format);
