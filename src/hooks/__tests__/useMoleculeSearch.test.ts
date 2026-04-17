@@ -113,9 +113,10 @@ describe("useMoleculeSearch", () => {
       });
 
       (fetchMoleculeDetails as jest.Mock).mockResolvedValueOnce({
-        sdfText: "",
+        sdfText3d: "",
+        sdfText2d: "",
         cifText: "",
-        structureFormat: "2d_sdf",
+        useCif: false,
       });
 
       const { result } = renderHook(() => useMoleculeSearch());
@@ -156,10 +157,11 @@ describe("useMoleculeSearch", () => {
             Information: [{ Description: "Water description" }],
           },
         },
-        sdfText: mockSdf,
+        sdfText3d: mockSdf,
+        sdfText2d: "2d sdf data",
         cifText: "",
         codId: null,
-        structureFormat: "3d_sdf",
+        useCif: false,
       });
 
       const { result } = renderHook(() => useMoleculeSearch());
@@ -171,8 +173,9 @@ describe("useMoleculeSearch", () => {
       expect(result.current.moleculeData).toMatchObject({
         name: "water",
         cid: "962",
-        sdf: mockSdf,
-        structureFormat: "3d_sdf",
+        sdf3d: mockSdf,
+        sdf2d: "2d sdf data",
+        useCif: false,
         formula: "H2O",
       });
     });

@@ -147,6 +147,13 @@ export const styles = StyleSheet.create({
   badgeTextActive: {
     color: "#0A84FF",
   },
+  badgeNotAvailable: {
+    backgroundColor: "transparent",
+    borderColor: "#2C2C2C",
+  },
+  badgeTextNotAvailable: {
+    color: "#444",
+  },
   webview: {
     flex: 1,
     backgroundColor: "transparent",

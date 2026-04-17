@@ -22,10 +22,11 @@ export interface SafetyInfo {
 
 export interface MoleculeInfo {
   name: string;
-  sdf: string;
+  sdf3d: string;
+  sdf2d: string;
   cif?: string;
   codId?: string | null;
-  structureFormat: "3d_sdf" | "cif" | "2d_sdf";
+  useCif: boolean;
   formula: string;
   molecularWeight: string;
   synonyms: string[];

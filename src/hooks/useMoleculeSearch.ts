@@ -133,10 +133,11 @@ export const useMoleculeSearch = () => {
         ghsJson,
         synonymsJson,
         descJson,
-        sdfText,
+        sdfText3d,
+        sdfText2d,
         cifText,
         codId,
-        structureFormat,
+        useCif,
       } = await fetchMoleculeDetails(cid);
 
       // Parse additional data
@@ -149,7 +150,7 @@ export const useMoleculeSearch = () => {
         ? parseDescription(descJson)
         : "No description available.";
 
-      if (!sdfText && !cifText) {
+      if (!sdfText3d && !cifText && !sdfText2d) {
         Alert.alert(
           "No Structure Data",
           "No structure available for this compound.",
@@ -160,10 +161,11 @@ export const useMoleculeSearch = () => {
 
       const result: MoleculeInfo = {
         name: term,
-        sdf: sdfText,
+        sdf3d: sdfText3d,
+        sdf2d: sdfText2d,
         cif: cifText,
         codId: isValidId(codId) ? codId : null,
-        structureFormat,
+        useCif,
         formula,
         molecularWeight,
         synonyms,

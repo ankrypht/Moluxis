@@ -66,7 +66,8 @@ export const fetchMoleculeDetails = async (cid: number) => {
   const ghsUrl = `${BASE_URL}/pug_view/data/compound/${cid}/JSON?heading=GHS+Classification`;
   const synonymsUrl = `${BASE_URL}/pug/compound/cid/${cid}/synonyms/JSON`;
   const descUrl = `${BASE_URL}/pug/compound/cid/${cid}/description/JSON`;
-  const structureUrl = `${BASE_URL}/pug/compound/CID/${cid}/record/SDF/?record_type=3d&response_type=display`;
+  const structure3dUrl = `${BASE_URL}/pug/compound/CID/${cid}/record/SDF/?record_type=3d&response_type=display`;
+  const structure2dUrl = `${BASE_URL}/pug/compound/CID/${cid}/record/SDF/?response_type=display`;
 
   // Fetch the Structures section from PubChem to find COD IDs
   const structuresViewUrl = `${BASE_URL}/pug_view/data/compound/${cid}/JSON?heading=Structures`;
@@ -76,7 +77,8 @@ export const fetchMoleculeDetails = async (cid: number) => {
     ghsJson,
     synonymsJson,
     descJson,
-    initialSdfRes,
+    initialSdf3dRes,
+    initialSdf2dRes,
     structuresJson,
   ] = await Promise.all([
     fetch(propsUrl)
@@ -91,23 +93,29 @@ export const fetchMoleculeDetails = async (cid: number) => {
     fetch(descUrl)
       .then((res) => res.json())
       .catch(() => ({})) as Promise<PubChemInformationResponse>,
-    fetch(structureUrl).catch(() => null),
+    fetch(structure3dUrl).catch(() => null),
+    fetch(structure2dUrl).catch(() => null),
     fetch(structuresViewUrl)
       .then((res) => (res.ok ? res.json() : null))
       .catch(() => null) as Promise<PubChemViewResponse | null>,
   ]);
 
   // Priority 1: 3D SDF
-  let sdfText = "";
-  let structureFormat: "3d_sdf" | "cif" | "2d_sdf" = "2d_sdf";
+  let sdfText3d = "";
+  let sdfText2d = "";
+  let useCif = false;
 
-  if (initialSdfRes?.ok) {
-    const text = await initialSdfRes.text();
+  if (initialSdf3dRes?.ok) {
+    const text = await initialSdf3dRes.text();
     // PubChem sometimes returns a 200 with "Status: 404" in the body for SDFs
-    if (text && text.length > 200 && !text.includes("PUGREST.NotFound")) {
-      sdfText = text;
-      structureFormat = "3d_sdf";
-    }
+    if (text && text.length > 200 && !text.includes("PUGREST.NotFound"))
+      sdfText3d = text;
+  }
+
+  if (initialSdf2dRes?.ok) {
+    const text = await initialSdf2dRes.text();
+    if (text && text.length > 200 && !text.includes("PUGREST.NotFound"))
+      sdfText2d = text;
   }
 
   // Priority 2: Crystal Structure (CIF) if 3D SDF is not available
@@ -122,29 +130,12 @@ export const fetchMoleculeDetails = async (cid: number) => {
       if (cifRes.ok) {
         cifText = await cifRes.text();
         // Only use CIF if we don't already have a 3D SDF
-        if (structureFormat !== "3d_sdf") {
-          structureFormat = "cif";
+        if (sdfText3d === "") {
+          useCif = true;
         }
       }
     } catch (error) {
       console.error(`Failed to fetch CIF data for COD ID ${codId}:`, error);
-    }
-  }
-
-  // Priority 3: 2D SDF fallback
-  if (structureFormat === "2d_sdf" && !sdfText) {
-    try {
-      const fallbackUrl = `${BASE_URL}/pug/compound/CID/${cid}/record/SDF/?response_type=display`;
-      const fallbackRes = await fetch(fallbackUrl);
-      if (fallbackRes.ok) {
-        const text = await fallbackRes.text();
-        if (text && !text.includes("PUGREST.NotFound")) {
-          sdfText = text;
-          structureFormat = "2d_sdf";
-        }
-      }
-    } catch (error) {
-      console.error(`Failed to fetch fallback 2D SDF for CID ${cid}:`, error);
     }
   }
 
@@ -153,9 +144,10 @@ export const fetchMoleculeDetails = async (cid: number) => {
     ghsJson,
     synonymsJson,
     descJson,
-    sdfText,
+    sdfText3d,
+    sdfText2d,
     codId,
     cifText,
-    structureFormat,
+    useCif,
   };
 };

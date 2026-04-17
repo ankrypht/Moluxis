@@ -14,6 +14,7 @@ import {
   FlatList,
   ScrollView,
   Linking,
+  Alert,
 } from "react-native";
 import {
   SafeAreaView,
@@ -67,8 +68,19 @@ function MoleculeExplorer() {
   const [vizStyle, setVizStyle] = useState<VisualizationType>("ballStick");
   const [showLabels, setShowLabels] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
+  const [structureFormat, setStructureFormat] = useState<"3d" | "2d">("3d");
 
   const webViewRef = useRef<WebView>(null);
+
+  useEffect(() => {
+    if (moleculeData) {
+      if (moleculeData.sdf3d || moleculeData.useCif) {
+        setStructureFormat("3d");
+      } else if (moleculeData.sdf2d) {
+        setStructureFormat("2d");
+      }
+    }
+  }, [moleculeData]);
 
   const signalWords = useMemo(() => {
     if (!moleculeData?.safety?.signal) return null;
@@ -99,12 +111,16 @@ function MoleculeExplorer() {
 
   useEffect(() => {
     if (moleculeData && webViewRef.current) {
-      const useCif =
-        moleculeData.structureFormat === "cif" && !!moleculeData.cif;
+      const useCif = moleculeData.useCif;
       const message = JSON.stringify({
         type: "LOAD_STRUCTURE",
-        data: useCif ? moleculeData.cif : moleculeData.sdf,
-        format: useCif ? "cif" : "sdf",
+        data:
+          structureFormat === "2d"
+            ? moleculeData.sdf2d
+            : useCif
+              ? moleculeData.cif
+              : moleculeData.sdf3d,
+        format: structureFormat === "2d" ? "sdf" : useCif ? "cif" : "sdf",
       });
 
       const timer = setTimeout(() => {
@@ -112,7 +128,7 @@ function MoleculeExplorer() {
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [moleculeData]);
+  }, [moleculeData, structureFormat]);
 
   useEffect(() => {
     if (moleculeData && webViewRef.current) {
@@ -130,12 +146,16 @@ function MoleculeExplorer() {
       try {
         const data = JSON.parse(event.nativeEvent.data);
         if (isWebViewReadyMessage(data) && moleculeData && webViewRef.current) {
-          const useCif =
-            moleculeData.structureFormat === "cif" && !!moleculeData.cif;
+          const useCif = moleculeData.useCif;
           const message = JSON.stringify({
             type: "LOAD_STRUCTURE",
-            data: useCif ? moleculeData.cif : moleculeData.sdf,
-            format: useCif ? "cif" : "sdf",
+            data:
+              structureFormat === "2d"
+                ? moleculeData.sdf2d
+                : useCif
+                  ? moleculeData.cif
+                  : moleculeData.sdf3d,
+            format: structureFormat === "2d" ? "sdf" : useCif ? "cif" : "sdf",
           });
           webViewRef.current.postMessage(message);
         }
@@ -143,7 +163,7 @@ function MoleculeExplorer() {
         // Silently handle non-JSON messages
       }
     },
-    [moleculeData],
+    [moleculeData, structureFormat],
   );
 
   const handleSelectSuggestion = useCallback(
@@ -324,38 +344,60 @@ function MoleculeExplorer() {
       <View style={styles.viewerContainer}>
         {moleculeData && !isLoading && (
           <View style={styles.badgeContainer}>
-            <View
+            <TouchableOpacity
               style={[
                 styles.badge,
-                moleculeData.structureFormat === "2d_sdf" && styles.badgeActive,
+                moleculeData.sdf2d ? null : styles.badgeNotAvailable,
+                structureFormat === "2d" && styles.badgeActive,
               ]}
+              onPress={() =>
+                moleculeData.sdf2d
+                  ? setStructureFormat("2d")
+                  : Alert.alert(
+                      "2D Structure Unavailable",
+                      "No 2D structure data available for this compound.",
+                    )
+              }
             >
               <Text
                 style={[
                   styles.badgeText,
-                  moleculeData.structureFormat === "2d_sdf" &&
-                    styles.badgeTextActive,
+                  moleculeData.sdf2d ? null : styles.badgeTextNotAvailable,
+                  structureFormat === "2d" && styles.badgeTextActive,
                 ]}
               >
                 2D
               </Text>
-            </View>
-            <View
+            </TouchableOpacity>
+            <TouchableOpacity
               style={[
                 styles.badge,
-                moleculeData.structureFormat !== "2d_sdf" && styles.badgeActive,
+                moleculeData.sdf3d || moleculeData.useCif
+                  ? null
+                  : styles.badgeNotAvailable,
+                structureFormat === "3d" && styles.badgeActive,
               ]}
+              onPress={() =>
+                moleculeData.sdf3d || moleculeData.useCif
+                  ? setStructureFormat("3d")
+                  : Alert.alert(
+                      "3D Structure Unavailable",
+                      "No 3D structure data available for this compound.",
+                    )
+              }
             >
               <Text
                 style={[
                   styles.badgeText,
-                  moleculeData.structureFormat !== "2d_sdf" &&
-                    styles.badgeTextActive,
+                  moleculeData.sdf3d || moleculeData.useCif
+                    ? null
+                    : styles.badgeTextNotAvailable,
+                  structureFormat === "3d" && styles.badgeTextActive,
                 ]}
               >
                 3D
               </Text>
-            </View>
+            </TouchableOpacity>
           </View>
         )}
         <WebView
