@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.2.0](https://github.com/ankrypht/Moluxis/compare/v1.1.0...v1.2.0) (2026-04-17)
+
+
+### Features
+
+* implement 2D/3D structure switching and optimize data fetching ([70b3f2b](https://github.com/ankrypht/Moluxis/commit/70b3f2b493c0510192549cf81f35a1654bcdb78d))
+
+
+### Bug Fixes
+
+* **security:** restrict WebView originWhitelist and set baseUrl ([#57](https://github.com/ankrypht/Moluxis/issues/57)) ([4dcbb2d](https://github.com/ankrypht/Moluxis/commit/4dcbb2df9778850831586be412be54386125f084))
+* **security:** Validate PubChem and COD IDs before opening external links ([#55](https://github.com/ankrypht/Moluxis/issues/55)) ([87c49b4](https://github.com/ankrypht/Moluxis/commit/87c49b4de9d30982a27b9131d63a91c1391ba06c))
+* **security:** validate WebView message structure ([#50](https://github.com/ankrypht/Moluxis/issues/50)) ([fabffb2](https://github.com/ankrypht/Moluxis/commit/fabffb203482bccb98f49d1bcdba6991b3b7d61a))
+
+
+### Performance Improvements
+
+* optimize autocomplete deduplication ([#51](https://github.com/ankrypht/Moluxis/issues/51)) ([5b7c45f](https://github.com/ankrypht/Moluxis/commit/5b7c45f2df982140a5210b28c30e5b8f352e43db))
+* optimize ChemicalFormula rendering with memoization and single-pass loop ([#53](https://github.com/ankrypht/Moluxis/issues/53)) ([2dc8585](https://github.com/ankrypht/Moluxis/commit/2dc858594d595600b2d37e256356491c7dfea3b9))
+
 ## [1.1.0](https://github.com/ankrypht/Moluxis/compare/v1.0.1...v1.1.0) (2026-04-04)
 
 
