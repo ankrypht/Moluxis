@@ -15,6 +15,7 @@ import {
   ScrollView,
   Linking,
   Alert,
+  useWindowDimensions,
 } from "react-native";
 import {
   SafeAreaView,
@@ -24,6 +25,7 @@ import {
 import { WebView } from "react-native-webview";
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
+import * as NavigationBar from "expo-navigation-bar";
 
 import { VisualizationType } from "./src/types";
 import { getViewerHtml } from "./src/constants/viewerHtml";
@@ -48,7 +50,7 @@ function isWebViewReadyMessage(data: unknown): data is WebViewReadyMessage {
 }
 
 // Extract constant to avoid inline allocation and trigger unnecessary re-renders
-const SAFE_AREA_EDGES = ["top", "left", "right"] as const;
+const SAFE_AREA_EDGES = ["top"] as const;
 
 function MoleculeExplorer() {
   const {
@@ -62,7 +64,11 @@ function MoleculeExplorer() {
     searchMolecule,
     selectSuggestion,
   } = useMoleculeSearch();
-  const { bottom } = useSafeAreaInsets();
+  const insets = useSafeAreaInsets();
+  const { width, height } = useWindowDimensions();
+  const isLandscape = width > height;
+
+  const horizontalPadding = Math.max(insets.left, isLandscape ? 12 : 16);
 
   // Visualization State
   const [vizStyle, setVizStyle] = useState<VisualizationType>("ballStick");
@@ -71,6 +77,11 @@ function MoleculeExplorer() {
   const [structureFormat, setStructureFormat] = useState<"3d" | "2d">("3d");
 
   const webViewRef = useRef<WebView>(null);
+
+  useEffect(() => {
+    // Hide navigation bar
+    NavigationBar.setVisibilityAsync("hidden");
+  }, []);
 
   useEffect(() => {
     if (moleculeData) {
@@ -184,422 +195,527 @@ function MoleculeExplorer() {
     <SafeAreaView style={styles.container} edges={SAFE_AREA_EDGES}>
       <StatusBar style="light" />
 
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title} maxFontSizeMultiplier={1.2}>
-          Moluxis
-        </Text>
-        <View style={styles.searchRow}>
-          <TextInput
-            style={styles.input}
-            placeholder="Search (e.g., Caffeine, Aspirin)"
-            placeholderTextColor="#888"
-            value={searchText}
-            onChangeText={handleTextChange}
-            onFocus={() => setShowSuggestions(true)}
-            returnKeyType="search"
-            onSubmitEditing={() => searchMolecule()}
-            keyboardAppearance="dark"
-            maxFontSizeMultiplier={1.2}
-          />
-          <TouchableOpacity
-            style={[styles.button, isLoading && styles.buttonDisabled]}
-            onPress={() => searchMolecule()}
-            disabled={isLoading}
+      <View
+        key={isLandscape ? "landscape" : "portrait"}
+        style={isLandscape ? styles.mainContentLandscape : styles.mainContent}
+      >
+        <View
+          style={
+            isLandscape
+              ? styles.viewerContainerLandscape
+              : styles.viewerContainer
+          }
+        >
+          {/* Header */}
+          <View
+            style={[
+              styles.header,
+              isLandscape && styles.headerLandscape,
+              {
+                paddingLeft: horizontalPadding,
+                paddingRight: horizontalPadding,
+              },
+            ]}
           >
-            {isLoading ? (
-              <ActivityIndicator color="#000" size="small" />
-            ) : (
-              <Text style={styles.buttonText} maxFontSizeMultiplier={1.1}>
-                GO
-              </Text>
-            )}
-          </TouchableOpacity>
-        </View>
-
-        {/* Autocomplete Dropdown */}
-        {showSuggestions && suggestions.length > 0 && (
-          <View style={styles.suggestionsContainer}>
-            <FlatList
-              data={suggestions}
-              keyExtractor={(item) => item}
-              renderItem={renderSuggestionItem}
-              keyboardShouldPersistTaps="handled"
-              style={{ maxHeight: 200 }}
-            />
-          </View>
-        )}
-      </View>
-
-      {/* Control Bar */}
-      {moleculeData && !isLoading && (
-        <View style={styles.controlsContainer}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.controlsScroll}
-          >
-            <TouchableOpacity
-              style={[
-                styles.chip,
-                showInfo && styles.chipActive,
-                { marginRight: 5, borderColor: "#555" },
-              ]}
-              onPress={() => setShowInfo(!showInfo)}
+            <Text
+              style={[styles.title, isLandscape && styles.titleLandscape]}
+              maxFontSizeMultiplier={1.2}
             >
-              <Ionicons
-                name="information-circle-outline"
-                size={16}
-                color={showInfo ? "#FFF" : "#AAA"}
-                style={{ marginRight: 4 }}
-              />
-              <Text
-                style={[styles.chipText, showInfo && styles.chipTextActive]}
-              >
-                Info
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.chip,
-                showLabels && styles.chipActive,
-                { marginRight: 5, borderColor: "#555" },
-              ]}
-              onPress={() => setShowLabels(!showLabels)}
-            >
-              <Text
-                style={[styles.chipText, showLabels && styles.chipTextActive]}
-              >
-                {showLabels ? "Hide Labels" : "Show Labels"}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.chip,
-                vizStyle === "ballStick" && styles.chipActive,
-              ]}
-              onPress={() => setVizStyle("ballStick")}
-            >
-              <Text
-                style={[
-                  styles.chipText,
-                  vizStyle === "ballStick" && styles.chipTextActive,
-                ]}
-              >
-                Ball & Stick
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.chip, vizStyle === "stick" && styles.chipActive]}
-              onPress={() => setVizStyle("stick")}
-            >
-              <Text
-                style={[
-                  styles.chipText,
-                  vizStyle === "stick" && styles.chipTextActive,
-                ]}
-              >
-                Sticks
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.chip, vizStyle === "sphere" && styles.chipActive]}
-              onPress={() => setVizStyle("sphere")}
-            >
-              <Text
-                style={[
-                  styles.chipText,
-                  vizStyle === "sphere" && styles.chipTextActive,
-                ]}
-              >
-                Space-Fill
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.chip,
-                vizStyle === "wireframe" && styles.chipActive,
-              ]}
-              onPress={() => setVizStyle("wireframe")}
-            >
-              <Text
-                style={[
-                  styles.chipText,
-                  vizStyle === "wireframe" && styles.chipTextActive,
-                ]}
-              >
-                Wireframe
-              </Text>
-            </TouchableOpacity>
-          </ScrollView>
-        </View>
-      )}
-
-      {/* Viewer Area */}
-      <View style={styles.viewerContainer}>
-        {moleculeData && !isLoading && (
-          <View style={styles.badgeContainer}>
-            <TouchableOpacity
-              style={[
-                styles.badge,
-                moleculeData.sdf2d ? null : styles.badgeNotAvailable,
-                structureFormat === "2d" && styles.badgeActive,
-              ]}
-              onPress={() =>
-                moleculeData.sdf2d
-                  ? setStructureFormat("2d")
-                  : Alert.alert(
-                      "2D Structure Unavailable",
-                      "No 2D structure data available for this compound.",
-                    )
-              }
-            >
-              <Text
-                style={[
-                  styles.badgeText,
-                  moleculeData.sdf2d ? null : styles.badgeTextNotAvailable,
-                  structureFormat === "2d" && styles.badgeTextActive,
-                ]}
-              >
-                2D
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.badge,
-                moleculeData.sdf3d || moleculeData.useCif
-                  ? null
-                  : styles.badgeNotAvailable,
-                structureFormat === "3d" && styles.badgeActive,
-              ]}
-              onPress={() =>
-                moleculeData.sdf3d || moleculeData.useCif
-                  ? setStructureFormat("3d")
-                  : Alert.alert(
-                      "3D Structure Unavailable",
-                      "No 3D structure data available for this compound.",
-                    )
-              }
-            >
-              <Text
-                style={[
-                  styles.badgeText,
-                  moleculeData.sdf3d || moleculeData.useCif
-                    ? null
-                    : styles.badgeTextNotAvailable,
-                  structureFormat === "3d" && styles.badgeTextActive,
-                ]}
-              >
-                3D
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-        <WebView
-          ref={webViewRef}
-          originWhitelist={["https://3Dmol.csb.pitt.edu"]}
-          source={{
-            html: getViewerHtml(),
-            baseUrl: "https://3Dmol.csb.pitt.edu",
-          }}
-          style={styles.webview}
-          scrollEnabled={false}
-          onMessage={onWebViewMessage}
-        />
-
-        {!moleculeData && !isLoading && (
-          <View style={styles.placeholderOverlay}>
-            <Ionicons name="cube-outline" size={60} color="#444" />
-            <Text style={styles.placeholderText} maxFontSizeMultiplier={1.2}>
-              Search for a compound to view 3D structure
+              Moluxis
             </Text>
-          </View>
-        )}
-      </View>
-
-      {/* Info Panel */}
-      {moleculeData && !isLoading && showInfo && (
-        <View style={styles.infoPanel}>
-          <ScrollView
-            style={styles.infoScroll}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: bottom + 20 }}
-          >
-            {/* Quick Stats */}
-            <View style={styles.statsGrid}>
-              <View style={styles.statCard}>
-                <Text style={styles.statLabel}>Formula</Text>
-                {moleculeData.formula ? (
-                  <ChemicalFormula formula={moleculeData.formula} />
-                ) : (
-                  <Text style={styles.statValue}>N/A</Text>
-                )}
-              </View>
-              <View style={styles.statCard}>
-                <Text style={styles.statLabel}>Molecular Weight</Text>
-                <Text style={styles.statValue}>
-                  {moleculeData.molecularWeight || "N/A"}
-                </Text>
-              </View>
-            </View>
-            <View style={styles.statsGrid}>
-              <View style={styles.statCard}>
-                <Text style={styles.statLabel}>IUPAC Name</Text>
-                <Text style={styles.statValue}>
-                  {moleculeData.properties.iupacName || "N/A"}
-                </Text>
-              </View>
-              <View style={styles.statCard}>
-                <Text style={styles.statLabel}>Common Name</Text>
-                <Text style={styles.statValue}>
-                  {moleculeData.properties.commonName || "N/A"}
-                </Text>
-              </View>
-            </View>
-
-            {/* Chemical Properties */}
-            <CollapsibleSection
-              title="Chemical Properties"
-              icon="flask-outline"
-              defaultExpanded
+            <View
+              style={[
+                styles.searchRow,
+                isLandscape && styles.searchRowLandscape,
+              ]}
             >
-              <PropertyRow
-                label="H-Bond Acceptors"
-                value={moleculeData.properties.hBondAcceptors}
+              <TextInput
+                style={[styles.input, isLandscape && styles.inputLandscape]}
+                placeholder="Search (e.g., Caffeine, Aspirin)"
+                placeholderTextColor="#888"
+                value={searchText}
+                onChangeText={handleTextChange}
+                onFocus={() => setShowSuggestions(true)}
+                returnKeyType="search"
+                onSubmitEditing={() => searchMolecule()}
+                keyboardAppearance="dark"
+                maxFontSizeMultiplier={1.2}
               />
-              <PropertyRow
-                label="H-Bond Donors"
-                value={moleculeData.properties.hBondDonors}
-              />
-              <PropertyRow
-                label="Rotatable Bonds"
-                value={moleculeData.properties.rotatableBonds}
-              />
-              <PropertyRow
-                label="LogP (Lipophilicity)"
-                value={moleculeData.properties.logP}
-              />
-              <PropertyRow
-                label="Polar Surface Area"
-                value={moleculeData.properties.tpsa}
-              />
-              <PropertyRow
-                label="Boiling Point"
-                value={moleculeData.properties.boilingPoint}
-              />
-              <PropertyRow
-                label="Melting Point"
-                value={moleculeData.properties.meltingPoint}
-              />
-              <PropertyRow
-                label="Solubility"
-                value={moleculeData.properties.solubility}
-              />
-              <PropertyRow
-                label="Density"
-                value={moleculeData.properties.density}
-              />
-              <PropertyRow label="pH" value={moleculeData.properties.pH} />
-
-              {!moleculeData.properties.logP &&
-                !moleculeData.properties.tpsa && (
-                  <Text style={styles.noDataText}>
-                    No additional properties available
-                  </Text>
-                )}
-            </CollapsibleSection>
-
-            {/* Safety & Hazards */}
-            {(moleculeData.safety.hazardStatements ||
-              moleculeData.safety.signal) && (
-              <CollapsibleSection
-                title="Safety & Hazards"
-                icon="warning-outline"
-              >
-                {moleculeData.safety.signal &&
-                  moleculeData.safety.signal.length > 0 && (
-                    <View style={styles.safetySection}>
-                      <Text style={styles.safetyLabel}>Signal Words</Text>
-                      {signalWords}
-                    </View>
-                  )}
-                {moleculeData.safety.hazardStatements &&
-                  moleculeData.safety.hazardStatements.length > 0 && (
-                    <View style={styles.safetySection}>
-                      <Text style={styles.safetyLabel}>Hazard Statements</Text>
-                      {hazardStatements}
-                    </View>
-                  )}
-              </CollapsibleSection>
-            )}
-
-            {/* Collapsible Sections */}
-            <CollapsibleSection
-              title="Description"
-              icon="document-text-outline"
-            >
-              <Text style={styles.descriptionText}>
-                {moleculeData.description}
-              </Text>
-            </CollapsibleSection>
-
-            <CollapsibleSection title="Synonyms" icon="list-outline">
-              <View style={styles.synonymsContainer}>{synonymsList}</View>
-            </CollapsibleSection>
-
-            <CollapsibleSection title="Databases" icon="link-outline">
-              <Text style={styles.infoText}>
-                PubChem CID: {moleculeData.cid}
-              </Text>
               <TouchableOpacity
-                style={styles.linkButton}
-                onPress={() => {
-                  if (isValidId(moleculeData.cid)) {
-                    Linking.openURL(
-                      `https://pubchem.ncbi.nlm.nih.gov/compound/${moleculeData.cid}`,
-                    );
-                  }
-                }}
+                style={[
+                  styles.button,
+                  isLandscape && styles.buttonLandscape,
+                  isLoading && styles.buttonDisabled,
+                ]}
+                onPress={() => searchMolecule()}
+                disabled={isLoading}
               >
-                <Text style={styles.linkButtonText}>View on PubChem</Text>
-                <Ionicons name="open-outline" size={16} color="#0A84FF" />
-              </TouchableOpacity>
-
-              {/* NEW: Add COD link if available */}
-              {moleculeData.codId && (
-                <>
-                  <Text style={[styles.infoText, { marginTop: 15 }]}>
-                    COD ID: {moleculeData.codId}
+                {isLoading ? (
+                  <ActivityIndicator color="#000" size="small" />
+                ) : (
+                  <Text style={styles.buttonText} maxFontSizeMultiplier={1.1}>
+                    GO
                   </Text>
+                )}
+              </TouchableOpacity>
+            </View>
+
+            {/* Autocomplete Dropdown */}
+            {showSuggestions && suggestions.length > 0 && (
+              <View
+                style={[
+                  styles.suggestionsContainer,
+                  isLandscape && styles.suggestionsContainerLandscape,
+                  {
+                    left: horizontalPadding,
+                    right: horizontalPadding,
+                  },
+                ]}
+              >
+                <FlatList
+                  data={suggestions}
+                  keyExtractor={(item) => item}
+                  renderItem={renderSuggestionItem}
+                  keyboardShouldPersistTaps="handled"
+                  style={{ maxHeight: 200 }}
+                />
+              </View>
+            )}
+          </View>
+
+          {/* Control Bar */}
+          {moleculeData && !isLoading && (
+            <View
+              style={[
+                styles.controlsContainer,
+                isLandscape && styles.controlsContainerLandscape,
+              ]}
+            >
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={[
+                  styles.controlsScroll,
+                  {
+                    paddingLeft: horizontalPadding,
+                    paddingRight: horizontalPadding,
+                  },
+                ]}
+              >
+                <TouchableOpacity
+                  style={[
+                    styles.chip,
+                    isLandscape && styles.chipLandscape,
+                    showInfo && styles.chipActive,
+                    { marginRight: 5, borderColor: "#555" },
+                  ]}
+                  onPress={() => setShowInfo(!showInfo)}
+                >
+                  <Ionicons
+                    name="information-circle-outline"
+                    size={16}
+                    color={showInfo ? "#FFF" : "#AAA"}
+                    style={{ marginRight: 4 }}
+                  />
+                  <Text
+                    style={[styles.chipText, showInfo && styles.chipTextActive]}
+                  >
+                    Info
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.chip,
+                    isLandscape && styles.chipLandscape,
+                    showLabels && styles.chipActive,
+                    { marginRight: 5, borderColor: "#555" },
+                  ]}
+                  onPress={() => setShowLabels(!showLabels)}
+                >
+                  <Text
+                    style={[
+                      styles.chipText,
+                      showLabels && styles.chipTextActive,
+                    ]}
+                  >
+                    {showLabels ? "Hide Labels" : "Show Labels"}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.chip,
+                    isLandscape && styles.chipLandscape,
+                    vizStyle === "ballStick" && styles.chipActive,
+                  ]}
+                  onPress={() => setVizStyle("ballStick")}
+                >
+                  <Text
+                    style={[
+                      styles.chipText,
+                      vizStyle === "ballStick" && styles.chipTextActive,
+                    ]}
+                  >
+                    Ball & Stick
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.chip,
+                    isLandscape && styles.chipLandscape,
+                    vizStyle === "stick" && styles.chipActive,
+                  ]}
+                  onPress={() => setVizStyle("stick")}
+                >
+                  <Text
+                    style={[
+                      styles.chipText,
+                      vizStyle === "stick" && styles.chipTextActive,
+                    ]}
+                  >
+                    Sticks
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.chip,
+                    isLandscape && styles.chipLandscape,
+                    vizStyle === "sphere" && styles.chipActive,
+                  ]}
+                  onPress={() => setVizStyle("sphere")}
+                >
+                  <Text
+                    style={[
+                      styles.chipText,
+                      vizStyle === "sphere" && styles.chipTextActive,
+                    ]}
+                  >
+                    Space-Fill
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.chip,
+                    isLandscape && styles.chipLandscape,
+                    vizStyle === "wireframe" && styles.chipActive,
+                  ]}
+                  onPress={() => setVizStyle("wireframe")}
+                >
+                  <Text
+                    style={[
+                      styles.chipText,
+                      vizStyle === "wireframe" && styles.chipTextActive,
+                    ]}
+                  >
+                    Wireframe
+                  </Text>
+                </TouchableOpacity>
+              </ScrollView>
+            </View>
+          )}
+
+          {/* Viewer Area */}
+          <View style={[styles.viewerContainer, { flex: 1 }]}>
+            {moleculeData && !isLoading && (
+              <>
+                <View style={styles.badgeContainer}>
                   <TouchableOpacity
-                    style={styles.linkButton}
-                    onPress={() => {
-                      if (isValidId(moleculeData.codId)) {
-                        Linking.openURL(
-                          `https://www.crystallography.net/cod/${moleculeData.codId}.html`,
-                        );
-                      }
+                    style={[
+                      styles.badge,
+                      moleculeData.sdf2d ? null : styles.badgeNotAvailable,
+                      structureFormat === "2d" && styles.badgeActive,
+                    ]}
+                    onPress={() =>
+                      moleculeData.sdf2d
+                        ? setStructureFormat("2d")
+                        : Alert.alert(
+                            "2D Structure Unavailable",
+                            "No 2D structure data available for this compound.",
+                          )
+                    }
+                  >
+                    <Text
+                      style={[
+                        styles.badgeText,
+                        moleculeData.sdf2d
+                          ? null
+                          : styles.badgeTextNotAvailable,
+                        structureFormat === "2d" && styles.badgeTextActive,
+                      ]}
+                    >
+                      2D
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.badge,
+                      moleculeData.sdf3d || moleculeData.useCif
+                        ? null
+                        : styles.badgeNotAvailable,
+                      structureFormat === "3d" && styles.badgeActive,
+                    ]}
+                    onPress={() =>
+                      moleculeData.sdf3d || moleculeData.useCif
+                        ? setStructureFormat("3d")
+                        : Alert.alert(
+                            "3D Structure Unavailable",
+                            "No 3D structure data available for this compound.",
+                          )
+                    }
+                  >
+                    <Text
+                      style={[
+                        styles.badgeText,
+                        moleculeData.sdf3d || moleculeData.useCif
+                          ? null
+                          : styles.badgeTextNotAvailable,
+                        structureFormat === "3d" && styles.badgeTextActive,
+                      ]}
+                    >
+                      3D
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+                {/* Molecule name overlay for landscape when info is hidden */}
+                {isLandscape && !showInfo && (
+                  <View
+                    style={{
+                      position: "absolute",
+                      bottom: 15,
+                      left: 0,
+                      right: 0,
+                      alignItems: "center",
+                      zIndex: 10,
                     }}
                   >
-                    <Text style={styles.linkButtonText}>
-                      View Crystal Data (COD)
+                    <Text
+                      style={{
+                        color: "#AAA",
+                        fontSize: 13,
+                        fontWeight: "800",
+                        textTransform: "uppercase",
+                        letterSpacing: 1.5,
+                      }}
+                    >
+                      {moleculeData.name}
                     </Text>
-                    <Ionicons name="open-outline" size={16} color="#0A84FF" />
-                  </TouchableOpacity>
-                </>
-              )}
-            </CollapsibleSection>
-          </ScrollView>
-        </View>
-      )}
+                  </View>
+                )}
+              </>
+            )}
+            <WebView
+              ref={webViewRef}
+              originWhitelist={["https://3Dmol.csb.pitt.edu"]}
+              source={{
+                html: getViewerHtml(),
+                baseUrl: "https://3Dmol.csb.pitt.edu",
+              }}
+              style={styles.webview}
+              scrollEnabled={false}
+              onMessage={onWebViewMessage}
+            />
 
-      {/* Footer Info */}
-      {moleculeData && !isLoading && !showInfo && (
+            {!moleculeData && !isLoading && (
+              <View style={styles.placeholderOverlay}>
+                <Ionicons name="cube-outline" size={60} color="#444" />
+                <Text
+                  style={styles.placeholderText}
+                  maxFontSizeMultiplier={1.2}
+                >
+                  Search for a compound to view 3D structure
+                </Text>
+              </View>
+            )}
+          </View>
+        </View>
+
+        {/* Info Panel */}
+        {moleculeData && !isLoading && showInfo && (
+          <View
+            style={isLandscape ? styles.infoPanelLandscape : styles.infoPanel}
+          >
+            <ScrollView
+              style={styles.infoScroll}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
+            >
+              {/* Quick Stats */}
+              <View style={styles.statsGrid}>
+                <View style={styles.statCard}>
+                  <Text style={styles.statLabel}>Formula</Text>
+                  {moleculeData.formula ? (
+                    <ChemicalFormula formula={moleculeData.formula} />
+                  ) : (
+                    <Text style={styles.statValue}>N/A</Text>
+                  )}
+                </View>
+                <View style={styles.statCard}>
+                  <Text style={styles.statLabel}>Molecular Weight</Text>
+                  <Text style={styles.statValue}>
+                    {moleculeData.molecularWeight || "N/A"}
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.statsGrid}>
+                <View style={styles.statCard}>
+                  <Text style={styles.statLabel}>IUPAC Name</Text>
+                  <Text style={styles.statValue}>
+                    {moleculeData.properties.iupacName || "N/A"}
+                  </Text>
+                </View>
+                <View style={styles.statCard}>
+                  <Text style={styles.statLabel}>Common Name</Text>
+                  <Text style={styles.statValue}>
+                    {moleculeData.properties.commonName || "N/A"}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Chemical Properties */}
+              <CollapsibleSection
+                title="Chemical Properties"
+                icon="flask-outline"
+                defaultExpanded
+              >
+                <PropertyRow
+                  label="H-Bond Acceptors"
+                  value={moleculeData.properties.hBondAcceptors}
+                />
+                <PropertyRow
+                  label="H-Bond Donors"
+                  value={moleculeData.properties.hBondDonors}
+                />
+                <PropertyRow
+                  label="Rotatable Bonds"
+                  value={moleculeData.properties.rotatableBonds}
+                />
+                <PropertyRow
+                  label="LogP (Lipophilicity)"
+                  value={moleculeData.properties.logP}
+                />
+                <PropertyRow
+                  label="Polar Surface Area"
+                  value={moleculeData.properties.tpsa}
+                />
+                <PropertyRow
+                  label="Boiling Point"
+                  value={moleculeData.properties.boilingPoint}
+                />
+                <PropertyRow
+                  label="Melting Point"
+                  value={moleculeData.properties.meltingPoint}
+                />
+                <PropertyRow
+                  label="Solubility"
+                  value={moleculeData.properties.solubility}
+                />
+                <PropertyRow
+                  label="Density"
+                  value={moleculeData.properties.density}
+                />
+                <PropertyRow label="pH" value={moleculeData.properties.pH} />
+
+                {!moleculeData.properties.logP &&
+                  !moleculeData.properties.tpsa && (
+                    <Text style={styles.noDataText}>
+                      No additional properties available
+                    </Text>
+                  )}
+              </CollapsibleSection>
+
+              {/* Safety & Hazards */}
+              {(moleculeData.safety.hazardStatements ||
+                moleculeData.safety.signal) && (
+                <CollapsibleSection
+                  title="Safety & Hazards"
+                  icon="warning-outline"
+                >
+                  {moleculeData.safety.signal &&
+                    moleculeData.safety.signal.length > 0 && (
+                      <View style={styles.safetySection}>
+                        <Text style={styles.safetyLabel}>Signal Words</Text>
+                        {signalWords}
+                      </View>
+                    )}
+                  {moleculeData.safety.hazardStatements &&
+                    moleculeData.safety.hazardStatements.length > 0 && (
+                      <View style={styles.safetySection}>
+                        <Text style={styles.safetyLabel}>
+                          Hazard Statements
+                        </Text>
+                        {hazardStatements}
+                      </View>
+                    )}
+                </CollapsibleSection>
+              )}
+
+              {/* Collapsible Sections */}
+              <CollapsibleSection
+                title="Description"
+                icon="document-text-outline"
+              >
+                <Text style={styles.descriptionText}>
+                  {moleculeData.description}
+                </Text>
+              </CollapsibleSection>
+
+              <CollapsibleSection title="Synonyms" icon="list-outline">
+                <View style={styles.synonymsContainer}>{synonymsList}</View>
+              </CollapsibleSection>
+
+              <CollapsibleSection title="Databases" icon="link-outline">
+                <Text style={styles.infoText}>
+                  PubChem CID: {moleculeData.cid}
+                </Text>
+                <TouchableOpacity
+                  style={styles.linkButton}
+                  onPress={() => {
+                    if (isValidId(moleculeData.cid)) {
+                      Linking.openURL(
+                        `https://pubchem.ncbi.nlm.nih.gov/compound/${moleculeData.cid}`,
+                      );
+                    }
+                  }}
+                >
+                  <Text style={styles.linkButtonText}>View on PubChem</Text>
+                  <Ionicons name="open-outline" size={16} color="#0A84FF" />
+                </TouchableOpacity>
+
+                {/* NEW: Add COD link if available */}
+                {moleculeData.codId && (
+                  <>
+                    <Text style={[styles.infoText, { marginTop: 15 }]}>
+                      COD ID: {moleculeData.codId}
+                    </Text>
+                    <TouchableOpacity
+                      style={styles.linkButton}
+                      onPress={() => {
+                        if (isValidId(moleculeData.codId)) {
+                          Linking.openURL(
+                            `https://www.crystallography.net/cod/${moleculeData.codId}.html`,
+                          );
+                        }
+                      }}
+                    >
+                      <Text style={styles.linkButtonText}>
+                        View Crystal Data (COD)
+                      </Text>
+                      <Ionicons name="open-outline" size={16} color="#0A84FF" />
+                    </TouchableOpacity>
+                  </>
+                )}
+              </CollapsibleSection>
+            </ScrollView>
+          </View>
+        )}
+      </View>
+
+      {/* Footer Info - Portrait only */}
+      {!isLandscape && moleculeData && !isLoading && !showInfo && (
         <View style={styles.footer}>
           <Text style={styles.moleculeName} maxFontSizeMultiplier={1.2}>
             {moleculeData.name.toUpperCase()}

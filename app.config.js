@@ -10,7 +10,7 @@ export default {
   name: IS_DEV ? "Moluxis (Dev)" : "Moluxis",
   slug: "Moluxis",
   version: pkg.version,
-  orientation: "portrait",
+  orientation: "default",
   platforms: ["android"],
   icon: "./assets/icon.png",
   userInterfaceStyle: "dark",

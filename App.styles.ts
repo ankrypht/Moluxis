@@ -12,16 +12,26 @@ export const styles = StyleSheet.create({
     backgroundColor: "#121212",
     zIndex: 100,
   },
+  headerLandscape: {
+    padding: 8,
+    paddingBottom: 4,
+  },
   title: {
     fontSize: 24,
     fontWeight: "800",
     color: "#FFFFFF",
     marginBottom: 15,
   },
+  titleLandscape: {
+    display: "none",
+  },
   searchRow: {
     flexDirection: "row",
     gap: 10,
     zIndex: 101,
+  },
+  searchRowLandscape: {
+    gap: 6,
   },
   input: {
     flex: 1,
@@ -34,6 +44,10 @@ export const styles = StyleSheet.create({
     borderColor: "#333",
     color: "#FFFFFF",
   },
+  inputLandscape: {
+    paddingVertical: 8,
+    fontSize: 14,
+  },
   button: {
     backgroundColor: "#0A84FF",
     borderRadius: 12,
@@ -44,6 +58,9 @@ export const styles = StyleSheet.create({
   },
   buttonDisabled: {
     backgroundColor: "#333",
+  },
+  buttonLandscape: {
+    minWidth: 50,
   },
   buttonText: {
     color: "#fff",
@@ -67,12 +84,18 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#333",
   },
+  suggestionsContainerLandscape: {
+    top: 60,
+  },
   suggestionItem: {
     padding: 15,
     borderBottomWidth: 1,
     borderBottomColor: "#2C2C2C",
     flexDirection: "row",
     alignItems: "center",
+  },
+  suggestionItemLandscape: {
+    padding: 10,
   },
   suggestionText: {
     fontSize: 16,
@@ -86,8 +109,11 @@ export const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#2C2C2C",
   },
+  controlsContainerLandscape: {
+    minHeight: 40,
+    paddingVertical: 6,
+  },
   controlsScroll: {
-    paddingHorizontal: 16,
     alignItems: "center",
     gap: 8,
   },
@@ -100,6 +126,10 @@ export const styles = StyleSheet.create({
     borderColor: "#333",
     flexDirection: "row",
     alignItems: "center",
+  },
+  chipLandscape: {
+    paddingVertical: 4,
+    paddingHorizontal: 10,
   },
   chipActive: {
     backgroundColor: "#0A84FF",
@@ -118,6 +148,9 @@ export const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#121212",
     position: "relative",
+  },
+  viewerContainerLandscape: {
+    flex: 2,
   },
   badgeContainer: {
     position: "absolute",
@@ -172,6 +205,14 @@ export const styles = StyleSheet.create({
     marginTop: 15,
     textAlign: "center",
   },
+  // Main Content
+  mainContent: {
+    flex: 1,
+  },
+  mainContentLandscape: {
+    flex: 1,
+    flexDirection: "row",
+  },
   // Info Panel
   infoPanel: {
     maxHeight: "50%",
@@ -180,6 +221,15 @@ export const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     borderTopWidth: 1,
     borderTopColor: "#333",
+  },
+  infoPanelLandscape: {
+    flex: 1,
+    height: "100%",
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+    borderTopWidth: 0,
+    borderLeftWidth: 1,
+    borderLeftColor: "#333",
   },
   infoScroll: {
     padding: 16,
@@ -290,7 +340,7 @@ export const styles = StyleSheet.create({
   footer: {
     paddingTop: 16,
     paddingHorizontal: 16,
-    paddingBottom: 40,
+    paddingBottom: 20,
     backgroundColor: "#121212",
     borderTopWidth: 1,
     borderTopColor: "#2C2C2C",
