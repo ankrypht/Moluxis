@@ -93,6 +93,14 @@ function MoleculeExplorer() {
     }
   }, [moleculeData]);
 
+  const webViewSource = useMemo(
+    () => ({
+      html: getViewerHtml(),
+      baseUrl: "https://3Dmol.csb.pitt.edu",
+    }),
+    [],
+  );
+
   const signalWords = useMemo(() => {
     if (!moleculeData?.safety?.signal) return null;
     return moleculeData.safety.signal.map((item, idx) => (
@@ -134,6 +142,8 @@ function MoleculeExplorer() {
               ? moleculeData.cif
               : moleculeData.sdf3d,
         format: structureFormat === "2d" ? "sdf" : useCif ? "cif" : "sdf",
+        style: vizStyle,
+        labels: showLabels,
       });
 
       const timer = setTimeout(() => {
@@ -141,7 +151,7 @@ function MoleculeExplorer() {
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [moleculeData, structureFormat]);
+  }, [moleculeData, structureFormat, vizStyle, showLabels]);
 
   useEffect(() => {
     if (moleculeData && webViewRef.current) {
@@ -169,6 +179,8 @@ function MoleculeExplorer() {
                   ? moleculeData.cif
                   : moleculeData.sdf3d,
             format: structureFormat === "2d" ? "sdf" : useCif ? "cif" : "sdf",
+            style: vizStyle,
+            labels: showLabels,
           });
           webViewRef.current.postMessage(message);
         }
@@ -176,7 +188,7 @@ function MoleculeExplorer() {
         // Silently handle non-JSON messages
       }
     },
-    [moleculeData, structureFormat],
+    [moleculeData, structureFormat, vizStyle, showLabels],
   );
 
   const handleSelectSuggestion = useCallback(
@@ -522,10 +534,7 @@ function MoleculeExplorer() {
             <WebView
               ref={webViewRef}
               originWhitelist={["https://3Dmol.csb.pitt.edu"]}
-              source={{
-                html: getViewerHtml(),
-                baseUrl: "https://3Dmol.csb.pitt.edu",
-              }}
+              source={webViewSource}
               style={styles.webview}
               scrollEnabled={false}
               onMessage={onWebViewMessage}

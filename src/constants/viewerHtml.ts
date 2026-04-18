@@ -88,7 +88,10 @@ export const getViewerHtml = () => `
       }
     }
 
-    window.loadStructure = function(structureData, format) {
+    window.loadStructure = function(structureData, format, style, labels) {
+      if (style) currentStyle = style;
+      if (labels !== undefined) showLabels = labels;
+      
       if (!viewer) init();
       if (!viewer) return;
       
@@ -120,8 +123,8 @@ export const getViewerHtml = () => `
         if (!message || typeof message !== 'object') return;
 
         if (message.type === 'LOAD_STRUCTURE') {
-          // Pass the new format
-          window.loadStructure(message.data, message.format);
+          // Pass the new format and style/labels
+          window.loadStructure(message.data, message.format, message.style, message.labels);
         } else if (message.type === 'UPDATE_SETTINGS') {
           window.updateSettings(message.style, message.labels);
         }
