@@ -11,8 +11,12 @@ export const PropertyRow: React.FC<PropertyRowProps> = ({ label, value }) => {
 
   return (
     <View style={styles.propertyRow}>
-      <Text style={styles.propertyLabel}>{label}</Text>
-      <Text style={styles.propertyValue}>{value}</Text>
+      <Text allowFontScaling={false} style={styles.propertyLabel}>
+        {label}
+      </Text>
+      <Text allowFontScaling={false} style={styles.propertyValue}>
+        {value}
+      </Text>
     </View>
   );
 };

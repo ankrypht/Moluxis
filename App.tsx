@@ -96,7 +96,7 @@ function MoleculeExplorer() {
   const signalWords = useMemo(() => {
     if (!moleculeData?.safety?.signal) return null;
     return moleculeData.safety.signal.map((item, idx) => (
-      <Text key={idx} style={styles.warningText}>
+      <Text allowFontScaling={false} key={idx} style={styles.warningText}>
         ⚠ {item}
       </Text>
     ));
@@ -105,7 +105,7 @@ function MoleculeExplorer() {
   const hazardStatements = useMemo(() => {
     if (!moleculeData?.safety?.hazardStatements) return null;
     return moleculeData.safety.hazardStatements.map((item, idx) => (
-      <Text key={idx} style={styles.hazardText}>
+      <Text allowFontScaling={false} key={idx} style={styles.hazardText}>
         ⚠ {item}
       </Text>
     ));
@@ -115,7 +115,9 @@ function MoleculeExplorer() {
     if (!moleculeData?.synonyms) return null;
     return moleculeData.synonyms.map((synonym, index) => (
       <View key={index} style={styles.synonymChip}>
-        <Text style={styles.synonymText}>{synonym}</Text>
+        <Text allowFontScaling={false} style={styles.synonymText}>
+          {synonym}
+        </Text>
       </View>
     ));
   }, [moleculeData]);
@@ -218,8 +220,8 @@ function MoleculeExplorer() {
             ]}
           >
             <Text
+              allowFontScaling={false}
               style={[styles.title, isLandscape && styles.titleLandscape]}
-              maxFontSizeMultiplier={1.2}
             >
               Moluxis
             </Text>
@@ -230,8 +232,9 @@ function MoleculeExplorer() {
               ]}
             >
               <TextInput
+                allowFontScaling={false}
                 style={[styles.input, isLandscape && styles.inputLandscape]}
-                placeholder="Search (e.g., Caffeine, Aspirin)"
+                placeholder="Search by name or formula"
                 placeholderTextColor="#888"
                 value={searchText}
                 onChangeText={handleTextChange}
@@ -239,7 +242,6 @@ function MoleculeExplorer() {
                 returnKeyType="search"
                 onSubmitEditing={() => searchMolecule()}
                 keyboardAppearance="dark"
-                maxFontSizeMultiplier={1.2}
               />
               <TouchableOpacity
                 style={[
@@ -253,7 +255,7 @@ function MoleculeExplorer() {
                 {isLoading ? (
                   <ActivityIndicator color="#000" size="small" />
                 ) : (
-                  <Text style={styles.buttonText} maxFontSizeMultiplier={1.1}>
+                  <Text allowFontScaling={false} style={styles.buttonText}>
                     GO
                   </Text>
                 )}
@@ -312,12 +314,14 @@ function MoleculeExplorer() {
                   onPress={() => setShowInfo(!showInfo)}
                 >
                   <Ionicons
+                    allowFontScaling={false}
                     name="information-circle-outline"
                     size={16}
                     color={showInfo ? "#FFF" : "#AAA"}
                     style={{ marginRight: 4 }}
                   />
                   <Text
+                    allowFontScaling={false}
                     style={[styles.chipText, showInfo && styles.chipTextActive]}
                   >
                     Info
@@ -334,6 +338,7 @@ function MoleculeExplorer() {
                   onPress={() => setShowLabels(!showLabels)}
                 >
                   <Text
+                    allowFontScaling={false}
                     style={[
                       styles.chipText,
                       showLabels && styles.chipTextActive,
@@ -352,6 +357,7 @@ function MoleculeExplorer() {
                   onPress={() => setVizStyle("ballStick")}
                 >
                   <Text
+                    allowFontScaling={false}
                     style={[
                       styles.chipText,
                       vizStyle === "ballStick" && styles.chipTextActive,
@@ -370,6 +376,7 @@ function MoleculeExplorer() {
                   onPress={() => setVizStyle("stick")}
                 >
                   <Text
+                    allowFontScaling={false}
                     style={[
                       styles.chipText,
                       vizStyle === "stick" && styles.chipTextActive,
@@ -388,6 +395,7 @@ function MoleculeExplorer() {
                   onPress={() => setVizStyle("sphere")}
                 >
                   <Text
+                    allowFontScaling={false}
                     style={[
                       styles.chipText,
                       vizStyle === "sphere" && styles.chipTextActive,
@@ -406,6 +414,7 @@ function MoleculeExplorer() {
                   onPress={() => setVizStyle("wireframe")}
                 >
                   <Text
+                    allowFontScaling={false}
                     style={[
                       styles.chipText,
                       vizStyle === "wireframe" && styles.chipTextActive,
@@ -439,6 +448,7 @@ function MoleculeExplorer() {
                     }
                   >
                     <Text
+                      allowFontScaling={false}
                       style={[
                         styles.badgeText,
                         moleculeData.sdf2d
@@ -468,6 +478,7 @@ function MoleculeExplorer() {
                     }
                   >
                     <Text
+                      allowFontScaling={false}
                       style={[
                         styles.badgeText,
                         moleculeData.sdf3d || moleculeData.useCif
@@ -493,6 +504,7 @@ function MoleculeExplorer() {
                     }}
                   >
                     <Text
+                      allowFontScaling={false}
                       style={{
                         color: "#AAA",
                         fontSize: 13,
@@ -521,11 +533,13 @@ function MoleculeExplorer() {
 
             {!moleculeData && !isLoading && (
               <View style={styles.placeholderOverlay}>
-                <Ionicons name="cube-outline" size={60} color="#444" />
-                <Text
-                  style={styles.placeholderText}
-                  maxFontSizeMultiplier={1.2}
-                >
+                <Ionicons
+                  allowFontScaling={false}
+                  name="cube-outline"
+                  size={60}
+                  color="#444"
+                />
+                <Text allowFontScaling={false} style={styles.placeholderText}>
                   Search for a compound to view 3D structure
                 </Text>
               </View>
@@ -546,30 +560,40 @@ function MoleculeExplorer() {
               {/* Quick Stats */}
               <View style={styles.statsGrid}>
                 <View style={styles.statCard}>
-                  <Text style={styles.statLabel}>Formula</Text>
+                  <Text allowFontScaling={false} style={styles.statLabel}>
+                    Formula
+                  </Text>
                   {moleculeData.formula ? (
                     <ChemicalFormula formula={moleculeData.formula} />
                   ) : (
-                    <Text style={styles.statValue}>N/A</Text>
+                    <Text allowFontScaling={false} style={styles.statValue}>
+                      N/A
+                    </Text>
                   )}
                 </View>
                 <View style={styles.statCard}>
-                  <Text style={styles.statLabel}>Molecular Weight</Text>
-                  <Text style={styles.statValue}>
+                  <Text allowFontScaling={false} style={styles.statLabel}>
+                    Molecular Weight
+                  </Text>
+                  <Text allowFontScaling={false} style={styles.statValue}>
                     {moleculeData.molecularWeight || "N/A"}
                   </Text>
                 </View>
               </View>
               <View style={styles.statsGrid}>
                 <View style={styles.statCard}>
-                  <Text style={styles.statLabel}>IUPAC Name</Text>
-                  <Text style={styles.statValue}>
+                  <Text allowFontScaling={false} style={styles.statLabel}>
+                    IUPAC Name
+                  </Text>
+                  <Text allowFontScaling={false} style={styles.statValue}>
                     {moleculeData.properties.iupacName || "N/A"}
                   </Text>
                 </View>
                 <View style={styles.statCard}>
-                  <Text style={styles.statLabel}>Common Name</Text>
-                  <Text style={styles.statValue}>
+                  <Text allowFontScaling={false} style={styles.statLabel}>
+                    Common Name
+                  </Text>
+                  <Text allowFontScaling={false} style={styles.statValue}>
                     {moleculeData.properties.commonName || "N/A"}
                   </Text>
                 </View>
@@ -621,7 +645,7 @@ function MoleculeExplorer() {
 
                 {!moleculeData.properties.logP &&
                   !moleculeData.properties.tpsa && (
-                    <Text style={styles.noDataText}>
+                    <Text allowFontScaling={false} style={styles.noDataText}>
                       No additional properties available
                     </Text>
                   )}
@@ -637,14 +661,22 @@ function MoleculeExplorer() {
                   {moleculeData.safety.signal &&
                     moleculeData.safety.signal.length > 0 && (
                       <View style={styles.safetySection}>
-                        <Text style={styles.safetyLabel}>Signal Words</Text>
+                        <Text
+                          allowFontScaling={false}
+                          style={styles.safetyLabel}
+                        >
+                          Signal Words
+                        </Text>
                         {signalWords}
                       </View>
                     )}
                   {moleculeData.safety.hazardStatements &&
                     moleculeData.safety.hazardStatements.length > 0 && (
                       <View style={styles.safetySection}>
-                        <Text style={styles.safetyLabel}>
+                        <Text
+                          allowFontScaling={false}
+                          style={styles.safetyLabel}
+                        >
                           Hazard Statements
                         </Text>
                         {hazardStatements}
@@ -658,7 +690,7 @@ function MoleculeExplorer() {
                 title="Description"
                 icon="document-text-outline"
               >
-                <Text style={styles.descriptionText}>
+                <Text allowFontScaling={false} style={styles.descriptionText}>
                   {moleculeData.description}
                 </Text>
               </CollapsibleSection>
@@ -668,7 +700,7 @@ function MoleculeExplorer() {
               </CollapsibleSection>
 
               <CollapsibleSection title="Databases" icon="link-outline">
-                <Text style={styles.infoText}>
+                <Text allowFontScaling={false} style={styles.infoText}>
                   PubChem CID: {moleculeData.cid}
                 </Text>
                 <TouchableOpacity
@@ -681,14 +713,24 @@ function MoleculeExplorer() {
                     }
                   }}
                 >
-                  <Text style={styles.linkButtonText}>View on PubChem</Text>
-                  <Ionicons name="open-outline" size={16} color="#0A84FF" />
+                  <Text allowFontScaling={false} style={styles.linkButtonText}>
+                    View on PubChem
+                  </Text>
+                  <Ionicons
+                    allowFontScaling={false}
+                    name="open-outline"
+                    size={16}
+                    color="#0A84FF"
+                  />
                 </TouchableOpacity>
 
                 {/* NEW: Add COD link if available */}
                 {moleculeData.codId && (
                   <>
-                    <Text style={[styles.infoText, { marginTop: 15 }]}>
+                    <Text
+                      allowFontScaling={false}
+                      style={[styles.infoText, { marginTop: 15 }]}
+                    >
                       COD ID: {moleculeData.codId}
                     </Text>
                     <TouchableOpacity
@@ -701,10 +743,18 @@ function MoleculeExplorer() {
                         }
                       }}
                     >
-                      <Text style={styles.linkButtonText}>
+                      <Text
+                        allowFontScaling={false}
+                        style={styles.linkButtonText}
+                      >
                         View Crystal Data (COD)
                       </Text>
-                      <Ionicons name="open-outline" size={16} color="#0A84FF" />
+                      <Ionicons
+                        allowFontScaling={false}
+                        name="open-outline"
+                        size={16}
+                        color="#0A84FF"
+                      />
                     </TouchableOpacity>
                   </>
                 )}
@@ -717,10 +767,10 @@ function MoleculeExplorer() {
       {/* Footer Info - Portrait only */}
       {!isLandscape && moleculeData && !isLoading && !showInfo && (
         <View style={styles.footer}>
-          <Text style={styles.moleculeName} maxFontSizeMultiplier={1.2}>
+          <Text allowFontScaling={false} style={styles.moleculeName}>
             {moleculeData.name.toUpperCase()}
           </Text>
-          <Text style={styles.sourceText} maxFontSizeMultiplier={1.2}>
+          <Text allowFontScaling={false} style={styles.sourceText}>
             Source: PubChem
           </Text>
         </View>

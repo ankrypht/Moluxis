@@ -14,12 +14,15 @@ export const SuggestionItem = React.memo<SuggestionItemProps>(
       onPress={() => onSelect(item)}
     >
       <Ionicons
+        allowFontScaling={false}
         name="search-outline"
         size={16}
         color="#AAA"
         style={{ marginRight: 10 }}
       />
-      <Text style={styles.suggestionText}>{item}</Text>
+      <Text allowFontScaling={false} style={styles.suggestionText}>
+        {item}
+      </Text>
     </TouchableOpacity>
   ),
 );

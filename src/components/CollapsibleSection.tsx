@@ -41,10 +41,18 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
     <View style={styles.section}>
       <TouchableOpacity style={styles.sectionHeader} onPress={toggleExpand}>
         <View style={styles.sectionHeaderLeft}>
-          <Ionicons name={icon} size={20} color="#0A84FF" />
-          <Text style={styles.sectionTitle}>{title}</Text>
+          <Ionicons
+            allowFontScaling={false}
+            name={icon}
+            size={20}
+            color="#0A84FF"
+          />
+          <Text allowFontScaling={false} style={styles.sectionTitle}>
+            {title}
+          </Text>
         </View>
         <Ionicons
+          allowFontScaling={false}
           name={expanded ? "chevron-up" : "chevron-down"}
           size={20}
           color="#888"

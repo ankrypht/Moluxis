@@ -16,7 +16,11 @@ export const ChemicalFormula: React.FC<ChemicalFormulaProps> = React.memo(
         const isDigit = char >= "0" && char <= "9";
 
         elements[i] = (
-          <Text key={i} style={isDigit ? styles.subscript : undefined}>
+          <Text
+            allowFontScaling={false}
+            key={i}
+            style={isDigit ? styles.subscript : undefined}
+          >
             {char}
           </Text>
         );
@@ -25,7 +29,11 @@ export const ChemicalFormula: React.FC<ChemicalFormulaProps> = React.memo(
       return elements;
     }, [formula]);
 
-    return <Text style={styles.statValue}>{renderedFormula}</Text>;
+    return (
+      <Text allowFontScaling={false} style={styles.statValue}>
+        {renderedFormula}
+      </Text>
+    );
   },
 );
 
