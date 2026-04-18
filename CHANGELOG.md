@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.3.0](https://github.com/ankrypht/Moluxis/compare/v1.2.0...v1.3.0) (2026-04-18)
+
+
+### Features
+
+* implement responsive landscape layout ([7a4b65d](https://github.com/ankrypht/Moluxis/commit/7a4b65dbf410a73093775eacac20f4d6cd45f06f))
+
+
+### Bug Fixes
+
+* preserve visualization style on orientation change ([2d46fd3](https://github.com/ankrypht/Moluxis/commit/2d46fd32a259cdb510243d151ea3dd588419afc1))
+
 ## [1.2.0](https://github.com/ankrypht/Moluxis/compare/v1.1.0...v1.2.0) (2026-04-17)
 
 
