@@ -91,6 +91,11 @@ describe("useMoleculeSearch", () => {
 
   describe("searchMolecule", () => {
     it("should show alert when compound is not found", async () => {
+      // Suppress console.error in this test as we expect an error to be caught and logged
+      const consoleSpy = jest
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
+
       (fetchCompoundByName as jest.Mock).mockResolvedValueOnce({
         PC_Compounds: [],
       });
@@ -105,9 +110,16 @@ describe("useMoleculeSearch", () => {
         "Not Found",
         "Could not find a molecule with that name.",
       );
+
+      consoleSpy.mockRestore();
     });
 
     it("should alert when no structure data is available", async () => {
+      // Suppress console.error in this test as we expect an error to be caught and logged
+      const consoleSpy = jest
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
+
       (fetchCompoundByName as jest.Mock).mockResolvedValueOnce({
         PC_Compounds: [{ id: { id: { cid: 123 } }, props: [] }],
       });
@@ -129,6 +141,8 @@ describe("useMoleculeSearch", () => {
         "No Structure Data",
         "No structure available for this compound.",
       );
+
+      consoleSpy.mockRestore();
     });
 
     it("should successfully fetch and parse full molecule data", async () => {
