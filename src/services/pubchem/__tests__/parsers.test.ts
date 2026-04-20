@@ -269,6 +269,12 @@ describe("PubChem Parsers", () => {
         InformationList: { Information: [{}] },
       };
       expect(parseSynonyms(mockResponse)).toEqual([]);
+
+      // Edge case: empty object
+      expect(parseSynonyms({} as PubChemInformationResponse)).toEqual([]);
+
+      // Edge case: InformationList present but missing Information
+      expect(parseSynonyms({ InformationList: {} } as PubChemInformationResponse)).toEqual([]);
     });
   });
 
