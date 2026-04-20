@@ -154,14 +154,16 @@ describe("PubChem Parsers", () => {
         Record: {
           Section: [
             {
-              Section: { invalid: "not an array" }
-            }
-          ]
-        }
+              Section: { invalid: "not an array" },
+            },
+          ],
+        },
       } as unknown as PubChemViewResponse;
 
       // Ensure that console.error is suppressed if the code gets updated to use it later
-      const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+      const consoleSpy = jest
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
 
       try {
         expect(parseExperimentalProperties(mockView)).toEqual({});
@@ -274,7 +276,9 @@ describe("PubChem Parsers", () => {
       expect(parseSynonyms({} as PubChemInformationResponse)).toEqual([]);
 
       // Edge case: InformationList present but missing Information
-      expect(parseSynonyms({ InformationList: {} } as PubChemInformationResponse)).toEqual([]);
+      expect(
+        parseSynonyms({ InformationList: {} } as PubChemInformationResponse),
+      ).toEqual([]);
     });
   });
 
