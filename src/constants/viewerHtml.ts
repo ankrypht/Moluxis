@@ -49,17 +49,17 @@ export const getViewerHtml = () => `
         
         switch(currentStyle) {
           case 'stick':
-            styleObj = { stick: {} };
+            styleObj = { stick: { radius: 0.2 } };
             break;
           case 'wireframe':
-            styleObj = { line: {} };
+            styleObj = { stick: { radius: 0.05 } };
             break;
           case 'sphere':
-            styleObj = { sphere: {} };
+            styleObj = { sphere: { scale: 0.8 } };
             break;
           case 'ballStick':
           default:
-            styleObj = { stick: {radius: 0.15}, sphere: {scale: 0.25} };
+            styleObj = { stick: { radius: 0.15 }, sphere: { scale: 0.25 } };
             break;
         }
 
@@ -71,11 +71,11 @@ export const getViewerHtml = () => `
           for (let i = 0; i < atoms.length; i++) {
             let atom = atoms[i];
             viewer.addLabel(atom.elem, {
-              position: atom, 
-              backgroundColor: '#333333', 
-              backgroundOpacity: 0.9,
+              position: atom,
+              backgroundColor: '#000000', 
+              backgroundOpacity: 0.7,
               fontColor: 'white', 
-              fontSize: 14,
+              fontSize: 12,
               borderThickness: 1,
               borderColor: '#555'
             });
