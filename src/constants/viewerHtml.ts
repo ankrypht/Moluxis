@@ -18,6 +18,8 @@ export const getViewerHtml = () => `
     let currentModel = null;
     let currentStyle = 'ballStick';
     let showLabels = false;
+    let isAnimating = false;
+    let animationId = null;
 
     function init() {
       try {
@@ -38,6 +40,25 @@ export const getViewerHtml = () => `
         window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'WEBVIEW_READY' }));
       } catch (e) {
         console.error('Init error:', e);
+      }
+    }
+
+    function animate() {
+      if (isAnimating && viewer) {
+        viewer.rotate(0.8, 'y'); // Rotate 0.8 degree around Y axis
+        animationId = requestAnimationFrame(animate);
+      }
+    }
+
+    function toggleAnimation(status) {
+      isAnimating = !!status;
+      if (isAnimating) {
+        if (!animationId) animate();
+      } else {
+        if (animationId) {
+          cancelAnimationFrame(animationId);
+          animationId = null;
+        }
       }
     }
 
@@ -88,7 +109,7 @@ export const getViewerHtml = () => `
       }
     }
 
-    window.loadStructure = function(structureData, format, style, labels) {
+    window.loadStructure = function(structureData, format, style, labels, animateStatus) {
       if (style) currentStyle = style;
       if (labels !== undefined) showLabels = labels;
       
@@ -104,15 +125,17 @@ export const getViewerHtml = () => `
 
         viewer.zoomTo();
         applyStyle();
+        if (animateStatus !== undefined) toggleAnimation(animateStatus);
       } catch (e) {
         console.error('Load structure error:', e);
       }
     }
 
-    window.updateSettings = function(style, labels) {
+    window.updateSettings = function(style, labels, animateStatus) {
       currentStyle = style;
       showLabels = labels;
       applyStyle();
+      if (animateStatus !== undefined) toggleAnimation(animateStatus);
     }
 
     const messageHandler = (event) => {
@@ -124,9 +147,9 @@ export const getViewerHtml = () => `
 
         if (message.type === 'LOAD_STRUCTURE') {
           // Pass the new format and style/labels
-          window.loadStructure(message.data, message.format, message.style, message.labels);
+          window.loadStructure(message.data, message.format, message.style, message.labels, message.animate);
         } else if (message.type === 'UPDATE_SETTINGS') {
-          window.updateSettings(message.style, message.labels);
+          window.updateSettings(message.style, message.labels, message.animate);
         }
       } catch (err) {
         console.error('Message listener error:', err);

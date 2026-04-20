@@ -13,6 +13,7 @@ import {
   ActivityIndicator,
   FlatList,
   ScrollView,
+  Switch,
   Linking,
   Alert,
   useWindowDimensions,
@@ -73,8 +74,12 @@ function MoleculeExplorer() {
   // Visualization State
   const [vizStyle, setVizStyle] = useState<VisualizationType>("ballStick");
   const [showLabels, setShowLabels] = useState(false);
+  const [isAnimated, setIsAnimated] = useState(true);
   const [showInfo, setShowInfo] = useState(false);
   const [structureFormat, setStructureFormat] = useState<"3d" | "2d">("3d");
+
+  const toggleAnimation = () =>
+    setIsAnimated((previousState) => !previousState);
 
   const webViewRef = useRef<WebView>(null);
 
@@ -144,6 +149,7 @@ function MoleculeExplorer() {
         format: structureFormat === "2d" ? "sdf" : useCif ? "cif" : "sdf",
         style: vizStyle,
         labels: showLabels,
+        animate: isAnimated,
       });
 
       const timer = setTimeout(() => {
@@ -151,7 +157,7 @@ function MoleculeExplorer() {
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [moleculeData, structureFormat, vizStyle, showLabels]);
+  }, [moleculeData, structureFormat, vizStyle, showLabels, isAnimated]);
 
   useEffect(() => {
     if (moleculeData && webViewRef.current) {
@@ -159,10 +165,11 @@ function MoleculeExplorer() {
         type: "UPDATE_SETTINGS",
         style: vizStyle,
         labels: showLabels,
+        animate: isAnimated,
       });
       webViewRef.current.postMessage(message);
     }
-  }, [moleculeData, vizStyle, showLabels]);
+  }, [moleculeData, vizStyle, showLabels, isAnimated]);
 
   const onWebViewMessage = useCallback(
     (event: any) => {
@@ -181,6 +188,7 @@ function MoleculeExplorer() {
             format: structureFormat === "2d" ? "sdf" : useCif ? "cif" : "sdf",
             style: vizStyle,
             labels: showLabels,
+            animate: isAnimated,
           });
           webViewRef.current.postMessage(message);
         }
@@ -188,7 +196,7 @@ function MoleculeExplorer() {
         // Silently handle non-JSON messages
       }
     },
-    [moleculeData, structureFormat, vizStyle, showLabels],
+    [moleculeData, structureFormat, vizStyle, showLabels, isAnimated],
   );
 
   const handleSelectSuggestion = useCallback(
@@ -443,6 +451,21 @@ function MoleculeExplorer() {
           <View style={[styles.viewerContainer, { flex: 1 }]}>
             {moleculeData && !isLoading && (
               <>
+                <View style={styles.toggleContainer}>
+                  <Text allowFontScaling={false} style={styles.toggleText}>
+                    Animate
+                  </Text>
+                  <Switch
+                    trackColor={{
+                      false: "#555",
+                      true: "rgba(10, 132, 255, 0.4)",
+                    }}
+                    thumbColor={isAnimated ? "#0A84FF" : "#CCC"}
+                    onValueChange={toggleAnimation}
+                    value={isAnimated}
+                    style={{ transform: [{ scale: 0.8 }] }}
+                  />
+                </View>
                 <View style={styles.badgeContainer}>
                   <TouchableOpacity
                     style={[
