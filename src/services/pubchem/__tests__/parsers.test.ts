@@ -146,6 +146,29 @@ describe("PubChem Parsers", () => {
       };
       expect(parseExperimentalProperties(mockView)).toEqual({});
     });
+
+    it("should handle malformed object structure gracefully (error path)", () => {
+      // Pass an invalid structure that will cause a runtime error inside the try block
+      // (e.g., making Section an object instead of an array so iteration throws TypeError)
+      const mockView = {
+        Record: {
+          Section: [
+            {
+              Section: { invalid: "not an array" }
+            }
+          ]
+        }
+      } as unknown as PubChemViewResponse;
+
+      // Ensure that console.error is suppressed if the code gets updated to use it later
+      const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+      try {
+        expect(parseExperimentalProperties(mockView)).toEqual({});
+      } finally {
+        consoleSpy.mockRestore();
+      }
+    });
   });
 
   describe("parseSafetyInfo", () => {
