@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.4.0](https://github.com/ankrypht/Moluxis/compare/v1.3.0...v1.4.0) (2026-04-20)
+
+
+### Features
+
+* **viewer:** add animate toggle ([b77fd7f](https://github.com/ankrypht/Moluxis/commit/b77fd7fffd5db4eb91d0b5f95cb245cdb3e191ad))
+
+
+### Bug Fixes
+
+* **viewer:** refine 3D molecular visualization & labeling styles ([4adb7ad](https://github.com/ankrypht/Moluxis/commit/4adb7ade4fbf0323bd50aed05d585321a653ab5d))
+
 ## [1.3.0](https://github.com/ankrypht/Moluxis/compare/v1.2.0...v1.3.0) (2026-04-18)
 
 
