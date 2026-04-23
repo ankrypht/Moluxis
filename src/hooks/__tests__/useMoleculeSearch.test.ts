@@ -24,6 +24,14 @@ jest.mock("../../services/pubchem/api", () => ({
   fetchMoleculeDetails: jest.fn(),
 }));
 
+// Mock useStoreReview
+const mockIncrementSearchCountAndReview = jest.fn();
+jest.mock("../useStoreReview", () => ({
+  useStoreReview: () => ({
+    incrementSearchCountAndReview: mockIncrementSearchCountAndReview,
+  }),
+}));
+
 describe("useMoleculeSearch", () => {
   beforeEach(() => {
     jest.useFakeTimers();
@@ -192,6 +200,8 @@ describe("useMoleculeSearch", () => {
         useCif: false,
         formula: "H2O",
       });
+
+      expect(mockIncrementSearchCountAndReview).toHaveBeenCalled();
     });
   });
 });

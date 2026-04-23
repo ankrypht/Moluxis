@@ -3,6 +3,7 @@ import { Alert, Keyboard } from "react-native";
 import { MoleculeInfo } from "../types";
 import { useAutocomplete } from "./useAutocomplete";
 import { fetchMoleculeData } from "../services/pubchem/searchHelper";
+import { useStoreReview } from "./useStoreReview";
 
 // Global cache for molecule data to persist across renders and hook instances
 const moleculeCache = new Map<string, MoleculeInfo>();
@@ -19,6 +20,7 @@ export const useMoleculeSearch = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [moleculeData, setMoleculeData] = useState<MoleculeInfo | null>(null);
+  const { incrementSearchCountAndReview } = useStoreReview();
 
   // Keep searchTextRef updated for use in useCallback
   const searchTextRef = useRef(searchText);
@@ -41,6 +43,8 @@ export const useMoleculeSearch = () => {
       // Check cache first
       if (moleculeCache.has(normalizedTerm)) {
         setMoleculeData(moleculeCache.get(normalizedTerm)!);
+        // Even if cached, count as a successful interaction
+        incrementSearchCountAndReview();
         return;
       }
 
@@ -53,6 +57,8 @@ export const useMoleculeSearch = () => {
         // Store in cache
         moleculeCache.set(normalizedTerm, result);
         setMoleculeData(result);
+        // Successful search!
+        incrementSearchCountAndReview();
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         console.error("Molecule search error:", message);
@@ -76,7 +82,7 @@ export const useMoleculeSearch = () => {
         setIsLoading(false);
       }
     },
-    [setShowSuggestions],
+    [setShowSuggestions, incrementSearchCountAndReview],
   );
 
   const selectSuggestion = useCallback(
