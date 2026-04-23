@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.5.0](https://github.com/ankrypht/Moluxis/compare/v1.4.0...v1.5.0) (2026-04-23)
+
+
+### Features
+
+* add in-app review request functionality ([ba64f10](https://github.com/ankrypht/Moluxis/commit/ba64f10406adfa02293b6040f9a155fb121599f1))
+
+
+### Performance Improvements
+
+* optimize ChemicalFormula to reduce React nodes ([#71](https://github.com/ankrypht/Moluxis/issues/71)) ([e19ea13](https://github.com/ankrypht/Moluxis/commit/e19ea134ddb5aff78b2e31be66b964e9f3c353b0))
+* optimize recursive findCodId by avoiding Object.keys ([#70](https://github.com/ankrypht/Moluxis/issues/70)) ([38c54d4](https://github.com/ankrypht/Moluxis/commit/38c54d4a7d42bfc56392f4306a07d8fd22b213ab))
+
 ## [1.4.0](https://github.com/ankrypht/Moluxis/compare/v1.3.0...v1.4.0) (2026-04-20)
 
 
