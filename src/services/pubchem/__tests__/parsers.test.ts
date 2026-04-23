@@ -69,6 +69,54 @@ describe("PubChem Parsers", () => {
       expect(result.formula).toBe("");
       expect(result.properties).toEqual({});
     });
+
+    it("should skip entries with missing URNs", () => {
+      const mockCompound: PubChemCompound = {
+        id: { id: { cid: 123 } },
+        props: [{ value: { sval: "Should be ignored" } }] as any,
+      };
+      const result = parseCompoundProps(mockCompound);
+      expect(result.formula).toBe("");
+      expect(result.properties).toEqual({});
+    });
+
+    it("should ignore unhandled URN labels and names", () => {
+      const mockCompound: PubChemCompound = {
+        id: { id: { cid: 123 } },
+        props: [
+          {
+            urn: { label: "Unknown Label", name: "Unknown Name" },
+            value: { sval: "Ignore" },
+          },
+          {
+            urn: { label: "IUPAC Name", name: "Weird Name" },
+            value: { sval: "Ignore" },
+          },
+        ],
+      };
+      const result = parseCompoundProps(mockCompound);
+      expect(result.formula).toBe("");
+      expect(result.properties).toEqual({});
+    });
+
+    it("should handle missing value fields gracefully", () => {
+      const mockCompound: PubChemCompound = {
+        id: { id: { cid: 123 } },
+        props: [
+          { urn: { label: "Molecular Formula" } },
+          { urn: { label: "Molecular Weight" }, value: {} },
+          { urn: { name: "Hydrogen Bond Acceptor" }, value: {} },
+          { urn: { label: "Log P" }, value: {} },
+          { urn: { name: "Polar Surface Area" }, value: {} },
+        ],
+      };
+      const result = parseCompoundProps(mockCompound);
+      expect(result.formula).toBe("");
+      expect(result.molecularWeight).toBe("");
+      expect(result.properties.hBondAcceptors).toBeUndefined();
+      expect(result.properties.logP).toBeUndefined();
+      expect(result.properties.tpsa).toBeUndefined();
+    });
   });
 
   describe("parseExperimentalProperties", () => {
