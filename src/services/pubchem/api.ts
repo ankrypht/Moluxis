@@ -21,8 +21,12 @@ export const fetchAutocomplete = async (text: string): Promise<string[]> => {
       return [...new Set(json.dictionary_terms.compound)];
     }
     return [];
-  } catch {
-    // Autocomplete failure is non-critical, return empty list
+  } catch (error) {
+    // Autocomplete failure is non-critical, log and return empty list
+    console.error(
+      "Autocomplete fetch failed:",
+      error instanceof Error ? error.message : error,
+    );
     return [];
   }
 };
