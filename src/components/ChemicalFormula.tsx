@@ -8,25 +8,22 @@ interface ChemicalFormulaProps {
 export const ChemicalFormula: React.FC<ChemicalFormulaProps> = React.memo(
   ({ formula }) => {
     const renderedFormula = useMemo(() => {
-      const len = formula.length;
-      const elements = new Array(len);
+      // Split the string into chunks of digits and non-digits
+      const chunks = formula.split(/(\d+)/).filter(Boolean);
 
-      for (let i = 0; i < len; i++) {
-        const char = formula[i];
-        const isDigit = char >= "0" && char <= "9";
+      return chunks.map((chunk, index) => {
+        const isDigit = /^\d+$/.test(chunk);
 
-        elements[i] = (
+        return (
           <Text
             allowFontScaling={false}
-            key={i}
+            key={index}
             style={isDigit ? styles.subscript : undefined}
           >
-            {char}
+            {chunk}
           </Text>
         );
-      }
-
-      return elements;
+      });
     }, [formula]);
 
     return (

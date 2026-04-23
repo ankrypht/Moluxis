@@ -28,10 +28,7 @@ describe("ChemicalFormula", () => {
 
   it("renders a formula without numbers", () => {
     const { getByText } = render(<ChemicalFormula formula="NaCl" />);
-    expect(getByText("N")).toBeTruthy();
-    expect(getByText("a")).toBeTruthy();
-    expect(getByText("C")).toBeTruthy();
-    expect(getByText("l")).toBeTruthy();
+    expect(getByText("NaCl")).toBeTruthy();
   });
 
   it("handles empty formula string", () => {
@@ -41,13 +38,11 @@ describe("ChemicalFormula", () => {
 
   it("renders a formula with only numbers", () => {
     const { getByText } = render(<ChemicalFormula formula="123" />);
-    ["1", "2", "3"].forEach((num) => {
-      const node = getByText(num);
-      expect(node).toBeTruthy();
-      expect(node.props.style).toEqual(
-        expect.objectContaining({ fontSize: 12 }),
-      );
-    });
+    const node = getByText("123");
+    expect(node).toBeTruthy();
+    expect(node.props.style).toEqual(
+      expect.objectContaining({ fontSize: 12 }),
+    );
   });
 
   it("renders a very long formula", () => {
@@ -56,11 +51,11 @@ describe("ChemicalFormula", () => {
       <ChemicalFormula formula={formula} />,
     );
     expect(getByText("C")).toBeTruthy();
+    expect(getByText("20")).toBeTruthy();
     expect(getByText("H")).toBeTruthy();
+    expect(getByText("24")).toBeTruthy();
     expect(getByText("N")).toBeTruthy();
+    expect(getAllByText("2").length).toBe(2);
     expect(getByText("O")).toBeTruthy();
-    expect(getAllByText("2").length).toBe(4);
-    expect(getByText("0")).toBeTruthy();
-    expect(getByText("4")).toBeTruthy();
   });
 });
