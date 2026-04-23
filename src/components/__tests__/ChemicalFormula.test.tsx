@@ -40,9 +40,7 @@ describe("ChemicalFormula", () => {
     const { getByText } = render(<ChemicalFormula formula="123" />);
     const node = getByText("123");
     expect(node).toBeTruthy();
-    expect(node.props.style).toEqual(
-      expect.objectContaining({ fontSize: 12 }),
-    );
+    expect(node.props.style).toEqual(expect.objectContaining({ fontSize: 12 }));
   });
 
   it("renders a very long formula", () => {

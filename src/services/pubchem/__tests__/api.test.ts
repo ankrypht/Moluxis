@@ -43,7 +43,9 @@ describe("fetchAutocomplete", () => {
     const error = new Error("Network error");
     mockFetch.mockRejectedValueOnce(error);
 
-    const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    const consoleSpy = jest
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
 
     try {
       const result = await fetchAutocomplete("test");
