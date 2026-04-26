@@ -68,5 +68,56 @@ describe("useAutocomplete", () => {
       ]);
       expect(result.current.showSuggestions).toBe(true);
     });
+
+    it("should log error message when fetchAutocomplete throws an Error instance", async () => {
+      const error = new Error("Network error");
+      (fetchAutocomplete as jest.Mock).mockRejectedValueOnce(error);
+      const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+      try {
+        const { result } = renderHook(() => useAutocomplete());
+
+        act(() => {
+          result.current.handleTextChange("err1");
+        });
+
+        await act(async () => {
+          jest.advanceTimersByTime(300);
+        });
+
+        expect(consoleSpy).toHaveBeenCalledWith("Autocomplete error:", "Network error");
+        expect(result.current.suggestions).toEqual([]);
+      } finally {
+        consoleSpy.mockRestore();
+      }
+    });
+
+    it("should log raw error when fetchAutocomplete throws a non-Error object", async () => {
+      const error = "Some string error";
+      (fetchAutocomplete as jest.Mock).mockRejectedValueOnce(error);
+      const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+      try {
+        const { result } = renderHook(() => useAutocomplete());
+
+        // Set initial suggestions to verify they remain unchanged
+        act(() => {
+          result.current.setSuggestions(["previous"]);
+        });
+
+        act(() => {
+          result.current.handleTextChange("err2");
+        });
+
+        await act(async () => {
+          jest.advanceTimersByTime(300);
+        });
+
+        expect(consoleSpy).toHaveBeenCalledWith("Autocomplete error:", "Some string error");
+        expect(result.current.suggestions).toEqual(["previous"]);
+      } finally {
+        consoleSpy.mockRestore();
+      }
+    });
   });
 });
