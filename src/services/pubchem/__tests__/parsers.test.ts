@@ -195,6 +195,71 @@ describe("PubChem Parsers", () => {
       expect(parseExperimentalProperties(mockView)).toEqual({});
     });
 
+    it("should ignore unhandled experimental properties", () => {
+      const mockView: PubChemViewResponse = {
+        Record: {
+          Section: [
+            {
+              Section: [
+                {
+                  TOCHeading: "Experimental Properties",
+                  Section: [
+                    {
+                      TOCHeading: "Unsupported Property",
+                      Information: [
+                        { Value: { StringWithMarkup: [{ String: "Ignored Value" }] } },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      };
+
+      expect(parseExperimentalProperties(mockView)).toEqual({});
+    });
+
+    it("should handle missing value fields on recognized properties gracefully", () => {
+      const mockView: PubChemViewResponse = {
+        Record: {
+          Section: [
+            {
+              Section: [
+                {
+                  TOCHeading: "Experimental Properties",
+                  Section: [
+                    {
+                      TOCHeading: "Boiling Point",
+                      Information: [
+                        { Value: { StringWithMarkup: [] } },
+                      ],
+                    },
+                    {
+                      TOCHeading: "Melting Point",
+                      Information: [
+                        { Value: {} },
+                      ],
+                    },
+                    {
+                      TOCHeading: "Solubility",
+                      Information: [],
+                    },
+                    {
+                      TOCHeading: "Density",
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      };
+
+      expect(parseExperimentalProperties(mockView)).toEqual({});
+    });
+
     it("should handle malformed object structure gracefully (error path)", () => {
       // Pass an invalid structure that will cause a runtime error inside the try block
       // (e.g., making Section an object instead of an array so iteration throws TypeError)
