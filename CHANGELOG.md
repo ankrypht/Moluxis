@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.6.0](https://github.com/ankrypht/Moluxis/compare/v1.5.0...v1.6.0) (2026-05-01)
+
+
+### Features
+
+* implement responsive UI scaling and enable system font scaling ([ddc3639](https://github.com/ankrypht/Moluxis/commit/ddc36397e6fff2ca752a3ef4833ec98e0fc1251a))
+
+
+### Bug Fixes
+
+* center align compound name ([85306d7](https://github.com/ankrypht/Moluxis/commit/85306d7bd171a7e62acecdcd2ab74a0dcb7a836f))
+
 ## [1.5.0](https://github.com/ankrypht/Moluxis/compare/v1.4.0...v1.5.0) (2026-04-23)
 
 
