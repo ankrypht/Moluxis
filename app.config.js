@@ -31,7 +31,6 @@ export default {
       backgroundColor: "#000000",
       monochromeImage: "./assets/adaptive-icon.png",
     },
-    edgeToEdgeEnabled: true,
     predictiveBackGestureEnabled: false,
   },
   owner: "ankushsarkar",
