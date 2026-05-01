@@ -57,15 +57,20 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
       >
         <View style={[styles.sectionHeaderLeft, { gap: responsiveGap }]}>
           <Ionicons
+            allowFontScaling={false}
             name={icon}
             size={getResponsiveSize(20, width, height)}
             color="#0A84FF"
           />
-          <Text style={[styles.sectionTitle, { fontSize: responsiveFontSize }]}>
+          <Text
+            allowFontScaling={false}
+            style={[styles.sectionTitle, { fontSize: responsiveFontSize }]}
+          >
             {title}
           </Text>
         </View>
         <Ionicons
+          allowFontScaling={false}
           name={expanded ? "chevron-up" : "chevron-down"}
           size={getResponsiveSize(20, width, height)}
           color="#888"

@@ -21,10 +21,16 @@ export const PropertyRow: React.FC<PropertyRowProps> = ({ label, value }) => {
         { paddingVertical: getResponsiveSize(8, width, height) },
       ]}
     >
-      <Text style={[styles.propertyLabel, { fontSize: responsiveFontSize }]}>
+      <Text
+        allowFontScaling={false}
+        style={[styles.propertyLabel, { fontSize: responsiveFontSize }]}
+      >
         {label}
       </Text>
-      <Text style={[styles.propertyValue, { fontSize: responsiveFontSize }]}>
+      <Text
+        allowFontScaling={false}
+        style={[styles.propertyValue, { fontSize: responsiveFontSize }]}
+      >
         {value}
       </Text>
     </View>

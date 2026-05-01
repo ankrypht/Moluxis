@@ -26,12 +26,14 @@ export const SuggestionItem = React.memo<SuggestionItemProps>(
         onPress={() => onSelect(item)}
       >
         <Ionicons
+          allowFontScaling={false}
           name="search-outline"
           size={getResponsiveSize(16, width, height)}
           color="#AAA"
           style={{ marginRight: getResponsiveSize(10, width, height) }}
         />
         <Text
+          allowFontScaling={false}
           style={[
             styles.suggestionText,
             { fontSize: getResponsiveSize(16, width, height) },

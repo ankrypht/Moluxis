@@ -186,11 +186,9 @@ export const getStyles = (width: number, height: number) => {
       backgroundColor: "rgba(30, 30, 30, 0.8)",
       paddingLeft: hScaleSize(10),
       paddingRight: hScaleSize(4),
-      paddingVertical: scaleSize(1),
       borderRadius: scaleSize(20),
       borderWidth: 1,
       borderColor: "#444",
-      gap: hScaleSize(5),
     },
     toggleText: {
       fontSize: scaleSize(12),

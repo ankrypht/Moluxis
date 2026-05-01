@@ -19,6 +19,7 @@ export const ChemicalFormula: React.FC<ChemicalFormulaProps> = React.memo(
 
         return (
           <Text
+            allowFontScaling={false}
             key={index}
             style={
               isDigit
@@ -40,6 +41,7 @@ export const ChemicalFormula: React.FC<ChemicalFormulaProps> = React.memo(
 
     return (
       <Text
+        allowFontScaling={false}
         style={[
           styles.statValue,
           { fontSize: getResponsiveSize(16, width, height) },

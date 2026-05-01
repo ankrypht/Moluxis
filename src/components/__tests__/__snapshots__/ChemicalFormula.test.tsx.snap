@@ -2,6 +2,7 @@
 
 exports[`ChemicalFormula handles empty formula string 1`] = `
 <Text
+  allowFontScaling={false}
   style={
     [
       {
@@ -18,6 +19,7 @@ exports[`ChemicalFormula handles empty formula string 1`] = `
 
 exports[`ChemicalFormula matches snapshot 1`] = `
 <Text
+  allowFontScaling={false}
   style={
     [
       {
@@ -30,10 +32,13 @@ exports[`ChemicalFormula matches snapshot 1`] = `
     ]
   }
 >
-  <Text>
+  <Text
+    allowFontScaling={false}
+  >
     H
   </Text>
   <Text
+    allowFontScaling={false}
     style={
       [
         {
@@ -48,7 +53,9 @@ exports[`ChemicalFormula matches snapshot 1`] = `
   >
     2
   </Text>
-  <Text>
+  <Text
+    allowFontScaling={false}
+  >
     O
   </Text>
 </Text>
