@@ -418,6 +418,7 @@ export const getStyles = (width: number, height: number) => {
       fontSize: scaleSize(18),
       fontWeight: "800",
       color: "#FFFFFF",
+      textAlign: "center",
     },
     sourceText: {
       fontSize: scaleSize(12),
