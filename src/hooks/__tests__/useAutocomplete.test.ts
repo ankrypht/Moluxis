@@ -72,7 +72,9 @@ describe("useAutocomplete", () => {
     it("should log error message when fetchAutocomplete throws an Error instance", async () => {
       const error = new Error("Network error");
       (fetchAutocomplete as jest.Mock).mockRejectedValueOnce(error);
-      const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+      const consoleSpy = jest
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
 
       try {
         const { result } = renderHook(() => useAutocomplete());
@@ -85,7 +87,10 @@ describe("useAutocomplete", () => {
           jest.advanceTimersByTime(300);
         });
 
-        expect(consoleSpy).toHaveBeenCalledWith("Autocomplete error:", "Network error");
+        expect(consoleSpy).toHaveBeenCalledWith(
+          "Autocomplete error:",
+          "Network error",
+        );
         expect(result.current.suggestions).toEqual([]);
       } finally {
         consoleSpy.mockRestore();
@@ -95,7 +100,9 @@ describe("useAutocomplete", () => {
     it("should log raw error when fetchAutocomplete throws a non-Error object", async () => {
       const error = "Some string error";
       (fetchAutocomplete as jest.Mock).mockRejectedValueOnce(error);
-      const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+      const consoleSpy = jest
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
 
       try {
         const { result } = renderHook(() => useAutocomplete());
@@ -113,7 +120,10 @@ describe("useAutocomplete", () => {
           jest.advanceTimersByTime(300);
         });
 
-        expect(consoleSpy).toHaveBeenCalledWith("Autocomplete error:", "Some string error");
+        expect(consoleSpy).toHaveBeenCalledWith(
+          "Autocomplete error:",
+          "Some string error",
+        );
         expect(result.current.suggestions).toEqual(["previous"]);
       } finally {
         consoleSpy.mockRestore();

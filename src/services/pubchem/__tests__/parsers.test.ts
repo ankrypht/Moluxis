@@ -207,7 +207,11 @@ describe("PubChem Parsers", () => {
                     {
                       TOCHeading: "Unsupported Property",
                       Information: [
-                        { Value: { StringWithMarkup: [{ String: "Ignored Value" }] } },
+                        {
+                          Value: {
+                            StringWithMarkup: [{ String: "Ignored Value" }],
+                          },
+                        },
                       ],
                     },
                   ],
@@ -232,15 +236,11 @@ describe("PubChem Parsers", () => {
                   Section: [
                     {
                       TOCHeading: "Boiling Point",
-                      Information: [
-                        { Value: { StringWithMarkup: [] } },
-                      ],
+                      Information: [{ Value: { StringWithMarkup: [] } }],
                     },
                     {
                       TOCHeading: "Melting Point",
-                      Information: [
-                        { Value: {} },
-                      ],
+                      Information: [{ Value: {} }],
                     },
                     {
                       TOCHeading: "Solubility",

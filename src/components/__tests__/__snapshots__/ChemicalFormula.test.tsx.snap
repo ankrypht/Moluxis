@@ -2,48 +2,53 @@
 
 exports[`ChemicalFormula handles empty formula string 1`] = `
 <Text
-  allowFontScaling={false}
   style={
-    {
-      "color": "#FFF",
-      "fontSize": 16,
-      "fontWeight": "700",
-    }
+    [
+      {
+        "color": "#FFF",
+        "fontWeight": "700",
+      },
+      {
+        "fontSize": 23,
+      },
+    ]
   }
 />
 `;
 
 exports[`ChemicalFormula matches snapshot 1`] = `
 <Text
-  allowFontScaling={false}
   style={
-    {
-      "color": "#FFF",
-      "fontSize": 16,
-      "fontWeight": "700",
-    }
+    [
+      {
+        "color": "#FFF",
+        "fontWeight": "700",
+      },
+      {
+        "fontSize": 23,
+      },
+    ]
   }
 >
-  <Text
-    allowFontScaling={false}
-  >
+  <Text>
     H
   </Text>
   <Text
-    allowFontScaling={false}
     style={
-      {
-        "fontSize": 12,
-        "lineHeight": 18,
-        "textAlignVertical": "bottom",
-      }
+      [
+        {
+          "textAlignVertical": "bottom",
+        },
+        {
+          "fontSize": 17,
+          "lineHeight": 26,
+        },
+      ]
     }
   >
     2
   </Text>
-  <Text
-    allowFontScaling={false}
-  >
+  <Text>
     O
   </Text>
 </Text>

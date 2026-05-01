@@ -5,8 +5,10 @@ import {
   TouchableOpacity,
   Animated,
   StyleSheet,
+  useWindowDimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { getResponsiveSize } from "../utils/responsive";
 
 interface CollapsibleSectionProps {
   title: string;
@@ -26,6 +28,11 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
     new Animated.Value(defaultExpanded ? 1 : 0),
   ).current;
 
+  const { width, height } = useWindowDimensions();
+  const responsivePadding = getResponsiveSize(16, width, height);
+  const responsiveGap = getResponsiveSize(10, width, height);
+  const responsiveFontSize = getResponsiveSize(16, width, height);
+
   const toggleExpand = () => {
     const toValue = expanded ? 0 : 1;
     Animated.spring(animatedHeight, {
@@ -38,23 +45,29 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   };
 
   return (
-    <View style={styles.section}>
-      <TouchableOpacity style={styles.sectionHeader} onPress={toggleExpand}>
-        <View style={styles.sectionHeaderLeft}>
+    <View
+      style={[
+        styles.section,
+        { marginBottom: getResponsiveSize(12, width, height) },
+      ]}
+    >
+      <TouchableOpacity
+        style={[styles.sectionHeader, { padding: responsivePadding }]}
+        onPress={toggleExpand}
+      >
+        <View style={[styles.sectionHeaderLeft, { gap: responsiveGap }]}>
           <Ionicons
-            allowFontScaling={false}
             name={icon}
-            size={20}
+            size={getResponsiveSize(20, width, height)}
             color="#0A84FF"
           />
-          <Text allowFontScaling={false} style={styles.sectionTitle}>
+          <Text style={[styles.sectionTitle, { fontSize: responsiveFontSize }]}>
             {title}
           </Text>
         </View>
         <Ionicons
-          allowFontScaling={false}
           name={expanded ? "chevron-up" : "chevron-down"}
-          size={20}
+          size={getResponsiveSize(20, width, height)}
           color="#888"
         />
       </TouchableOpacity>
@@ -62,9 +75,11 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
         style={[
           styles.sectionContent,
           {
+            paddingHorizontal: responsivePadding,
+            paddingBottom: expanded ? responsivePadding : 0,
             maxHeight: animatedHeight.interpolate({
               inputRange: [0, 1],
-              outputRange: [0, 2000],
+              outputRange: [0, 5000], // Increased for large content
             }),
             opacity: animatedHeight,
           },
@@ -78,7 +93,6 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
 
 const styles = StyleSheet.create({
   section: {
-    marginBottom: 12,
     backgroundColor: "#252525",
     borderRadius: 12,
     borderWidth: 1,
@@ -89,21 +103,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 16,
   },
   sectionHeaderLeft: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
   },
   sectionTitle: {
-    fontSize: 16,
     fontWeight: "700",
     color: "#FFF",
   },
   sectionContent: {
     overflow: "hidden",
-    paddingHorizontal: 16,
-    paddingBottom: 16,
   },
 });

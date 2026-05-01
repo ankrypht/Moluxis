@@ -19,7 +19,7 @@
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",
     "@react-native-async-storage/async-storage": "2.2.0",
-    "expo": "~55.0.17",
+    "expo": "~55.0.18",
     "expo-dev-client": "~55.0.28",
     "expo-font": "~55.0.6",
     "expo-navigation-bar": "~55.0.12",
@@ -33,7 +33,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",
-    "@babel/preset-env": "^7.29.2",
+    "@babel/preset-env": "^7.29.3",
     "@babel/preset-react": "^7.28.5",
     "@babel/preset-typescript": "^7.28.5",
     "@testing-library/jest-native": "^5.4.3",
