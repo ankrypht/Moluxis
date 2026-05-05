@@ -81,6 +81,7 @@ The app features a sleek, dark-themed UI designed for focus and clarity.
 
 ## 📲 Installation
 
+[<img src="./assets/getItPlayStore.png" alt="Play Store" height="80">](https://play.google.com/store/apps/details?id=com.ankushsarkar.moluxis)
 [<img src="./assets/getItGithub.png" alt="GitHub" height="80">](https://github.com/ankrypht/Moluxis/releases/latest)
 
 ## 🤝 Contributing
