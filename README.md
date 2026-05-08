@@ -10,9 +10,8 @@
 </div>
 
 ![GitHub Release](https://img.shields.io/github/v/release/ankrypht/Moluxis?label=Latest%20Release&logo=github&logoColor=white)
-![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/ankrypht/Moluxis/total?label=Downloads&logo=refinedgithub&logoColor=white)
 ![GitHub commits since latest release](https://img.shields.io/github/commits-since/ankrypht/Moluxis/latest)
-![GitHub License](https://img.shields.io/github/license/ankrypht/Moluxis?label=License&logo=gnu&logoColor=white)
+![GitHub License](https://img.shields.io/github/license/ankrypht/Moluxis?label=License&logo=apache&logoColor=white)
 ![GitHub last commit (branch)](https://img.shields.io/github/last-commit/ankrypht/Moluxis/main?label=Last%20Commit&logo=Git&logoColor=white)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/t/ankrypht/Moluxis?label=Total%20Commits)
 ![GitHub top language](https://img.shields.io/github/languages/top/ankrypht/Moluxis?label=TypeScript&logo=typescript&logoColor=white)
