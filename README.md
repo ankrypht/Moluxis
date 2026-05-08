@@ -29,6 +29,11 @@
 
 The app features a sleek, dark-themed UI designed for focus and clarity.
 
+## 📲 Installation
+
+[<img src="./assets/getItPlayStore.png" alt="Play Store" height="80">](https://play.google.com/store/apps/details?id=com.ankushsarkar.moluxis)
+[<img src="./assets/getItGithub.png" alt="GitHub" height="80">](https://github.com/ankrypht/Moluxis/releases/latest)
+
 ## 📱 Screenshots
 
 <div align="center">
@@ -78,11 +83,6 @@ The app features a sleek, dark-themed UI designed for focus and clarity.
   - [PubChem PUG REST API](https://pubchem.ncbi.nlm.nih.gov/docs/pug-rest)
   - [Crystallography Open Database (COD)](https://www.crystallography.net/)
 - **UI Components:** Custom components.
-
-## 📲 Installation
-
-[<img src="./assets/getItPlayStore.png" alt="Play Store" height="80">](https://play.google.com/store/apps/details?id=com.ankushsarkar.moluxis)
-[<img src="./assets/getItGithub.png" alt="GitHub" height="80">](https://github.com/ankrypht/Moluxis/releases/latest)
 
 ## 🤝 Contributing
 
