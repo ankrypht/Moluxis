@@ -6,18 +6,10 @@ import {
   StyleSheet,
   useWindowDimensions,
   LayoutAnimation,
-  Platform,
-  UIManager,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { getResponsiveSize } from "../utils/responsive";
-
-if (
-  Platform.OS === "android" &&
-  UIManager.setLayoutAnimationEnabledExperimental
-) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
+import { COLORS } from "../constants/colors";
 
 interface CollapsibleSectionProps {
   title: string;
@@ -61,7 +53,7 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
             allowFontScaling={false}
             name={icon}
             size={getResponsiveSize(20, width, height)}
-            color="#0A84FF"
+            color={COLORS.primary}
           />
           <Text
             allowFontScaling={false}
@@ -74,7 +66,7 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
           allowFontScaling={false}
           name={expanded ? "chevron-up" : "chevron-down"}
           size={getResponsiveSize(20, width, height)}
-          color="#888"
+          color={COLORS.textSecondary}
         />
       </TouchableOpacity>
       {expanded && (
@@ -96,10 +88,10 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
 
 const styles = StyleSheet.create({
   section: {
-    backgroundColor: "#252525",
-    borderRadius: 12,
+    backgroundColor: COLORS.surfaceElevated,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#333",
+    borderColor: COLORS.border,
     overflow: "hidden",
   },
   sectionHeader: {
@@ -113,7 +105,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontWeight: "700",
-    color: "#FFF",
+    color: COLORS.textPrimary,
   },
   sectionContent: {
     overflow: "hidden",

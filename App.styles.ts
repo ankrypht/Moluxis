@@ -1,10 +1,17 @@
 import { StyleSheet, PixelRatio } from "react-native";
+import { COLORS, addOpacity } from "./src/constants/colors";
 
 // Reference dimensions from Samsung S24
 const REFERENCE_WIDTH = 360;
 const REFERENCE_HEIGHT = 736;
 
-export const getStyles = (width: number, height: number) => {
+export const getStyles = (
+  width: number,
+  height: number,
+  insets: { top: number; bottom: number; left: number; right: number },
+  showInfo: boolean,
+  showStyleMenu: boolean,
+) => {
   const isLandscape = width > height;
 
   // Swap reference dimensions based on orientation to maintain the 'optimized' look
@@ -25,406 +32,578 @@ export const getStyles = (width: number, height: number) => {
     Math.round(PixelRatio.roundToNearestPixel((width / refWidth) * size));
 
   return StyleSheet.create({
-    // Main Container
     container: {
       flex: 1,
-      backgroundColor: "#121212",
-    },
-    // Header
-    header: {
-      padding: scaleSize(16),
-      backgroundColor: "#121212",
-      zIndex: 100,
-    },
-    headerLandscape: {
-      padding: scaleSize(8),
-      paddingBottom: scaleSize(4),
-    },
-    title: {
-      fontSize: scaleSize(24),
-      fontWeight: "800",
-      color: "#FFFFFF",
-      marginBottom: scaleSize(15),
-    },
-    titleLandscape: {
-      display: "none",
-    },
-    searchRow: {
-      flexDirection: "row",
-      gap: hScaleSize(10),
-      zIndex: 101,
-    },
-    searchRowLandscape: {
-      gap: hScaleSize(6),
-    },
-    input: {
-      flex: 1,
-      backgroundColor: "#1E1E1E",
-      borderRadius: scaleSize(12),
-      paddingHorizontal: hScaleSize(15),
-      paddingVertical: scaleSize(12),
-      fontSize: scaleSize(16),
-      borderWidth: 1,
-      borderColor: "#333",
-      color: "#FFFFFF",
-    },
-    inputLandscape: {
-      paddingVertical: scaleSize(8),
-      fontSize: scaleSize(14),
-    },
-    button: {
-      backgroundColor: "#0A84FF",
-      borderRadius: scaleSize(12),
-      minWidth: hScaleSize(60),
-      paddingHorizontal: hScaleSize(12),
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    buttonDisabled: {
-      backgroundColor: "#333",
-    },
-    buttonLandscape: {
-      minWidth: hScaleSize(50),
-    },
-    buttonText: {
-      color: "#fff",
-      fontWeight: "700",
-      fontSize: scaleSize(14),
-    },
-    // Suggestions Dropdown
-    suggestionsContainer: {
-      position: "absolute",
-      top: scaleSize(130),
-      left: hScaleSize(16),
-      right: hScaleSize(16),
-      backgroundColor: "#1E1E1E",
-      borderRadius: scaleSize(12),
-      elevation: 5,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.5,
-      shadowRadius: 6,
-      zIndex: 999,
-      borderWidth: 1,
-      borderColor: "#333",
-    },
-    suggestionsContainerLandscape: {
-      top: scaleSize(60),
-    },
-    suggestionItem: {
-      padding: scaleSize(15),
-      borderBottomWidth: 1,
-      borderBottomColor: "#2C2C2C",
-      flexDirection: "row",
-      alignItems: "center",
-    },
-    suggestionItemLandscape: {
-      padding: scaleSize(10),
-    },
-    suggestionText: {
-      fontSize: scaleSize(16),
-      color: "#DDD",
-    },
-    // Controls
-    controlsContainer: {
-      minHeight: scaleSize(60),
-      paddingVertical: scaleSize(10),
-      backgroundColor: "#121212",
-      borderBottomWidth: 1,
-      borderBottomColor: "#2C2C2C",
-    },
-    controlsContainerLandscape: {
-      minHeight: scaleSize(40),
-      paddingVertical: scaleSize(6),
-    },
-    controlsScroll: {
-      alignItems: "center",
-      gap: hScaleSize(8),
-    },
-    chip: {
-      paddingHorizontal: hScaleSize(14),
-      paddingVertical: scaleSize(8),
-      borderRadius: scaleSize(20),
-      backgroundColor: "#1E1E1E",
-      borderWidth: 1,
-      borderColor: "#333",
-      flexDirection: "row",
-      alignItems: "center",
-    },
-    chipLandscape: {
-      paddingVertical: scaleSize(4),
-      paddingHorizontal: hScaleSize(10),
-    },
-    chipActive: {
-      backgroundColor: "#0A84FF",
-      borderColor: "#0A84FF",
-    },
-    chipText: {
-      fontSize: scaleSize(13),
-      fontWeight: "600",
-      color: "#AAA",
-    },
-    chipTextActive: {
-      color: "#FFFFFF",
-    },
-    // Viewer
-    viewerContainer: {
-      flex: 1,
-      backgroundColor: "#121212",
-      position: "relative",
-    },
-    viewerContainerLandscape: {
-      flex: 2,
-    },
-    toggleContainer: {
-      position: "absolute",
-      top: scaleSize(10),
-      left: hScaleSize(16),
-      zIndex: 20,
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: "rgba(30, 30, 30, 0.8)",
-      paddingLeft: hScaleSize(10),
-      paddingRight: hScaleSize(4),
-      borderRadius: scaleSize(20),
-      borderWidth: 1,
-      borderColor: "#444",
-    },
-    toggleText: {
-      fontSize: scaleSize(12),
-      fontWeight: "700",
-      color: "#888",
-    },
-    badgeContainer: {
-      position: "absolute",
-      top: scaleSize(10),
-      right: hScaleSize(16),
-      flexDirection: "row",
-      gap: hScaleSize(6),
-      zIndex: 20,
-    },
-    badge: {
-      paddingHorizontal: hScaleSize(10),
-      paddingVertical: scaleSize(6),
-      borderRadius: scaleSize(8),
-      backgroundColor: "rgba(30, 30, 30, 0.8)",
-      borderWidth: 1,
-      borderColor: "#444",
-    },
-    badgeActive: {
-      backgroundColor: "rgba(10, 132, 255, 0.2)",
-      borderColor: "#0A84FF",
-    },
-    badgeText: {
-      fontSize: scaleSize(12),
-      fontWeight: "700",
-      color: "#888",
-    },
-    badgeTextActive: {
-      color: "#0A84FF",
-    },
-    badgeNotAvailable: {
-      backgroundColor: "transparent",
-      borderColor: "#2C2C2C",
-    },
-    badgeTextNotAvailable: {
-      color: "#444",
-    },
-    webview: {
-      flex: 1,
-      backgroundColor: "transparent",
-    },
-    placeholderOverlay: {
-      flex: 1,
-      backgroundColor: "#121212",
-      justifyContent: "center",
-      alignItems: "center",
-      paddingBottom: "25%",
-      zIndex: 10,
-      paddingHorizontal: hScaleSize(20),
-    },
-    placeholderIcon: {
-      fontSize: scaleSize(60),
-    },
-    placeholderText: {
-      fontSize: scaleSize(16),
-      color: "#666",
-      marginTop: scaleSize(15),
-      textAlign: "center",
-    },
-    landscapeNameOverlay: {
-      position: "absolute",
-      bottom: scaleSize(15),
-      left: 0,
-      right: 0,
-      alignItems: "center",
-      zIndex: 10,
-    },
-    landscapeNameText: {
-      color: "#AAA",
-      fontSize: scaleSize(13),
-      fontWeight: "800",
-      textTransform: "uppercase",
-      letterSpacing: 1.5,
-    },
-    infoIcon: {
-      fontSize: scaleSize(16),
-    },
-    linkIcon: {
-      fontSize: scaleSize(16),
-      color: "#0A84FF",
+      backgroundColor: COLORS.background,
     },
     // Main Content
     mainContent: {
       flex: 1,
     },
-    mainContentLandscape: {
+    // Background Viewer Area
+    viewerContainer: {
+      position: "absolute",
+      top: 0,
+      bottom: 0,
+      left: 0,
+      right: isLandscape && showInfo ? "45%" : 0,
+      backgroundColor: COLORS.background,
+      zIndex: 1,
+    },
+    webview: {
       flex: 1,
+      backgroundColor: "transparent",
+    },
+    // Floating Overlays Layer (Header)
+    floatingHeaderContainer: {
+      position: "absolute",
+      top: 0,
+      left: isLandscape ? insets.left : 0,
+      right: isLandscape ? (showInfo ? "45%" : insets.right) : 0,
+      bottom: 0,
+      zIndex: 100,
+    },
+    header: {
+      paddingHorizontal: hScaleSize(16),
+      paddingTop: isLandscape
+        ? Math.max(insets.top, scaleSize(8))
+        : insets.top + scaleSize(8),
+      paddingBottom: scaleSize(8),
+    },
+    headerIsland: {
+      backgroundColor: addOpacity(COLORS.surface, 0.85),
+      borderRadius: scaleSize(24),
+      padding: scaleSize(16),
+      borderWidth: 1,
+      borderColor: COLORS.surfaceElevated,
+      shadowColor: COLORS.shadow,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.3,
+      shadowRadius: 16,
+      elevation: 10,
+      zIndex: 100,
+      maxWidth: 500,
+      alignSelf: "center",
+      width: "100%",
+    },
+    headerIslandLandscape: {
+      padding: scaleSize(10),
+      borderRadius: scaleSize(16),
+      maxWidth: 480,
+    },
+
+    titleRow: {
       flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: scaleSize(12),
     },
-    // Info Panel
-    infoPanel: {
-      maxHeight: "50%",
-      backgroundColor: "#1A1A1A",
-      borderTopLeftRadius: scaleSize(20),
-      borderTopRightRadius: scaleSize(20),
-      borderTopWidth: 1,
-      borderTopColor: "#333",
+    title: {
+      fontSize: scaleSize(24),
+      fontWeight: "900",
+      color: COLORS.primary,
+      letterSpacing: -0.5,
     },
-    infoPanelLandscape: {
+    titleLandscape: {
+      display: "none",
+    },
+    titleRowLandscape: {
+      display: "none",
+    },
+    searchRow: {
+      flexDirection: "row",
+      gap: hScaleSize(12),
+      alignItems: "center",
+    },
+    searchRowLandscape: {
+      gap: hScaleSize(8),
+    },
+    input: {
       flex: 1,
-      height: "100%",
-      borderTopLeftRadius: 0,
+      backgroundColor: addOpacity(COLORS.surfaceElevated, 0.8),
+      borderRadius: scaleSize(16),
+      paddingHorizontal: hScaleSize(16),
+      paddingVertical: scaleSize(12),
+      fontSize: scaleSize(15),
+      borderWidth: 1,
+      borderColor: COLORS.border,
+      color: COLORS.textPrimary,
+    },
+    inputLandscape: {
+      paddingVertical: scaleSize(10),
+      fontSize: scaleSize(14),
+    },
+    button: {
+      backgroundColor: COLORS.primary,
+      borderRadius: scaleSize(16),
+      width: scaleSize(48),
+      height: scaleSize(48),
+      justifyContent: "center",
+      alignItems: "center",
+      shadowColor: COLORS.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 4,
+    },
+    buttonDisabled: {
+      backgroundColor: COLORS.surfaceElevated,
+      shadowOpacity: 0,
+      elevation: 0,
+    },
+    buttonLandscape: {
+      width: scaleSize(40),
+      height: scaleSize(40),
+    },
+    buttonText: {
+      color: COLORS.textOnPrimary,
+      fontWeight: "700",
+      fontSize: scaleSize(16),
+    },
+    // Suggestions Dropdown
+    suggestionsContainer: {
+      position: "absolute",
+      top: "145%", // just below the header island
+      left: 0,
+      right: 0,
+      backgroundColor: COLORS.surface,
+      borderRadius: scaleSize(16),
+      elevation: 10,
+      shadowColor: COLORS.shadow,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.3,
+      shadowRadius: 12,
+      zIndex: 999,
+      borderWidth: 1,
+      borderColor: COLORS.border,
+      overflow: "hidden",
+    },
+    suggestionsContainerLandscape: {
+      // Landscape styles same as portrait now since it's relative
+    },
+    suggestionItem: {
+      padding: scaleSize(16),
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.surfaceElevated,
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    suggestionItemLandscape: {
+      padding: scaleSize(12),
+    },
+    suggestionText: {
+      fontSize: scaleSize(16),
+      color: COLORS.textPrimary,
+      fontWeight: "500",
+    },
+    // View Toggles
+    controlsRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingHorizontal: hScaleSize(16),
+      marginTop: scaleSize(12),
+      zIndex: 50,
+    },
+    islandInlineControls: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginTop: scaleSize(8),
+      gap: hScaleSize(12),
+    },
+    landscapeDivider: {
+      width: 1,
+      height: scaleSize(24),
+      backgroundColor: COLORS.border,
+      marginHorizontal: hScaleSize(6),
+    },
+    toggleContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: addOpacity(COLORS.surfaceElevated, 0.8),
+      paddingLeft: hScaleSize(12),
+      paddingRight: hScaleSize(6),
+      paddingVertical: scaleSize(4),
+      borderRadius: scaleSize(12),
+      borderWidth: 1,
+      borderColor: COLORS.border,
+      gap: hScaleSize(8),
+    },
+    badgeContainer: {
+      flexDirection: "row",
+      gap: hScaleSize(8),
+    },
+    toggleText: {
+      fontSize: scaleSize(13),
+      fontWeight: "700",
+      color: COLORS.textSecondary,
+    },
+    badge: {
+      paddingHorizontal: hScaleSize(12),
+      paddingVertical: scaleSize(8),
+      borderRadius: scaleSize(12),
+      backgroundColor: addOpacity(COLORS.surfaceElevated, 0.8),
+      borderWidth: 1,
+      borderColor: COLORS.border,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    badgeActive: {
+      backgroundColor: addOpacity(COLORS.primary, 0.2),
+      borderColor: COLORS.primary,
+    },
+    badgeText: {
+      fontSize: scaleSize(13),
+      fontWeight: "800",
+      color: COLORS.textSecondary,
+    },
+    badgeTextActive: {
+      color: COLORS.primary,
+    },
+    badgeNotAvailable: {
+      backgroundColor: "transparent",
+      borderColor: COLORS.surfaceElevated,
+    },
+    badgeTextNotAvailable: {
+      color: COLORS.textMuted,
+    },
+    placeholderOverlay: {
+      position: "absolute",
+      top: 0,
+      bottom: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: COLORS.background,
+      justifyContent: "center",
+      alignItems: "center",
+      zIndex: 2,
+      paddingHorizontal: hScaleSize(20),
+    },
+    placeholderIcon: {
+      fontSize: scaleSize(64),
+      color: COLORS.textMuted,
+    },
+    placeholderText: {
+      fontSize: scaleSize(16),
+      color: COLORS.textMuted,
+      marginTop: scaleSize(16),
+      textAlign: "center",
+      fontWeight: "500",
+    },
+    landscapeNameOverlay: {
+      position: "absolute",
+      bottom: isLandscape
+        ? Math.max(insets.bottom, scaleSize(12)) + scaleSize(64)
+        : scaleSize(80),
+      left: isLandscape ? insets.left : 0,
+      right: isLandscape ? insets.right : 0,
+      alignItems: "center",
+      zIndex: 10,
+    },
+    landscapeNameText: {
+      color: COLORS.textSecondary,
+      fontSize: scaleSize(14),
+      fontWeight: "800",
+      textTransform: "uppercase",
+      letterSpacing: 2,
+    },
+    moleculeName: {
+      fontSize: scaleSize(20),
+      fontWeight: "900",
+      color: COLORS.textPrimary,
+      letterSpacing: 1,
+      flex: 1,
+    },
+    // Dock (Floating bottom)
+    floatingDockContainer: {
+      position: "absolute",
+      bottom: 0,
+      left: isLandscape ? insets.left : 0,
+      right: isLandscape ? (showInfo ? "45%" : insets.right) : 0,
+      zIndex: showStyleMenu ? 150 : 50,
+      alignItems: "center",
+      paddingBottom: isLandscape
+        ? Math.max(insets.bottom, scaleSize(12))
+        : insets.bottom + scaleSize(16),
+    },
+    floatingDockLandscape: {
+      paddingBottom: scaleSize(12),
+    },
+    dock: {
+      flexDirection: "row",
+      backgroundColor: addOpacity(COLORS.surface, 0.85),
+      borderRadius: scaleSize(32),
+      padding: scaleSize(6),
+      borderWidth: 1,
+      borderColor: COLORS.surfaceElevated,
+      shadowColor: COLORS.shadow,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 12,
+      elevation: 8,
+      maxWidth: "90%",
+      overflow: "hidden",
+    },
+    styleMenu: {
+      position: "absolute",
+      bottom: scaleSize(80),
+      backgroundColor: addOpacity(COLORS.surface, 0.95),
+      borderRadius: scaleSize(20),
+      borderWidth: 1,
+      borderColor: COLORS.surfaceElevated,
+      padding: scaleSize(6),
+      zIndex: 999,
+      shadowColor: COLORS.shadow,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.3,
+      shadowRadius: 16,
+      elevation: 12,
+      minWidth: scaleSize(180),
+    },
+    styleMenuItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: hScaleSize(16),
+      paddingVertical: scaleSize(12),
+      borderRadius: scaleSize(14),
+      backgroundColor: "transparent",
+    },
+    styleMenuItemActive: {
+      backgroundColor: addOpacity(COLORS.primary, 0.15),
+    },
+    styleMenuItemText: {
+      fontSize: scaleSize(14),
+      fontWeight: "600",
+      color: COLORS.textSecondary,
+    },
+    styleMenuItemTextActive: {
+      color: COLORS.primary,
+      fontWeight: "700",
+    },
+    dockLandscape: {},
+    dockScroll: {
+      paddingHorizontal: scaleSize(4),
+      gap: isLandscape ? hScaleSize(4) : hScaleSize(2),
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-around",
+      flexGrow: 1,
+    },
+    dockScrollLandscape: {},
+    dockChip: {
+      paddingHorizontal: isLandscape ? hScaleSize(16) : hScaleSize(8),
+      paddingVertical: scaleSize(10),
+      borderRadius: scaleSize(24),
+      backgroundColor: "transparent",
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    dockChipActive: {
+      backgroundColor: COLORS.primary,
+    },
+    dockChipText: {
+      fontSize: scaleSize(13),
+      fontWeight: "700",
+      color: COLORS.textSecondary,
+    },
+    dockChipTextActive: {
+      color: COLORS.textOnPrimary,
+    },
+    infoIcon: {
+      fontSize: scaleSize(18),
+    },
+    // Bottom Sheet Info Panel
+    bottomSheet: {
+      position: "absolute",
+      bottom: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: COLORS.surface,
+      borderTopLeftRadius: scaleSize(32),
+      borderTopRightRadius: scaleSize(32),
+      borderWidth: 1,
+      borderColor: COLORS.border,
+      zIndex: 200,
+      shadowColor: COLORS.shadow,
+      shadowOffset: { width: 0, height: -10 },
+      shadowOpacity: 0.4,
+      shadowRadius: 24,
+      elevation: 20,
+    },
+    bottomSheetLandscape: {
+      top: 0,
+      bottom: 0,
+      right: 0,
+      left: "55%", // Take up right 45%
+      borderTopLeftRadius: scaleSize(32),
+      borderBottomLeftRadius: scaleSize(32),
       borderTopRightRadius: 0,
-      borderTopWidth: 0,
-      borderLeftWidth: 1,
-      borderLeftColor: "#333",
+      borderBottomRightRadius: 0,
+    },
+    sheetHeaderRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: scaleSize(20),
+    },
+    closeButtonInline: {
+      padding: scaleSize(6),
+      backgroundColor: addOpacity(COLORS.surface, 0.5),
+      borderRadius: scaleSize(16),
     },
     infoScroll: {
-      padding: scaleSize(16),
+      paddingHorizontal: scaleSize(24),
+      paddingBottom: scaleSize(40),
     },
     // Stats Grid
     statsGrid: {
       flexDirection: "row",
-      gap: hScaleSize(12),
-      marginBottom: scaleSize(16),
+      gap: hScaleSize(16),
+      marginBottom: scaleSize(20),
     },
     statCard: {
       flex: 1,
-      backgroundColor: "#252525",
-      borderRadius: scaleSize(12),
+      backgroundColor: COLORS.surfaceElevated,
+      borderRadius: scaleSize(16),
       padding: scaleSize(16),
       borderWidth: 1,
-      borderColor: "#333",
+      borderColor: COLORS.border,
+      shadowColor: COLORS.shadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
     },
     statLabel: {
-      fontSize: scaleSize(12),
-      color: "#888",
-      marginBottom: scaleSize(4),
+      fontSize: scaleSize(13),
+      color: COLORS.textSecondary,
+      marginBottom: scaleSize(6),
       fontWeight: "600",
+      textTransform: "uppercase",
+      letterSpacing: 0.5,
     },
     statValue: {
-      fontSize: scaleSize(16),
-      color: "#FFF",
-      fontWeight: "700",
+      fontSize: scaleSize(18),
+      color: COLORS.textPrimary,
+      fontWeight: "800",
     },
     noDataText: {
       fontSize: scaleSize(14),
-      color: "#666",
+      color: COLORS.textMuted,
       fontStyle: "italic",
       textAlign: "center",
-      paddingVertical: scaleSize(12),
+      paddingVertical: scaleSize(16),
     },
     // Safety Section
     safetySection: {
-      marginBottom: scaleSize(16),
+      marginBottom: scaleSize(20),
+      backgroundColor: addOpacity(COLORS.danger, 0.05),
+      padding: scaleSize(12),
+      borderRadius: scaleSize(12),
+      borderWidth: 1,
+      borderColor: addOpacity(COLORS.danger, 0.2),
     },
     safetyLabel: {
-      fontSize: scaleSize(14),
-      fontWeight: "700",
-      color: "#FFF",
+      fontSize: scaleSize(15),
+      fontWeight: "800",
+      color: COLORS.danger,
       marginBottom: scaleSize(8),
     },
     safetyText: {
-      fontSize: scaleSize(13),
-      color: "#DDD",
-      marginBottom: scaleSize(4),
-      lineHeight: scaleSize(20),
+      fontSize: scaleSize(14),
+      color: COLORS.textSecondary,
+      marginBottom: scaleSize(6),
+      lineHeight: scaleSize(22),
     },
     hazardText: {
-      fontSize: scaleSize(13),
-      color: "#FF9500",
-      marginBottom: scaleSize(4),
-      lineHeight: scaleSize(20),
+      fontSize: scaleSize(14),
+      color: COLORS.warning,
+      marginBottom: scaleSize(6),
+      lineHeight: scaleSize(22),
+      fontWeight: "500",
     },
     warningText: {
-      fontSize: scaleSize(13),
-      color: "#FF453A",
-      marginBottom: scaleSize(4),
-      lineHeight: scaleSize(20),
+      fontSize: scaleSize(14),
+      color: COLORS.danger,
+      marginBottom: scaleSize(6),
+      lineHeight: scaleSize(22),
+      fontWeight: "600",
     },
     // Description
     descriptionText: {
-      fontSize: scaleSize(14),
-      lineHeight: scaleSize(22),
-      color: "#CCC",
+      fontSize: scaleSize(15),
+      lineHeight: scaleSize(24),
+      color: COLORS.textSecondary,
+      fontWeight: "400",
     },
-
     // Synonyms
     synonymsContainer: {
       flexDirection: "row",
       flexWrap: "wrap",
-      gap: hScaleSize(8),
+      gap: hScaleSize(10),
     },
     synonymChip: {
-      backgroundColor: "#1E1E1E",
-      paddingHorizontal: hScaleSize(12),
-      paddingVertical: scaleSize(6),
-      borderRadius: scaleSize(16),
+      backgroundColor: COLORS.surfaceElevated,
+      paddingHorizontal: hScaleSize(14),
+      paddingVertical: scaleSize(8),
+      borderRadius: scaleSize(20),
       borderWidth: 1,
-      borderColor: "#444",
+      borderColor: COLORS.border,
     },
     synonymText: {
-      fontSize: scaleSize(13),
-      color: "#DDD",
+      fontSize: scaleSize(14),
+      color: COLORS.textSecondary,
+      fontWeight: "500",
     },
     // Info Text
     infoText: {
-      fontSize: scaleSize(14),
-      color: "#CCC",
-      marginBottom: scaleSize(12),
+      fontSize: scaleSize(15),
+      color: COLORS.textSecondary,
+      marginBottom: scaleSize(14),
+      fontWeight: "500",
     },
     linkButton: {
       flexDirection: "row",
       alignItems: "center",
-      gap: hScaleSize(8),
-      paddingVertical: scaleSize(8),
+      gap: hScaleSize(10),
+      paddingVertical: scaleSize(10),
+      backgroundColor: addOpacity(COLORS.primary, 0.1),
+      paddingHorizontal: scaleSize(14),
+      borderRadius: scaleSize(12),
+      marginBottom: scaleSize(10),
     },
     linkButtonText: {
-      fontSize: scaleSize(14),
-      color: "#0A84FF",
-      fontWeight: "600",
+      fontSize: scaleSize(15),
+      color: COLORS.primary,
+      fontWeight: "700",
     },
-    // Footer
-    footer: {
-      paddingTop: scaleSize(16),
-      paddingHorizontal: hScaleSize(16),
-      paddingBottom: scaleSize(20),
-      backgroundColor: "#121212",
-      borderTopWidth: 1,
-      borderTopColor: "#2C2C2C",
-      alignItems: "center",
-    },
-    moleculeName: {
+    linkIcon: {
       fontSize: scaleSize(18),
-      fontWeight: "800",
-      color: "#FFFFFF",
-      textAlign: "center",
+      color: COLORS.primary,
     },
-    sourceText: {
-      fontSize: scaleSize(12),
-      color: "#666",
-      marginTop: scaleSize(4),
+    exitFullScreenButton: {
+      position: "absolute",
+      top: isLandscape
+        ? Math.max(insets.top, scaleSize(16))
+        : insets.top + scaleSize(16),
+      right: isLandscape
+        ? Math.max(insets.right, scaleSize(16))
+        : scaleSize(16),
+      backgroundColor: addOpacity(COLORS.surface, 0.85),
+      borderRadius: scaleSize(24),
+      width: scaleSize(48),
+      height: scaleSize(48),
+      justifyContent: "center",
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor: COLORS.surfaceElevated,
+      shadowColor: COLORS.shadow,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 6,
+      zIndex: 300,
     },
   });
 };

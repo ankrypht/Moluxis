@@ -1,4 +1,5 @@
 import { getViewerHtml } from "../viewerHtml";
+import { COLORS } from "../colors";
 
 describe("getViewerHtml", () => {
   it("should return a string containing essential HTML elements", () => {
@@ -39,6 +40,6 @@ describe("getViewerHtml", () => {
 
   it("should have dark theme styles", () => {
     const html = getViewerHtml();
-    expect(html).toContain("background-color: #121212");
+    expect(html).toContain(`background-color: ${COLORS.background}`);
   });
 });

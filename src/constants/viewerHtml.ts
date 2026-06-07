@@ -1,3 +1,5 @@
+import { COLORS } from "./colors";
+
 export const getViewerHtml = () => `
 <!DOCTYPE html>
 <html>
@@ -7,7 +9,7 @@ export const getViewerHtml = () => `
   <script src="https://3Dmol.csb.pitt.edu/build/3Dmol-min.js"></script>
   <style>
     /* Dark Theme Background */
-    body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background-color: #121212; }
+    body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background-color: ${COLORS.background}; }
     #container { width: 100%; height: 100%; position: relative; }
   </style>
 </head>
@@ -27,7 +29,7 @@ export const getViewerHtml = () => `
         if (!element) return;
         
         // Set 3D Viewer background to match app dark theme
-        let config = { backgroundColor: '#121212' };
+        let config = { backgroundColor: '${COLORS.background}' };
         
         if (typeof $3Dmol === 'undefined') {
            console.error('3Dmol is not defined');
@@ -43,21 +45,13 @@ export const getViewerHtml = () => `
       }
     }
 
-    function animate() {
-      if (isAnimating && viewer) {
-        viewer.rotate(0.8, 'y'); // Rotate 0.8 degree around Y axis
-        animationId = requestAnimationFrame(animate);
-      }
-    }
-
     function toggleAnimation(status) {
       isAnimating = !!status;
-      if (isAnimating) {
-        if (!animationId) animate();
-      } else {
-        if (animationId) {
-          cancelAnimationFrame(animationId);
-          animationId = null;
+      if (viewer) {
+        if (isAnimating) {
+          viewer.spin("y", 1.5); // Native smooth spinning
+        } else {
+          viewer.spin(false);
         }
       }
     }
@@ -93,12 +87,12 @@ export const getViewerHtml = () => `
             let atom = atoms[i];
             viewer.addLabel(atom.elem, {
               position: atom,
-              backgroundColor: '#000000', 
-              backgroundOpacity: 0.7,
-              fontColor: 'white', 
+              backgroundColor: '${COLORS.surface}', 
+              backgroundOpacity: 0.8,
+              fontColor: '${COLORS.textPrimary}', 
               fontSize: 12,
               borderThickness: 1,
-              borderColor: '#555'
+              borderColor: '${COLORS.border}'
             });
           }
         }
@@ -124,6 +118,7 @@ export const getViewerHtml = () => `
         currentModel = viewer.addModel(structureData, format, options);
 
         viewer.zoomTo();
+        viewer.zoom(0.8); // Zoom out slightly to give padding
         applyStyle();
         if (animateStatus !== undefined) toggleAnimation(animateStatus);
       } catch (e) {
@@ -158,6 +153,29 @@ export const getViewerHtml = () => `
 
     window.addEventListener('message', messageHandler);
     document.addEventListener('message', messageHandler);
+
+    let touchStartX = 0;
+    let touchStartY = 0;
+    document.addEventListener('touchstart', function(e) {
+       if (e.changedTouches && e.changedTouches.length > 0) {
+         touchStartX = e.changedTouches[0].screenX;
+         touchStartY = e.changedTouches[0].screenY;
+       }
+       window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'USER_INTERACTED' }));
+    }, true);
+
+    document.addEventListener('touchend', function(e) {
+       let dx = 0;
+       let dy = 0;
+       if (e.changedTouches && e.changedTouches.length > 0) {
+         dx = e.changedTouches[0].screenX - touchStartX;
+         dy = e.changedTouches[0].screenY - touchStartY;
+       }
+       window.ReactNativeWebView.postMessage(JSON.stringify({
+         type: 'USER_STOPPED_INTERACTION',
+         isTap: Math.abs(dx) < 10 && Math.abs(dy) < 10
+       }));
+    }, true);
 
     // Ensure 3Dmol is loaded before initializing
     const check3Dmol = setInterval(() => {

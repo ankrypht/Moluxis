@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { Text, StyleSheet, useWindowDimensions } from "react-native";
 import { getResponsiveSize } from "../utils/responsive";
+import { COLORS } from "../constants/colors";
 
 interface ChemicalFormulaProps {
   formula: string;
@@ -57,8 +58,8 @@ ChemicalFormula.displayName = "ChemicalFormula";
 
 const styles = StyleSheet.create({
   statValue: {
-    color: "#FFF",
-    fontWeight: "700",
+    color: COLORS.textPrimary,
+    fontWeight: "800",
   },
   subscript: {
     textAlignVertical: "bottom",

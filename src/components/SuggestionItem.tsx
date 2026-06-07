@@ -7,6 +7,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { getResponsiveSize } from "../utils/responsive";
+import { COLORS } from "../constants/colors";
 
 interface SuggestionItemProps {
   item: string;
@@ -29,7 +30,7 @@ export const SuggestionItem = React.memo<SuggestionItemProps>(
           allowFontScaling={false}
           name="search-outline"
           size={getResponsiveSize(16, width, height)}
-          color="#AAA"
+          color={COLORS.textSecondary}
           style={{ marginRight: getResponsiveSize(10, width, height) }}
         />
         <Text
@@ -51,11 +52,11 @@ SuggestionItem.displayName = "SuggestionItem";
 const styles = StyleSheet.create({
   suggestionItem: {
     borderBottomWidth: 1,
-    borderBottomColor: "#2C2C2C",
+    borderBottomColor: COLORS.surfaceElevated,
     flexDirection: "row",
     alignItems: "center",
   },
   suggestionText: {
-    color: "#DDD",
+    color: COLORS.textPrimary,
   },
 });

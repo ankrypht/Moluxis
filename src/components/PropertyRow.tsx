@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, useWindowDimensions } from "react-native";
 import { getResponsiveSize } from "../utils/responsive";
+import { COLORS } from "../constants/colors";
 
 interface PropertyRowProps {
   label: string;
@@ -42,14 +43,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     borderBottomWidth: 1,
-    borderBottomColor: "#333",
+    borderBottomColor: COLORS.border,
   },
   propertyLabel: {
-    color: "#AAA",
+    color: COLORS.textSecondary,
     flex: 1,
   },
   propertyValue: {
-    color: "#FFF",
+    color: COLORS.textPrimary,
     fontWeight: "600",
     flex: 1,
     textAlign: "right",
