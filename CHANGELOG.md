@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.0.0](https://github.com/ankrypht/Moluxis/compare/v1.6.0...v2.0.0) (2026-06-07)
+
+
+### ⚠ BREAKING CHANGES
+
+* redesign UI landscape layout and introduce zen mode
+
+### Features
+
+* implement PubChem search integration with autocomplete and cache, add UI components, and upgrade project dependencies ([0a10df6](https://github.com/ankrypht/Moluxis/commit/0a10df65730700bb18dc580a3d845c747d8b7b3e))
+* redesign UI landscape layout and introduce zen mode ([fc43877](https://github.com/ankrypht/Moluxis/commit/fc43877df029daa18b8374fb7670458d73963b4c))
+
 ## [1.6.0](https://github.com/ankrypht/Moluxis/compare/v1.5.0...v1.6.0) (2026-05-01)
 
 
