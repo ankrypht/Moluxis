@@ -36,3 +36,5 @@ yarn-error.*
 
 # generated native folder
 /android
+
+.antigravitycli

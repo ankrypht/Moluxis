@@ -45,6 +45,13 @@ export const useAutocomplete = () => {
     }
   };
 
+  const clearSuggestions = useCallback(() => {
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+    setShowSuggestions(false);
+  }, []);
+
   const handleTextChange = useCallback((text: string) => {
     setSearchText(text);
 
@@ -65,5 +72,6 @@ export const useAutocomplete = () => {
     showSuggestions,
     setShowSuggestions,
     handleTextChange,
+    clearSuggestions,
   };
 };

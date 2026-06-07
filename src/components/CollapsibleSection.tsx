@@ -1,14 +1,23 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
-  Animated,
   StyleSheet,
   useWindowDimensions,
+  LayoutAnimation,
+  Platform,
+  UIManager,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { getResponsiveSize } from "../utils/responsive";
+
+if (
+  Platform.OS === "android" &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 interface CollapsibleSectionProps {
   title: string;
@@ -24,9 +33,6 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   defaultExpanded = false,
 }) => {
   const [expanded, setExpanded] = useState(defaultExpanded);
-  const animatedHeight = useRef(
-    new Animated.Value(defaultExpanded ? 1 : 0),
-  ).current;
 
   const { width, height } = useWindowDimensions();
   const responsivePadding = getResponsiveSize(16, width, height);
@@ -34,13 +40,7 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   const responsiveFontSize = getResponsiveSize(16, width, height);
 
   const toggleExpand = () => {
-    const toValue = expanded ? 0 : 1;
-    Animated.spring(animatedHeight, {
-      toValue,
-      useNativeDriver: false,
-      tension: 50,
-      friction: 8,
-    }).start();
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setExpanded(!expanded);
   };
 
@@ -54,6 +54,7 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
       <TouchableOpacity
         style={[styles.sectionHeader, { padding: responsivePadding }]}
         onPress={toggleExpand}
+        activeOpacity={0.7}
       >
         <View style={[styles.sectionHeaderLeft, { gap: responsiveGap }]}>
           <Ionicons
@@ -76,22 +77,19 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
           color="#888"
         />
       </TouchableOpacity>
-      <Animated.View
-        style={[
-          styles.sectionContent,
-          {
-            paddingHorizontal: responsivePadding,
-            paddingBottom: expanded ? responsivePadding : 0,
-            maxHeight: animatedHeight.interpolate({
-              inputRange: [0, 1],
-              outputRange: [0, 5000], // Increased for large content
-            }),
-            opacity: animatedHeight,
-          },
-        ]}
-      >
-        {children}
-      </Animated.View>
+      {expanded && (
+        <View
+          style={[
+            styles.sectionContent,
+            {
+              paddingHorizontal: responsivePadding,
+              paddingBottom: responsivePadding,
+            },
+          ]}
+        >
+          {children}
+        </View>
+      )}
     </View>
   );
 };

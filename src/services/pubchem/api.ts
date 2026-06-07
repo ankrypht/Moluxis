@@ -54,11 +54,9 @@ const findCodId = (obj: any): string | null => {
   }
 
   // Recursively search children
-  for (const key in obj) {
-    if (Object.prototype.hasOwnProperty.call(obj, key)) {
-      const result = findCodId(obj[key]);
-      if (result) return result;
-    }
+  for (const value of Object.values(obj)) {
+    const result = findCodId(value);
+    if (result) return result;
   }
 
   return null;

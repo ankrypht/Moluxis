@@ -4,10 +4,10 @@ import {
   fetchMoleculeDetails,
 } from "../api";
 
-describe("fetchAutocomplete", () => {
-  const mockFetch = jest.fn();
-  global.fetch = mockFetch;
+const mockFetch = jest.fn();
+global.fetch = mockFetch as any;
 
+describe("fetchAutocomplete", () => {
   beforeEach(() => {
     mockFetch.mockClear();
   });
@@ -66,9 +66,6 @@ describe("fetchAutocomplete", () => {
 });
 
 describe("fetchCompoundByName", () => {
-  const mockFetch = jest.fn();
-  global.fetch = mockFetch;
-
   beforeEach(() => {
     mockFetch.mockClear();
   });
@@ -119,9 +116,6 @@ describe("fetchCompoundByName", () => {
 });
 
 describe("fetchMoleculeDetails", () => {
-  const mockFetch = jest.fn();
-  global.fetch = mockFetch;
-
   beforeEach(() => {
     mockFetch.mockClear();
     jest.spyOn(console, "error").mockImplementation(() => {});
@@ -134,7 +128,7 @@ describe("fetchMoleculeDetails", () => {
   it("should fetch all molecule details on success", async () => {
     const cid = 123;
     const mockJson = { some: "data" };
-    const mockSdf = "sdf contents";
+    const mockSdf = "sdf contents".padEnd(205, ".");
 
     // fetchMoleculeDetails makes 7 initial calls
     // propsUrl, ghsUrl, synonymsUrl, descUrl, structure3dUrl, structure2dUrl, structuresViewUrl
@@ -170,7 +164,7 @@ describe("fetchMoleculeDetails", () => {
 
   it("should fallback to 2D SDF if 3D SDF is missing", async () => {
     const cid = 123;
-    const mock2dSdf = "2d sdf contents";
+    const mock2dSdf = "2d sdf contents".padEnd(205, ".");
 
     // 1. props
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
@@ -223,7 +217,10 @@ describe("fetchMoleculeDetails", () => {
     };
 
     // 1-4. basic info
-    mockFetch.mockResolvedValue({ ok: true, json: async () => ({}) });
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
 
     // 5. structure3d (fails)
     mockFetch.mockResolvedValueOnce({
@@ -280,7 +277,10 @@ describe("fetchMoleculeDetails", () => {
     };
 
     // 1-4. basic info
-    mockFetch.mockResolvedValue({ ok: true, json: async () => ({}) });
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
 
     // 5. structure3d (succeeds)
     mockFetch.mockResolvedValueOnce({

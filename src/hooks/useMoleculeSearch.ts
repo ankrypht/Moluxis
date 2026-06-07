@@ -16,6 +16,7 @@ export const useMoleculeSearch = () => {
     showSuggestions,
     setShowSuggestions,
     handleTextChange,
+    clearSuggestions,
   } = useAutocomplete();
 
   const [isLoading, setIsLoading] = useState(false);
@@ -38,7 +39,7 @@ export const useMoleculeSearch = () => {
 
       const normalizedTerm = term.trim().toLowerCase();
 
-      setShowSuggestions(false);
+      clearSuggestions();
 
       // Check cache first
       if (moleculeCache.has(normalizedTerm)) {
@@ -82,16 +83,16 @@ export const useMoleculeSearch = () => {
         setIsLoading(false);
       }
     },
-    [setShowSuggestions, incrementSearchCountAndReview],
+    [clearSuggestions, incrementSearchCountAndReview],
   );
 
   const selectSuggestion = useCallback(
     (item: string) => {
       setSearchText(item);
-      setShowSuggestions(false);
+      clearSuggestions();
       searchMolecule(item);
     },
-    [setSearchText, setShowSuggestions, searchMolecule],
+    [setSearchText, clearSuggestions, searchMolecule],
   );
 
   return {

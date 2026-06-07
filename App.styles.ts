@@ -235,10 +235,11 @@ export const getStyles = (width: number, height: number) => {
       backgroundColor: "transparent",
     },
     placeholderOverlay: {
-      ...StyleSheet.absoluteFillObject,
+      flex: 1,
       backgroundColor: "#121212",
       justifyContent: "center",
       alignItems: "center",
+      paddingBottom: "25%",
       zIndex: 10,
       paddingHorizontal: hScaleSize(20),
     },

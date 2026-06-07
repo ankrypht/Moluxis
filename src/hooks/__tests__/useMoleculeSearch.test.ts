@@ -1,5 +1,5 @@
 import { renderHook, act } from "@testing-library/react-native";
-import { Alert } from "react-native";
+import { Alert, Keyboard } from "react-native";
 import { useMoleculeSearch } from "../useMoleculeSearch";
 import {
   fetchMoleculeDetails,
@@ -7,15 +7,9 @@ import {
   fetchAutocomplete,
 } from "../../services/pubchem/api";
 
-// Mock React Native APIs
-jest.mock("react-native", () => ({
-  Alert: {
-    alert: jest.fn(),
-  },
-  Keyboard: {
-    dismiss: jest.fn(),
-  },
-}));
+// Mock React Native APIs using spyOn
+jest.spyOn(Alert, "alert").mockImplementation(() => {});
+jest.spyOn(Keyboard, "dismiss").mockImplementation(() => {});
 
 // Mock the API service
 jest.mock("../../services/pubchem/api", () => ({

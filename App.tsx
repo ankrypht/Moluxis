@@ -26,7 +26,7 @@ import {
 import { WebView } from "react-native-webview";
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
-import * as NavigationBar from "expo-navigation-bar";
+import { NavigationBar } from "expo-navigation-bar";
 
 import { VisualizationType } from "./src/types";
 import { getViewerHtml } from "./src/constants/viewerHtml";
@@ -79,6 +79,18 @@ function MoleculeExplorer() {
   const [isAnimated, setIsAnimated] = useState(true);
   const [showInfo, setShowInfo] = useState(false);
   const [structureFormat, setStructureFormat] = useState<"3d" | "2d">("3d");
+  const [prevMoleculeData, setPrevMoleculeData] = useState(moleculeData);
+
+  if (moleculeData !== prevMoleculeData) {
+    setPrevMoleculeData(moleculeData);
+    if (moleculeData) {
+      if (moleculeData.sdf3d || moleculeData.useCif) {
+        setStructureFormat("3d");
+      } else if (moleculeData.sdf2d) {
+        setStructureFormat("2d");
+      }
+    }
+  }
 
   const toggleAnimation = () =>
     setIsAnimated((previousState) => !previousState);
@@ -87,18 +99,8 @@ function MoleculeExplorer() {
 
   useEffect(() => {
     // Hide navigation bar
-    NavigationBar.setVisibilityAsync("hidden");
+    NavigationBar.setHidden(true);
   }, []);
-
-  useEffect(() => {
-    if (moleculeData) {
-      if (moleculeData.sdf3d || moleculeData.useCif) {
-        setStructureFormat("3d");
-      } else if (moleculeData.sdf2d) {
-        setStructureFormat("2d");
-      }
-    }
-  }, [moleculeData]);
 
   const webViewSource = useMemo(
     () => ({
@@ -541,14 +543,16 @@ function MoleculeExplorer() {
                 )}
               </>
             )}
-            <WebView
-              ref={webViewRef}
-              originWhitelist={["https://3Dmol.csb.pitt.edu"]}
-              source={webViewSource}
-              style={styles.webview}
-              scrollEnabled={false}
-              onMessage={onWebViewMessage}
-            />
+            {(moleculeData || isLoading) && (
+              <WebView
+                ref={webViewRef}
+                originWhitelist={["https://3Dmol.csb.pitt.edu"]}
+                source={webViewSource}
+                style={styles.webview}
+                scrollEnabled={false}
+                onMessage={onWebViewMessage}
+              />
+            )}
 
             {!moleculeData && !isLoading && (
               <View style={styles.placeholderOverlay}>

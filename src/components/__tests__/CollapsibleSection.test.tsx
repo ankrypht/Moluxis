@@ -1,6 +1,6 @@
 import React from "react";
 import { render, fireEvent, waitFor } from "@testing-library/react-native";
-import { Animated, Text } from "react-native";
+import { LayoutAnimation, Text } from "react-native";
 import { CollapsibleSection } from "../CollapsibleSection";
 
 // Mock @expo/vector-icons
@@ -15,18 +15,13 @@ jest.mock("@expo/vector-icons", () => {
 });
 
 describe("CollapsibleSection Component", () => {
-  let springSpy: jest.SpyInstance;
+  let layoutAnimationSpy: jest.SpyInstance;
 
   beforeEach(() => {
-    // Spy on Animated.spring
-    springSpy = jest.spyOn(Animated, "spring").mockImplementation(
-      () =>
-        ({
-          start: jest.fn(),
-          stop: jest.fn(),
-          reset: jest.fn(),
-        }) as unknown as Animated.CompositeAnimation,
-    );
+    // Spy on LayoutAnimation.configureNext
+    layoutAnimationSpy = jest
+      .spyOn(LayoutAnimation, "configureNext")
+      .mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -34,7 +29,7 @@ describe("CollapsibleSection Component", () => {
   });
 
   it("renders correctly with default expanded state (false)", async () => {
-    const { getByText, getByTestId } = render(
+    const { getByText, queryByTestId } = render(
       <CollapsibleSection title="Test Section" icon="information-circle">
         <Text testID="child-text">Child Content</Text>
       </CollapsibleSection>,
@@ -44,8 +39,8 @@ describe("CollapsibleSection Component", () => {
     await waitFor(() => {
       // Title should be visible
       expect(getByText("Test Section")).toBeTruthy();
-      // The children should be present
-      expect(getByTestId("child-text")).toBeTruthy();
+      // The children should not be present initially
+      expect(queryByTestId("child-text")).toBeNull();
     });
   });
 
@@ -67,7 +62,7 @@ describe("CollapsibleSection Component", () => {
   });
 
   it("toggles expanded state and triggers animation on header press", async () => {
-    const { getByText } = render(
+    const { getByText, queryByText } = render(
       <CollapsibleSection title="Test Section" icon="information-circle">
         <Text>Child Content</Text>
       </CollapsibleSection>,
@@ -75,34 +70,27 @@ describe("CollapsibleSection Component", () => {
 
     await waitFor(() => {
       expect(getByText("Test Section")).toBeTruthy();
+      expect(queryByText("Child Content")).toBeNull();
     });
 
-    // Press the header
+    // Press the header to expand
     fireEvent.press(getByText("Test Section"));
 
-    // Check if Animated.spring was called with correct toValue (1)
-    expect(springSpy).toHaveBeenCalledWith(
-      expect.any(Object), // The Animated.Value instance
-      expect.objectContaining({
-        toValue: 1,
-        useNativeDriver: false,
-        tension: 50,
-        friction: 8,
-      }),
+    // Check if LayoutAnimation was called
+    expect(layoutAnimationSpy).toHaveBeenCalledWith(
+      LayoutAnimation.Presets.easeInEaseOut,
     );
+
+    // The content should now be visible
+    expect(queryByText("Child Content")).toBeTruthy();
 
     // Press again to collapse
     fireEvent.press(getByText("Test Section"));
 
-    // Check if Animated.spring was called with correct toValue (0)
-    expect(springSpy).toHaveBeenCalledWith(
-      expect.any(Object),
-      expect.objectContaining({
-        toValue: 0,
-        useNativeDriver: false,
-        tension: 50,
-        friction: 8,
-      }),
-    );
+    // Check if LayoutAnimation was called again
+    expect(layoutAnimationSpy).toHaveBeenCalledTimes(2);
+
+    // The content should now be hidden
+    expect(queryByText("Child Content")).toBeNull();
   });
 });
