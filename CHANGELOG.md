@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.1](https://github.com/ankrypht/Moluxis/compare/v2.0.0...v2.0.1) (2026-08-15)
+
+
+### Performance Improvements
+
+* upgrade Expo SDK to version 57, React Native to 0.86.2, and update project dependencies ([6cad695](https://github.com/ankrypht/Moluxis/commit/6cad695a95304f9e3e0a1450ecf5753bd7c721db))
+
 ## [2.0.0](https://github.com/ankrypht/Moluxis/compare/v1.6.0...v2.0.0) (2026-06-07)
 
 
