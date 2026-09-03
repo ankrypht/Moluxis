@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.0.2](https://github.com/ankrypht/Moluxis/compare/v2.0.1...v2.0.2) (2026-09-03)
+
+
+### Bug Fixes
+
+* cancel in-flight autocomplete requests to prevent race conditions ([80787a8](https://github.com/ankrypht/Moluxis/commit/80787a87721add5a7d5231046a3df23e9a335135))
+
+
+### Performance Improvements
+
+* enable R8 code shrinking, Metro inline requires, and update dependencies ([a69066f](https://github.com/ankrypht/Moluxis/commit/a69066fb0a1a6f371b0ec414217e856cc53cca9b))
+* memoize responsive style calculations and statically allocate viewer template ([370a5c7](https://github.com/ankrypht/Moluxis/commit/370a5c755358c7ec87520d7bea16546a7a315b70))
+
 ## [2.0.1](https://github.com/ankrypht/Moluxis/compare/v2.0.0...v2.0.1) (2026-08-15)
 
 
