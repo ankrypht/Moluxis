@@ -1,45 +1,40 @@
-import { getViewerHtml } from "../viewerHtml";
+import { VIEWER_HTML } from "../viewerHtml";
 import { COLORS } from "../colors";
 
-describe("getViewerHtml", () => {
-  it("should return a string containing essential HTML elements", () => {
-    const html = getViewerHtml();
-    expect(typeof html).toBe("string");
-    expect(html).toContain("<!DOCTYPE html>");
-    expect(html).toContain("<html>");
-    expect(html).toContain("<head>");
-    expect(html).toContain("<body>");
-    expect(html).toContain('<div id="container"></div>');
+describe("VIEWER_HTML", () => {
+  it("should be a string containing essential HTML elements", () => {
+    expect(typeof VIEWER_HTML).toBe("string");
+    expect(VIEWER_HTML).toContain("<!DOCTYPE html>");
+    expect(VIEWER_HTML).toContain("<html>");
+    expect(VIEWER_HTML).toContain("<head>");
+    expect(VIEWER_HTML).toContain("<body>");
+    expect(VIEWER_HTML).toContain('<div id="container"></div>');
   });
 
   it("should contain the correct Content-Security-Policy", () => {
-    const html = getViewerHtml();
-    expect(html).toContain('http-equiv="Content-Security-Policy"');
-    expect(html).toContain("https://3Dmol.csb.pitt.edu");
+    expect(VIEWER_HTML).toContain('http-equiv="Content-Security-Policy"');
+    expect(VIEWER_HTML).toContain("https://3Dmol.csb.pitt.edu");
   });
 
   it("should include the 3Dmol.js script", () => {
-    const html = getViewerHtml();
-    expect(html).toContain(
+    expect(VIEWER_HTML).toContain(
       '<script src="https://3Dmol.csb.pitt.edu/build/3Dmol-min.js"></script>',
     );
   });
 
   it("should contain key JavaScript functions and logic", () => {
-    const html = getViewerHtml();
-    expect(html).toContain("function init()");
-    expect(html).toContain("function applyStyle()");
-    expect(html).toContain("window.loadStructure = function");
-    expect(html).toContain("window.updateSettings = function");
-    expect(html).toContain("window.ReactNativeWebView.postMessage");
-    expect(html).toContain(
+    expect(VIEWER_HTML).toContain("function init()");
+    expect(VIEWER_HTML).toContain("function applyStyle()");
+    expect(VIEWER_HTML).toContain("window.loadStructure = function");
+    expect(VIEWER_HTML).toContain("window.updateSettings = function");
+    expect(VIEWER_HTML).toContain("window.ReactNativeWebView.postMessage");
+    expect(VIEWER_HTML).toContain(
       "window.addEventListener('message', messageHandler)",
     );
-    expect(html).toContain("const check3Dmol = setInterval");
+    expect(VIEWER_HTML).toContain("const check3Dmol = setInterval");
   });
 
   it("should have dark theme styles", () => {
-    const html = getViewerHtml();
-    expect(html).toContain(`background-color: ${COLORS.background}`);
+    expect(VIEWER_HTML).toContain(`background-color: ${COLORS.background}`);
   });
 });

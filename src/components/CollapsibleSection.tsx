@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -27,9 +27,19 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   const [expanded, setExpanded] = useState(defaultExpanded);
 
   const { width, height } = useWindowDimensions();
-  const responsivePadding = getResponsiveSize(16, width, height);
-  const responsiveGap = getResponsiveSize(10, width, height);
-  const responsiveFontSize = getResponsiveSize(16, width, height);
+
+  // Memoize all responsive sizes so getResponsiveSize is not recalculated
+  // on every render — only when width/height actually change (e.g. rotation).
+  const sizes = useMemo(
+    () => ({
+      padding: getResponsiveSize(16, width, height),
+      gap: getResponsiveSize(10, width, height),
+      fontSize: getResponsiveSize(16, width, height),
+      iconSize: getResponsiveSize(20, width, height),
+      marginBottom: getResponsiveSize(12, width, height),
+    }),
+    [width, height],
+  );
 
   const toggleExpand = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -37,27 +47,22 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   };
 
   return (
-    <View
-      style={[
-        styles.section,
-        { marginBottom: getResponsiveSize(12, width, height) },
-      ]}
-    >
+    <View style={[styles.section, { marginBottom: sizes.marginBottom }]}>
       <TouchableOpacity
-        style={[styles.sectionHeader, { padding: responsivePadding }]}
+        style={[styles.sectionHeader, { padding: sizes.padding }]}
         onPress={toggleExpand}
         activeOpacity={0.7}
       >
-        <View style={[styles.sectionHeaderLeft, { gap: responsiveGap }]}>
+        <View style={[styles.sectionHeaderLeft, { gap: sizes.gap }]}>
           <Ionicons
             allowFontScaling={false}
             name={icon}
-            size={getResponsiveSize(20, width, height)}
+            size={sizes.iconSize}
             color={COLORS.primary}
           />
           <Text
             allowFontScaling={false}
-            style={[styles.sectionTitle, { fontSize: responsiveFontSize }]}
+            style={[styles.sectionTitle, { fontSize: sizes.fontSize }]}
           >
             {title}
           </Text>
@@ -65,7 +70,7 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
         <Ionicons
           allowFontScaling={false}
           name={expanded ? "chevron-up" : "chevron-down"}
-          size={getResponsiveSize(20, width, height)}
+          size={sizes.iconSize}
           color={COLORS.textSecondary}
         />
       </TouchableOpacity>
@@ -74,8 +79,8 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
           style={[
             styles.sectionContent,
             {
-              paddingHorizontal: responsivePadding,
-              paddingBottom: responsivePadding,
+              paddingHorizontal: sizes.padding,
+              paddingBottom: sizes.padding,
             },
           ]}
         >

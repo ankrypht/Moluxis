@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   StyleSheet,
   Text,
@@ -18,27 +18,33 @@ export const SuggestionItem = React.memo<SuggestionItemProps>(
   ({ item, onSelect }) => {
     const { width, height } = useWindowDimensions();
 
+    // Memoize responsive sizes — recalculate only on dimension change, not on
+    // every FlatList render pass.
+    const sizes = useMemo(
+      () => ({
+        padding: getResponsiveSize(15, width, height),
+        iconSize: getResponsiveSize(16, width, height),
+        iconMargin: getResponsiveSize(10, width, height),
+        fontSize: getResponsiveSize(16, width, height),
+      }),
+      [width, height],
+    );
+
     return (
       <TouchableOpacity
-        style={[
-          styles.suggestionItem,
-          { padding: getResponsiveSize(15, width, height) },
-        ]}
+        style={[styles.suggestionItem, { padding: sizes.padding }]}
         onPress={() => onSelect(item)}
       >
         <Ionicons
           allowFontScaling={false}
           name="search-outline"
-          size={getResponsiveSize(16, width, height)}
+          size={sizes.iconSize}
           color={COLORS.textSecondary}
-          style={{ marginRight: getResponsiveSize(10, width, height) }}
+          style={{ marginRight: sizes.iconMargin }}
         />
         <Text
           allowFontScaling={false}
-          style={[
-            styles.suggestionText,
-            { fontSize: getResponsiveSize(16, width, height) },
-          ]}
+          style={[styles.suggestionText, { fontSize: sizes.fontSize }]}
         >
           {item}
         </Text>

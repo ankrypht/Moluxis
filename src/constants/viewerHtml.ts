@@ -1,6 +1,6 @@
 import { COLORS } from "./colors";
 
-export const getViewerHtml = () => `
+export const VIEWER_HTML = `
 <!DOCTYPE html>
 <html>
 <head>
