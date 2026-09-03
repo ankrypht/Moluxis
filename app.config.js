@@ -34,7 +34,20 @@ export default {
     predictiveBackGestureEnabled: false,
   },
   owner: "ankushsarkar",
-  plugins: ["expo-font"],
+  plugins: [
+    "expo-font",
+    [
+      "expo-build-properties",
+      {
+        android: {
+          // R8 minifier: shrinks and obfuscates Java/Kotlin bytecode
+          enableMinifyInReleaseBuilds: true,
+          // Remove unused Android resources (drawables, layouts, strings, etc.)
+          enableShrinkResourcesInReleaseBuilds: true,
+        },
+      },
+    ],
+  ],
   extra: {
     eas: {
       projectId: "81f557ce-7d0e-4091-bdcf-185d86410a5f",
