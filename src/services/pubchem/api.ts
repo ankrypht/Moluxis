@@ -4,24 +4,32 @@ import {
   PubChemViewResponse,
   PubChemInformationResponse,
 } from "../../types/pubchem";
+import { isAbortError } from "./utils";
 
 const BASE_URL = "https://pubchem.ncbi.nlm.nih.gov/rest";
 
 /**
  * Fetches compound name suggestions for the autocomplete.
+ * Accepts an optional AbortSignal to cancel in-flight requests when the user
+ * types again before the previous request completes.
  */
-export const fetchAutocomplete = async (text: string): Promise<string[]> => {
+export const fetchAutocomplete = async (
+  text: string,
+  signal?: AbortSignal,
+): Promise<string[]> => {
   try {
     const url = `${BASE_URL}/autocomplete/compound/${encodeURIComponent(
       text,
     )}/json?limit=6`;
-    const res = await fetch(url);
+    const res = await fetch(url, { signal });
     const json: PubChemAutocompleteResponse = await res.json();
     if (json.dictionary_terms && json.dictionary_terms.compound) {
       return [...new Set(json.dictionary_terms.compound)];
     }
     return [];
   } catch (error) {
+    // Abort/cancellation is expected when the user types or submits search — silently ignore
+    if (isAbortError(error, signal)) return [];
     // Autocomplete failure is non-critical, log and return empty list
     console.error(
       "Autocomplete fetch failed:",

@@ -60,7 +60,10 @@ describe("useAutocomplete", () => {
         jest.advanceTimersByTime(300);
       });
 
-      expect(fetchAutocomplete).toHaveBeenCalledWith("wat");
+      expect(fetchAutocomplete).toHaveBeenCalledWith(
+        "wat",
+        expect.any(AbortSignal),
+      );
       expect(result.current.suggestions).toEqual([
         "water",
         "water gas",

@@ -29,6 +29,7 @@ describe("fetchAutocomplete", () => {
     expect(result).toEqual(["water", "water gas", "water vapor"]);
     expect(mockFetch).toHaveBeenCalledWith(
       "https://pubchem.ncbi.nlm.nih.gov/rest/autocomplete/compound/water/json?limit=6",
+      expect.objectContaining({ signal: undefined }),
     );
   });
 
@@ -59,6 +60,26 @@ describe("fetchAutocomplete", () => {
         "Autocomplete fetch failed:",
         "Network error",
       );
+    } finally {
+      consoleSpy.mockRestore();
+    }
+  });
+
+  it("should return empty array and not log error when fetch is canceled or aborted", async () => {
+    const error = new Error("fetch failed: Fetch request has been canceled");
+    mockFetch.mockRejectedValueOnce(error);
+
+    const consoleSpy = jest
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+
+    try {
+      const controller = new AbortController();
+      controller.abort();
+      const result = await fetchAutocomplete("test", controller.signal);
+
+      expect(result).toEqual([]);
+      expect(consoleSpy).not.toHaveBeenCalled();
     } finally {
       consoleSpy.mockRestore();
     }
