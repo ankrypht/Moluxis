@@ -56,3 +56,16 @@ README.md
 .vscode/
 
 .antigravitycli
+
+# Google Play API credentials and reports
+*service-account*.json
+play-key.json
+play-reports/
+
+# Maintenance scripts (not needed in production app bundle)
+scripts/
+
+# CI/CD and linter configs
+.github/
+eslint.config.js
+.prettierignore

@@ -38,3 +38,8 @@ yarn-error.*
 /android
 
 .antigravitycli
+
+# Google Play API credentials and reports
+*service-account*.json
+play-key.json
+play-reports/

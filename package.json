@@ -14,7 +14,10 @@
     "build-dev": "eas build --platform android --profile development --local",
     "build-dev-eas": "eas build --platform android --profile development",
     "format": "npx prettier@latest --write .",
-    "test": "jest"
+    "test": "jest",
+    "fetch-anrs": "node scripts/fetch-anrs.mjs",
+    "fetch-crashes": "node scripts/fetch-anrs.mjs --type CRASH",
+    "fetch-vitals": "node scripts/fetch-vitals.mjs"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",
