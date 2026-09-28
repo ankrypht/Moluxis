@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.3](https://github.com/ankrypht/Moluxis/compare/v2.0.2...v2.0.3) (2026-09-28)
+
+
+### Bug Fixes
+
+* resolve WebView WebGL deadlocks and input dispatching ANRs ([e7f8857](https://github.com/ankrypht/Moluxis/commit/e7f8857c8562a0ba110127471713c1e6111e5eaa))
+
 ## [2.0.2](https://github.com/ankrypht/Moluxis/compare/v2.0.1...v2.0.2) (2026-09-03)
 
 
