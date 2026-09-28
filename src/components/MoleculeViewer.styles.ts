@@ -18,7 +18,7 @@ export const getMoleculeViewerStyles = ({
     },
     webview: {
       flex: 1,
-      backgroundColor: "transparent",
+      backgroundColor: COLORS.background,
     },
     placeholderOverlay: {
       position: "absolute",

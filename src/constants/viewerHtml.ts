@@ -145,6 +145,12 @@ export const VIEWER_HTML = `
           window.loadStructure(message.data, message.format, message.style, message.labels, message.animate);
         } else if (message.type === 'UPDATE_SETTINGS') {
           window.updateSettings(message.style, message.labels, message.animate);
+        } else if (message.type === 'PAUSE_ANIMATION') {
+          if (viewer) viewer.spin(false);
+        } else if (message.type === 'RESUME_ANIMATION') {
+          if (viewer && isAnimating && !isUserDragging) {
+            viewer.spin("y", 1.5);
+          }
         }
       } catch (err) {
         console.error('Message listener error:', err);
@@ -154,28 +160,45 @@ export const VIEWER_HTML = `
     window.addEventListener('message', messageHandler);
     document.addEventListener('message', messageHandler);
 
-    let touchStartX = 0;
-    let touchStartY = 0;
+    let isUserDragging = false;
     document.addEventListener('touchstart', function(e) {
-       if (e.changedTouches && e.changedTouches.length > 0) {
-         touchStartX = e.changedTouches[0].screenX;
-         touchStartY = e.changedTouches[0].screenY;
+       isUserDragging = true;
+       if (viewer && isAnimating) {
+         viewer.spin(false);
        }
-       window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'USER_INTERACTED' }));
-    }, true);
+    }, { passive: true });
 
     document.addEventListener('touchend', function(e) {
-       let dx = 0;
-       let dy = 0;
-       if (e.changedTouches && e.changedTouches.length > 0) {
-         dx = e.changedTouches[0].screenX - touchStartX;
-         dy = e.changedTouches[0].screenY - touchStartY;
+       isUserDragging = false;
+       if (viewer && isAnimating) {
+         viewer.spin("y", 1.5);
        }
-       window.ReactNativeWebView.postMessage(JSON.stringify({
-         type: 'USER_STOPPED_INTERACTION',
-         isTap: Math.abs(dx) < 10 && Math.abs(dy) < 10
-       }));
-    }, true);
+    }, { passive: true });
+
+    document.addEventListener('touchcancel', function(e) {
+       isUserDragging = false;
+       if (viewer && isAnimating) {
+         viewer.spin("y", 1.5);
+       }
+    }, { passive: true });
+
+    document.addEventListener('visibilitychange', function() {
+      if (document.hidden) {
+        if (viewer) viewer.spin(false);
+      } else if (isAnimating && !isUserDragging) {
+        if (viewer) viewer.spin("y", 1.5);
+      }
+    });
+
+    window.addEventListener('blur', function() {
+      if (viewer) viewer.spin(false);
+    });
+
+    window.addEventListener('focus', function() {
+      if (isAnimating && !isUserDragging) {
+        if (viewer) viewer.spin("y", 1.5);
+      }
+    });
 
     // Ensure 3Dmol is loaded before initializing
     const check3Dmol = setInterval(() => {

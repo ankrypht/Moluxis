@@ -44,6 +44,14 @@ export default {
           enableMinifyInReleaseBuilds: true,
           // Remove unused Android resources (drawables, layouts, strings, etc.)
           enableShrinkResourcesInReleaseBuilds: true,
+          extraProguardRules: [
+            "-keepattributes *Annotation*",
+            "-keepclassmembers class * {",
+            "    @android.webkit.JavascriptInterface <methods>;",
+            "}",
+            "-keep class com.reactnativecommunity.webview.** { *; }",
+            "-dontwarn com.reactnativecommunity.webview.**",
+          ].join("\n"),
         },
       },
     ],

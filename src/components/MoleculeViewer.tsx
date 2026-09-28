@@ -1,5 +1,12 @@
 import React, { useRef, useEffect, useCallback, useMemo } from "react";
-import { View, Text, StyleProp, ViewStyle } from "react-native";
+import {
+  View,
+  Text,
+  StyleProp,
+  ViewStyle,
+  AppState,
+  AppStateStatus,
+} from "react-native";
 import { WebView } from "react-native-webview";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -45,6 +52,15 @@ export const MoleculeViewer: React.FC<MoleculeViewerProps> = ({
 }) => {
   const webViewRef = useRef<WebView>(null);
 
+  const postToWebView = useCallback((message: string) => {
+    if (
+      webViewRef.current &&
+      typeof (webViewRef.current as any).postMessage === "function"
+    ) {
+      webViewRef.current.postMessage(message);
+    }
+  }, []);
+
   const webViewSource = useMemo(
     () => ({
       html: VIEWER_HTML,
@@ -53,8 +69,28 @@ export const MoleculeViewer: React.FC<MoleculeViewerProps> = ({
     [],
   );
 
+  // Pause WebGL rendering when app is backgrounded or inactive to prevent RenderThread deadlocks
   useEffect(() => {
-    if (moleculeData && webViewRef.current) {
+    const subscription = AppState.addEventListener(
+      "change",
+      (nextAppState: AppStateStatus) => {
+        if (nextAppState === "active") {
+          if (isAnimated) {
+            postToWebView(JSON.stringify({ type: "RESUME_ANIMATION" }));
+          }
+        } else {
+          postToWebView(JSON.stringify({ type: "PAUSE_ANIMATION" }));
+        }
+      },
+    );
+
+    return () => {
+      subscription.remove();
+    };
+  }, [isAnimated, postToWebView]);
+
+  useEffect(() => {
+    if (moleculeData) {
       const useCif = moleculeData.useCif;
       const message = JSON.stringify({
         type: "LOAD_STRUCTURE",
@@ -71,15 +107,15 @@ export const MoleculeViewer: React.FC<MoleculeViewerProps> = ({
       });
 
       const timer = setTimeout(() => {
-        webViewRef.current?.postMessage(message);
+        postToWebView(message);
       }, LOAD_DELAY_MS);
       return () => clearTimeout(timer);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [moleculeData, structureFormat]);
+  }, [moleculeData, structureFormat, postToWebView]);
 
   useEffect(() => {
-    if (moleculeData && webViewRef.current) {
+    if (moleculeData) {
       const timer = setTimeout(() => {
         const message = JSON.stringify({
           type: "UPDATE_SETTINGS",
@@ -87,17 +123,17 @@ export const MoleculeViewer: React.FC<MoleculeViewerProps> = ({
           labels: showLabels,
           animate: isAnimated,
         });
-        webViewRef.current?.postMessage(message);
+        postToWebView(message);
       }, UPDATE_DELAY_MS);
       return () => clearTimeout(timer);
     }
-  }, [moleculeData, vizStyle, showLabels, isAnimated]);
+  }, [moleculeData, vizStyle, showLabels, isAnimated, postToWebView]);
 
   const onWebViewMessage = useCallback(
     (event: any) => {
       try {
         const data = JSON.parse(event.nativeEvent.data);
-        if (isWebViewReadyMessage(data) && moleculeData && webViewRef.current) {
+        if (isWebViewReadyMessage(data) && moleculeData) {
           const useCif = moleculeData.useCif;
           const message = JSON.stringify({
             type: "LOAD_STRUCTURE",
@@ -112,13 +148,20 @@ export const MoleculeViewer: React.FC<MoleculeViewerProps> = ({
             labels: showLabels,
             animate: isAnimated,
           });
-          webViewRef.current.postMessage(message);
+          postToWebView(message);
         }
       } catch {
         // Silently handle non-JSON messages
       }
     },
-    [moleculeData, structureFormat, vizStyle, showLabels, isAnimated],
+    [
+      moleculeData,
+      structureFormat,
+      vizStyle,
+      showLabels,
+      isAnimated,
+      postToWebView,
+    ],
   );
 
   return (
@@ -130,6 +173,13 @@ export const MoleculeViewer: React.FC<MoleculeViewerProps> = ({
           source={webViewSource}
           style={styles.webview}
           scrollEnabled={false}
+          overScrollMode="never"
+          androidLayerType="hardware"
+          onRenderProcessGone={(syntheticEvent) => {
+            const { didCrash } = syntheticEvent.nativeEvent;
+            console.warn("WebView render process gone, didCrash:", didCrash);
+            webViewRef.current?.reload();
+          }}
           onMessage={onWebViewMessage}
         />
       )}
