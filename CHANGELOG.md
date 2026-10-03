@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.4](https://github.com/ankrypht/Moluxis/compare/v2.0.3...v2.0.4) (2026-10-03)
+
+
+### Bug Fixes
+
+* eliminate WebView hardware layer deadlocks and RenderThread ANRs ([5f514da](https://github.com/ankrypht/Moluxis/commit/5f514da2b69d11fe9ceff3db1dac5a9d5412386c))
+
 ## [2.0.3](https://github.com/ankrypht/Moluxis/compare/v2.0.2...v2.0.3) (2026-09-28)
 
 
