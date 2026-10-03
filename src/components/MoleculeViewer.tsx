@@ -69,7 +69,7 @@ export const MoleculeViewer: React.FC<MoleculeViewerProps> = ({
     [],
   );
 
-  // Pause WebGL rendering when app is backgrounded or inactive to prevent RenderThread deadlocks
+  // Pause WebGL rendering when app is backgrounded or inactive, or on unmount, to prevent RenderThread deadlocks
   useEffect(() => {
     const subscription = AppState.addEventListener(
       "change",
@@ -86,6 +86,7 @@ export const MoleculeViewer: React.FC<MoleculeViewerProps> = ({
 
     return () => {
       subscription.remove();
+      postToWebView(JSON.stringify({ type: "PAUSE_ANIMATION" }));
     };
   }, [isAnimated, postToWebView]);
 
@@ -114,7 +115,21 @@ export const MoleculeViewer: React.FC<MoleculeViewerProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [moleculeData, structureFormat, postToWebView]);
 
+  // Track previous moleculeData to avoid redundant UPDATE_SETTINGS calls during LOAD_STRUCTURE
+  const prevMoleculeDataRef = useRef(moleculeData);
+  const isInitialMountRef = useRef(true);
+
   useEffect(() => {
+    if (prevMoleculeDataRef.current !== moleculeData) {
+      prevMoleculeDataRef.current = moleculeData;
+      return;
+    }
+
+    if (isInitialMountRef.current) {
+      isInitialMountRef.current = false;
+      return;
+    }
+
     if (moleculeData) {
       const timer = setTimeout(() => {
         const message = JSON.stringify({
@@ -174,7 +189,7 @@ export const MoleculeViewer: React.FC<MoleculeViewerProps> = ({
           style={styles.webview}
           scrollEnabled={false}
           overScrollMode="never"
-          androidLayerType="hardware"
+          androidLayerType="none"
           onRenderProcessGone={(syntheticEvent) => {
             const { didCrash } = syntheticEvent.nativeEvent;
             console.warn("WebView render process gone, didCrash:", didCrash);

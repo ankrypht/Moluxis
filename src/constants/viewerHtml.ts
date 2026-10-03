@@ -38,6 +38,19 @@ export const VIEWER_HTML = `
         
         viewer = $3Dmol.createViewer(element, config);
         
+        let canvas = element.querySelector('canvas');
+        if (canvas) {
+          canvas.addEventListener('webglcontextlost', function(e) {
+            e.preventDefault();
+            if (viewer) viewer.spin(false);
+          }, false);
+          canvas.addEventListener('webglcontextrestored', function() {
+            if (viewer && isAnimating && !isUserDragging) {
+              viewer.spin("y", 1.5);
+            }
+          }, false);
+        }
+        
         // Notify React Native that we are ready
         window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'WEBVIEW_READY' }));
       } catch (e) {
@@ -83,7 +96,8 @@ export const VIEWER_HTML = `
         viewer.removeAllLabels();
         if (showLabels) {
           let atoms = currentModel.selectedAtoms({});
-          for (let i = 0; i < atoms.length; i++) {
+          let maxLabels = Math.min(atoms.length, 300);
+          for (let i = 0; i < maxLabels; i++) {
             let atom = atoms[i];
             viewer.addLabel(atom.elem, {
               position: atom,
