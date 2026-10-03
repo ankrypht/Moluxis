@@ -7,18 +7,19 @@
   <p>
     Search, visualize, and explore chemical compounds in interactive 3D.
   </p>
-</div>
 
-![GitHub Release](https://img.shields.io/github/v/release/ankrypht/Moluxis?label=Latest%20Release&logo=github&logoColor=white)
-![GitHub commits since latest release](https://img.shields.io/github/commits-since/ankrypht/Moluxis/latest)
-![GitHub License](https://img.shields.io/github/license/ankrypht/Moluxis?label=License&logo=apache&logoColor=white)
-![GitHub last commit (branch)](https://img.shields.io/github/last-commit/ankrypht/Moluxis/main?label=Last%20Commit&logo=Git&logoColor=white)
-![GitHub commit activity](https://img.shields.io/github/commit-activity/t/ankrypht/Moluxis?label=Total%20Commits)
-![GitHub top language](https://img.shields.io/github/languages/top/ankrypht/Moluxis?label=TypeScript&logo=typescript&logoColor=white)
-![GitHub language count](https://img.shields.io/github/languages/count/ankrypht/Moluxis?label=Languages%20Used)
-![GitHub issues](https://img.shields.io/github/issues/ankrypht/Moluxis?label=Issues)
-![GitHub pull requests](https://img.shields.io/github/issues-pr/ankrypht/Moluxis?label=Pull%20Requests)
-![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/ankrypht/Moluxis?label=Code%20Size)
+![GitHub Release](https://img.shields.io/github/v/release/ankrypht/Moluxis?label=Latest%20Release&logo=github&logoColor=black&style=social)
+![GitHub License](https://img.shields.io/github/license/ankrypht/Moluxis?label=License&logo=apache&logoColor=black&style=social)
+![GitHub last commit (branch)](https://img.shields.io/github/last-commit/ankrypht/Moluxis/main?label=Last%20Commit&logo=Git&logoColor=black&style=social)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/t/ankrypht/Moluxis?label=Total%20Commits&style=social)
+![GitHub top language](https://img.shields.io/github/languages/top/ankrypht/Moluxis?label=TypeScript&logo=typescript&logoColor=black&style=social)
+![GitHub issues](https://img.shields.io/github/issues/ankrypht/Moluxis?label=Issues&style=social)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/ankrypht/Moluxis?label=Pull%20Requests&style=social)
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/ankrypht/Moluxis?label=Code%20Size&style=social)
+
+[![PlayBadges card for com.ankushsarkar.moluxis](https://playbadges.pavi2410.com/badge/full?id=com.ankushsarkar.moluxis&country=in&theme=dark)](https://play.google.com/store/apps/details?id=com.ankushsarkar.moluxis)
+
+</div>
 
 ---
 
