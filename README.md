@@ -17,7 +17,7 @@
 ![GitHub pull requests](https://img.shields.io/github/issues-pr/ankrypht/Moluxis?label=Pull%20Requests&style=social)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/ankrypht/Moluxis?label=Code%20Size&style=social)
 
-[![PlayBadges card for com.ankushsarkar.moluxis](https://playbadges.pavi2410.com/badge/full?id=com.ankushsarkar.moluxis&country=in&theme=dark)](https://play.google.com/store/apps/details?id=com.ankushsarkar.moluxis)
+![PlayBadges card for com.ankushsarkar.moluxis](https://playbadges.pavi2410.com/badge/full?id=com.ankushsarkar.moluxis&theme=dark)
 
 </div>
 
@@ -31,8 +31,8 @@ The app features a sleek, dark-themed UI designed for focus and clarity.
 
 ## 📲 Installation
 
-[<img src="./assets/getItPlayStore.png" alt="Play Store" height="80">](https://play.google.com/store/apps/details?id=com.ankushsarkar.moluxis)
-[<img src="./assets/getItGithub.png" alt="GitHub" height="80">](https://github.com/ankrypht/Moluxis/releases/latest)
+[<img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="80">](https://play.google.com/store/apps/details?id=com.ankushsarkar.moluxis)
+[<img src="https://raw.githubusercontent.com/Kunzisoft/Github-badge/main/get-it-on-github.png" alt="Get it on GitHub" height="80">](https://github.com/ankrypht/Moluxis/releases/latest)
 
 ## 📱 Screenshots
 
