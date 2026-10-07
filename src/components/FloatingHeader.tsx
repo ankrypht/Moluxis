@@ -37,6 +37,8 @@ export interface FloatingHeaderProps {
   onSelectSuggestion: (item: string) => void;
   onToggleAnimation: () => void;
   onSelectFormat: (format: "3d" | "2d") => void;
+  onLayoutHeader?: (height: number) => void;
+  onClear?: () => void;
 }
 
 export const FloatingHeader: React.FC<FloatingHeaderProps> = ({
@@ -58,6 +60,8 @@ export const FloatingHeader: React.FC<FloatingHeaderProps> = ({
   onSelectSuggestion,
   onToggleAnimation,
   onSelectFormat,
+  onLayoutHeader,
+  onClear,
 }) => {
   const renderSuggestionItem = useCallback(
     ({ item }: { item: string }) => (
@@ -71,7 +75,13 @@ export const FloatingHeader: React.FC<FloatingHeaderProps> = ({
       style={[styles.floatingHeaderContainer, containerStyle]}
       pointerEvents="box-none"
     >
-      <View style={styles.header} pointerEvents="box-none">
+      <View
+        style={styles.header}
+        pointerEvents="box-none"
+        onLayout={(e) =>
+          onLayoutHeader?.(Math.round(e.nativeEvent.layout.height))
+        }
+      >
         <View
           style={[
             styles.headerIsland,
@@ -80,27 +90,57 @@ export const FloatingHeader: React.FC<FloatingHeaderProps> = ({
         >
           {!isLandscape && (
             <View style={styles.titleRow}>
-              <Text allowFontScaling={false} style={styles.title}>
-                Moluxis
-              </Text>
+              <TouchableOpacity
+                onPress={onClear}
+                disabled={!onClear}
+                activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel="Moluxis Home"
+              >
+                <Text allowFontScaling={false} style={styles.title}>
+                  Moluxis
+                </Text>
+              </TouchableOpacity>
             </View>
           )}
           <View
             style={[styles.searchRow, isLandscape && styles.searchRowLandscape]}
           >
-            <TextInput
-              ref={searchInputRef}
-              allowFontScaling={false}
-              style={[styles.input, isLandscape && styles.inputLandscape]}
-              placeholder="Search by name or formula"
-              placeholderTextColor={COLORS.textSecondary}
-              value={searchText}
-              onChangeText={onTextChange}
-              onFocus={onFocus}
-              returnKeyType="search"
-              onSubmitEditing={() => onSearch()}
-              keyboardAppearance="dark"
-            />
+            <View style={styles.inputWrapper}>
+              <TextInput
+                ref={searchInputRef}
+                allowFontScaling={false}
+                style={[
+                  styles.input,
+                  isLandscape && styles.inputLandscape,
+                  Boolean(searchText || moleculeData) && styles.inputWithClear,
+                ]}
+                placeholder="Search by name or formula"
+                placeholderTextColor={COLORS.textSecondary}
+                value={searchText}
+                onChangeText={onTextChange}
+                onFocus={onFocus}
+                returnKeyType="search"
+                onSubmitEditing={() => onSearch()}
+                keyboardAppearance="dark"
+              />
+              {Boolean(searchText || moleculeData) && onClear && (
+                <TouchableOpacity
+                  testID="clear-search-button"
+                  accessibilityRole="button"
+                  accessibilityLabel="Clear and back to showcase"
+                  style={styles.clearButton}
+                  onPress={onClear}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <Ionicons
+                    name="close-circle"
+                    size={20}
+                    color={COLORS.textSecondary}
+                  />
+                </TouchableOpacity>
+              )}
+            </View>
             <TouchableOpacity
               style={[
                 styles.button,

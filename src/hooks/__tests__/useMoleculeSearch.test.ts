@@ -200,5 +200,22 @@ describe("useMoleculeSearch", () => {
 
       expect(mockIncrementSearchCountAndReview).toHaveBeenCalled();
     });
+
+    it("should clear search text, suggestions, and molecule data when clearMolecule is called", async () => {
+      const { result } = renderHook(() => useMoleculeSearch());
+
+      act(() => {
+        result.current.handleTextChange("caffeine");
+      });
+
+      act(() => {
+        result.current.clearMolecule();
+      });
+
+      expect(Keyboard.dismiss).toHaveBeenCalled();
+      expect(result.current.searchText).toBe("");
+      expect(result.current.suggestions).toEqual([]);
+      expect(result.current.moleculeData).toBeNull();
+    });
   });
 });

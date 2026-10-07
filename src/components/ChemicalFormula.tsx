@@ -1,54 +1,42 @@
 import React, { useMemo } from "react";
-import { Text, StyleSheet, useWindowDimensions } from "react-native";
+import {
+  Text,
+  StyleSheet,
+  useWindowDimensions,
+  StyleProp,
+  TextStyle,
+} from "react-native";
 import { getResponsiveSize } from "../utils/responsive";
 import { COLORS } from "../constants/colors";
+import { formatSubscriptFormula } from "../utils/formula";
 
-interface ChemicalFormulaProps {
-  formula: string;
+export interface ChemicalFormulaProps {
+  formula?: string | null;
+  style?: StyleProp<TextStyle>;
+  testID?: string;
 }
 
 export const ChemicalFormula: React.FC<ChemicalFormulaProps> = React.memo(
-  ({ formula }) => {
+  ({ formula, style, testID }) => {
     const { width, height } = useWindowDimensions();
 
-    const renderedFormula = useMemo(() => {
-      // Split the string into chunks of digits and non-digits
-      const chunks = formula.split(/(\d+)/).filter(Boolean);
-
-      return chunks.map((chunk, index) => {
-        const isDigit = /^\d+$/.test(chunk);
-
-        return (
-          <Text
-            allowFontScaling={false}
-            key={index}
-            style={
-              isDigit
-                ? [
-                    styles.subscript,
-                    {
-                      fontSize: getResponsiveSize(12, width, height),
-                      lineHeight: getResponsiveSize(18, width, height),
-                    },
-                  ]
-                : undefined
-            }
-          >
-            {chunk}
-          </Text>
-        );
-      });
-    }, [formula, width, height]);
+    const formattedFormula = useMemo(() => {
+      return formatSubscriptFormula(formula);
+    }, [formula]);
 
     return (
       <Text
         allowFontScaling={false}
-        style={[
-          styles.statValue,
-          { fontSize: getResponsiveSize(16, width, height) },
-        ]}
+        testID={testID}
+        style={
+          [
+            styles.statValue,
+            { fontSize: getResponsiveSize(16, width, height) },
+            style,
+          ].filter(Boolean) as StyleProp<TextStyle>
+        }
       >
-        {renderedFormula}
+        {formattedFormula}
       </Text>
     );
   },
@@ -60,8 +48,5 @@ const styles = StyleSheet.create({
   statValue: {
     color: COLORS.textPrimary,
     fontWeight: "800",
-  },
-  subscript: {
-    textAlignVertical: "bottom",
   },
 });

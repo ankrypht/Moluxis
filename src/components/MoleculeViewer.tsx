@@ -2,17 +2,20 @@ import React, { useRef, useEffect, useCallback, useMemo } from "react";
 import {
   View,
   Text,
+  ActivityIndicator,
   StyleProp,
   ViewStyle,
   AppState,
   AppStateStatus,
 } from "react-native";
 import { WebView } from "react-native-webview";
-import { Ionicons } from "@expo/vector-icons";
 
 import { MoleculeInfo, VisualizationType } from "../types";
 import { VIEWER_HTML } from "../constants/viewerHtml";
+import { COLORS } from "../constants/colors";
 import { MoleculeViewerStyles } from "./MoleculeViewer.styles";
+import { FeaturedMolecules } from "./FeaturedMolecules";
+import { FeaturedMoleculesStyles } from "./FeaturedMolecules.styles";
 
 interface WebViewReadyMessage {
   type: "WEBVIEW_READY";
@@ -37,7 +40,11 @@ export interface MoleculeViewerProps {
   showLabels: boolean;
   isAnimated: boolean;
   containerStyle?: StyleProp<ViewStyle>;
-  styles: MoleculeViewerStyles;
+  styles: MoleculeViewerStyles & FeaturedMoleculesStyles;
+  onSelectMolecule?: (query: string) => void;
+  topOffset?: number;
+  initialScrollOffset?: number;
+  onScrollOffsetChange?: (offset: number) => void;
 }
 
 export const MoleculeViewer: React.FC<MoleculeViewerProps> = ({
@@ -49,6 +56,10 @@ export const MoleculeViewer: React.FC<MoleculeViewerProps> = ({
   isAnimated,
   containerStyle,
   styles,
+  onSelectMolecule,
+  topOffset,
+  initialScrollOffset,
+  onScrollOffsetChange,
 }) => {
   const webViewRef = useRef<WebView>(null);
 
@@ -198,18 +209,22 @@ export const MoleculeViewer: React.FC<MoleculeViewerProps> = ({
           onMessage={onWebViewMessage}
         />
       )}
-      {!moleculeData && !isLoading && (
-        <View style={styles.placeholderOverlay}>
-          <Ionicons
-            allowFontScaling={false}
-            name="cube-outline"
-            size={styles.placeholderIcon.fontSize}
-            color={styles.placeholderIcon.color}
-          />
-          <Text allowFontScaling={false} style={styles.placeholderText}>
-            Search for a compound to view 3D structure
+      {isLoading && !moleculeData && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color={COLORS.primary} />
+          <Text allowFontScaling={false} style={styles.loadingText}>
+            Generating 3D Structure...
           </Text>
         </View>
+      )}
+      {!moleculeData && !isLoading && (
+        <FeaturedMolecules
+          onSelectMolecule={onSelectMolecule || (() => {})}
+          styles={styles}
+          topOffset={topOffset}
+          initialScrollOffset={initialScrollOffset}
+          onScrollOffsetChange={onScrollOffsetChange}
+        />
       )}
     </View>
   );

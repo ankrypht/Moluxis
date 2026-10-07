@@ -273,6 +273,45 @@ describe("fetchMoleculeDetails", () => {
     expect(result.useCif).toBe(true);
   });
 
+  it("should use fallback COD ID for known crystal CID (e.g. Diamond) when missing from structures section", async () => {
+    const diamondCid = 5462310;
+    const mockCif = "diamond cif contents";
+
+    // 1-4. basic info
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+
+    // 5. structure3d (fails)
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      text: async () => "PUGREST.NotFound",
+    });
+    // 6. structure2d (fails)
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      text: async () => "PUGREST.NotFound",
+    });
+    // 7. structuresView (empty, no COD ID in JSON)
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({}),
+    });
+
+    // 8. CIF fetch (triggered by KNOWN_COD_IDS[5462310] = "9008564")
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      text: async () => mockCif,
+    });
+
+    const result = await fetchMoleculeDetails(diamondCid);
+
+    expect(result.codId).toBe("9008564");
+    expect(result.cifText).toBe(mockCif);
+    expect(result.useCif).toBe(true);
+  });
+
   it("should NOT use CIF if 3D SDF is already available", async () => {
     const cid = 123;
     const codId = "1000001";

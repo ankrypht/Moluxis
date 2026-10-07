@@ -71,8 +71,13 @@ export const getFloatingHeaderStyles = ({
     searchRowLandscape: {
       gap: hScaleSize(8),
     },
-    input: {
+    inputWrapper: {
       flex: 1,
+      position: "relative",
+      justifyContent: "center",
+    },
+    input: {
+      width: "100%",
       backgroundColor: addOpacity(COLORS.surfaceElevated, 0.8),
       borderRadius: scaleSize(16),
       paddingHorizontal: hScaleSize(16),
@@ -82,9 +87,20 @@ export const getFloatingHeaderStyles = ({
       borderColor: COLORS.border,
       color: COLORS.textPrimary,
     },
+    inputWithClear: {
+      paddingRight: scaleSize(40),
+    },
     inputLandscape: {
       paddingVertical: scaleSize(10),
       fontSize: scaleSize(14),
+    },
+    clearButton: {
+      position: "absolute",
+      right: scaleSize(12),
+      padding: scaleSize(4),
+      justifyContent: "center",
+      alignItems: "center",
+      zIndex: 5,
     },
     button: {
       backgroundColor: COLORS.primary,
@@ -108,11 +124,6 @@ export const getFloatingHeaderStyles = ({
       width: scaleSize(40),
       height: scaleSize(40),
     },
-    buttonText: {
-      color: COLORS.textOnPrimary,
-      fontWeight: "700",
-      fontSize: scaleSize(16),
-    },
     suggestionsContainer: {
       position: "absolute",
       top: "145%", // just below the header island
@@ -130,22 +141,6 @@ export const getFloatingHeaderStyles = ({
       borderColor: COLORS.border,
       overflow: "hidden",
     },
-    suggestionsContainerLandscape: {},
-    suggestionItem: {
-      padding: scaleSize(16),
-      borderBottomWidth: 1,
-      borderBottomColor: COLORS.surfaceElevated,
-      flexDirection: "row",
-      alignItems: "center",
-    },
-    suggestionItemLandscape: {
-      padding: scaleSize(12),
-    },
-    suggestionText: {
-      fontSize: scaleSize(16),
-      color: COLORS.textPrimary,
-      fontWeight: "500",
-    },
     controlsRow: {
       flexDirection: "row",
       justifyContent: "space-between",
@@ -160,12 +155,6 @@ export const getFloatingHeaderStyles = ({
       justifyContent: "space-between",
       marginTop: scaleSize(8),
       gap: hScaleSize(12),
-    },
-    landscapeDivider: {
-      width: 1,
-      height: scaleSize(24),
-      backgroundColor: COLORS.border,
-      marginHorizontal: hScaleSize(6),
     },
   });
 

@@ -167,8 +167,13 @@ export const fetchMoleculeDetails = async (cid: number) => {
   let useCif = false;
   let cifText = "";
 
+  // Fallback COD IDs for crystals/minerals missing from PubChem Structures section
+  const KNOWN_COD_IDS: Record<number, string> = {
+    5462310: "9008564", // Diamond (Carbon crystal lattice)
+  };
+
   // Priority 2: Crystal Structure (CIF) if 3D SDF is not available
-  const codId = findCodId(structuresJson);
+  const codId = findCodId(structuresJson) || KNOWN_COD_IDS[cid] || null;
 
   if (codId) {
     cifText = await fetchCifData(codId);

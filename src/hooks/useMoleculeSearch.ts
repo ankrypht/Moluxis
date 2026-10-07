@@ -95,6 +95,13 @@ export const useMoleculeSearch = () => {
     [setSearchText, clearSuggestions, searchMolecule],
   );
 
+  const clearMolecule = useCallback(() => {
+    Keyboard.dismiss();
+    setSearchText("");
+    clearSuggestions();
+    setMoleculeData(null);
+  }, [setSearchText, clearSuggestions]);
+
   return {
     searchText,
     setSearchText,
@@ -106,5 +113,6 @@ export const useMoleculeSearch = () => {
     handleTextChange,
     searchMolecule,
     selectSuggestion,
+    clearMolecule,
   };
 };

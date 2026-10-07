@@ -32,31 +32,6 @@ exports[`ChemicalFormula matches snapshot 1`] = `
     ]
   }
 >
-  <Text
-    allowFontScaling={false}
-  >
-    H
-  </Text>
-  <Text
-    allowFontScaling={false}
-    style={
-      [
-        {
-          "textAlignVertical": "bottom",
-        },
-        {
-          "fontSize": 17,
-          "lineHeight": 26,
-        },
-      ]
-    }
-  >
-    2
-  </Text>
-  <Text
-    allowFontScaling={false}
-  >
-    O
-  </Text>
+  H₂O
 </Text>
 `;

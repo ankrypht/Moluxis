@@ -49,6 +49,7 @@ function MoleculeExplorer() {
     handleTextChange,
     searchMolecule,
     selectSuggestion,
+    clearMolecule,
   } = useMoleculeSearch();
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
@@ -64,6 +65,7 @@ function MoleculeExplorer() {
   const [structureFormat, setStructureFormat] = useState<"3d" | "2d">("3d");
   const [prevMoleculeData, setPrevMoleculeData] = useState(moleculeData);
   const [showStyleMenu, setShowStyleMenu] = useState(false);
+  const [headerHeight, setHeaderHeight] = useState(0);
 
   const styles = useMemo(
     () => getStyles(width, height, insets),
@@ -127,6 +129,24 @@ function MoleculeExplorer() {
     [selectSuggestion],
   );
 
+  const handleSelectFeaturedMolecule = useCallback(
+    (item: string) => {
+      searchInputRef.current?.blur();
+      Keyboard.dismiss();
+      setIsAnimated(true);
+      selectSuggestion(item);
+    },
+    [selectSuggestion],
+  );
+
+  const handleClearToShowcase = useCallback(() => {
+    searchInputRef.current?.blur();
+    Keyboard.dismiss();
+    setShowInfo(false);
+    setShowStyleMenu(false);
+    clearMolecule();
+  }, [clearMolecule]);
+
   const handleToggleInfo = useCallback(() => {
     searchInputRef.current?.blur();
     Keyboard.dismiss();
@@ -176,6 +196,8 @@ function MoleculeExplorer() {
         isAnimated={isAnimated}
         containerStyle={dynamicViewerContainerStyle}
         styles={styles}
+        onSelectMolecule={handleSelectFeaturedMolecule}
+        topOffset={headerHeight}
       />
 
       {/* FLOATING HEADER (Island) */}
@@ -199,6 +221,8 @@ function MoleculeExplorer() {
           onSelectSuggestion={handleSelectSuggestion}
           onToggleAnimation={toggleAnimation}
           onSelectFormat={setStructureFormat}
+          onLayoutHeader={setHeaderHeight}
+          onClear={handleClearToShowcase}
         />
       )}
 

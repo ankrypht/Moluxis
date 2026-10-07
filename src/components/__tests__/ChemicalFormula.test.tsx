@@ -8,22 +8,9 @@ describe("ChemicalFormula", () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it("renders a formula with numbers using subscript style for numbers", () => {
+  it("renders a formula with numbers converted to Unicode subscripts", () => {
     const { getByText } = render(<ChemicalFormula formula="H2O" />);
-    expect(getByText("H")).toBeTruthy();
-    expect(getByText("O")).toBeTruthy();
-
-    const numberNode = getByText("2");
-    expect(numberNode).toBeTruthy();
-
-    // The number should have the subscript style
-    expect(numberNode.props.style).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          textAlignVertical: "bottom",
-        }),
-      ]),
-    );
+    expect(getByText("H₂O")).toBeTruthy();
   });
 
   it("renders a formula without numbers", () => {
@@ -36,30 +23,41 @@ describe("ChemicalFormula", () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it("renders a formula with only numbers", () => {
-    const { getByText } = render(<ChemicalFormula formula="123" />);
-    const node = getByText("123");
-    expect(node).toBeTruthy();
-    // In dynamic scaling, style might be an array or object containing scaled values
-    const style = Array.isArray(node.props.style)
-      ? node.props.style.flat()
-      : [node.props.style];
-    expect(
-      style.some((s: any) => s && typeof s.fontSize === "number"),
-    ).toBeTruthy();
+  it("handles null or undefined formula gracefully", () => {
+    const { getByTestId } = render(
+      <ChemicalFormula formula={null} testID="null-formula" />,
+    );
+    expect(getByTestId("null-formula").props.children).toBe("");
+
+    const { getByTestId: getByTestIdUndef } = render(
+      <ChemicalFormula testID="undef-formula" />,
+    );
+    expect(getByTestIdUndef("undef-formula").props.children).toBe("");
   });
 
-  it("renders a very long formula", () => {
+  it("renders a formula with only numbers converted to subscripts", () => {
+    const { getByText } = render(<ChemicalFormula formula="123" />);
+    expect(getByText("₁₂₃")).toBeTruthy();
+  });
+
+  it("renders complex and long formulas correctly", () => {
     const formula = "C20H24N2O2";
-    const { getByText, getAllByText } = render(
-      <ChemicalFormula formula={formula} />,
+    const { getByText } = render(<ChemicalFormula formula={formula} />);
+    expect(getByText("C₂₀H₂₄N₂O₂")).toBeTruthy();
+  });
+
+  it("supports custom style override", () => {
+    const { getByTestId } = render(
+      <ChemicalFormula
+        formula="CO2"
+        testID="custom-formula"
+        style={{ color: "red" }}
+      />,
     );
-    expect(getByText("C")).toBeTruthy();
-    expect(getByText("20")).toBeTruthy();
-    expect(getByText("H")).toBeTruthy();
-    expect(getByText("24")).toBeTruthy();
-    expect(getByText("N")).toBeTruthy();
-    expect(getAllByText("2").length).toBe(2);
-    expect(getByText("O")).toBeTruthy();
+    const element = getByTestId("custom-formula");
+    expect(element).toBeTruthy();
+    expect(element.props.style).toEqual(
+      expect.arrayContaining([expect.objectContaining({ color: "red" })]),
+    );
   });
 });

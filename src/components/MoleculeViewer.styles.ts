@@ -2,10 +2,7 @@ import { StyleSheet } from "react-native";
 import { COLORS } from "../constants/colors";
 import { ScaleMetrics } from "../utils/scaling";
 
-export const getMoleculeViewerStyles = ({
-  scaleSize,
-  hScaleSize,
-}: ScaleMetrics) =>
+export const getMoleculeViewerStyles = ({ scaleSize }: ScaleMetrics) =>
   StyleSheet.create({
     viewerContainer: {
       position: "absolute",
@@ -20,7 +17,7 @@ export const getMoleculeViewerStyles = ({
       flex: 1,
       backgroundColor: COLORS.background,
     },
-    placeholderOverlay: {
+    loadingOverlay: {
       position: "absolute",
       top: 0,
       bottom: 0,
@@ -29,19 +26,14 @@ export const getMoleculeViewerStyles = ({
       backgroundColor: COLORS.background,
       justifyContent: "center",
       alignItems: "center",
-      zIndex: 2,
-      paddingHorizontal: hScaleSize(20),
+      zIndex: 10,
     },
-    placeholderIcon: {
-      fontSize: scaleSize(64),
-      color: COLORS.textMuted,
-    },
-    placeholderText: {
-      fontSize: scaleSize(16),
-      color: COLORS.textMuted,
-      marginTop: scaleSize(16),
-      textAlign: "center",
-      fontWeight: "500",
+    loadingText: {
+      fontSize: scaleSize(15),
+      color: COLORS.textSecondary,
+      marginTop: scaleSize(14),
+      fontWeight: "600",
+      letterSpacing: -0.2,
     },
   });
 

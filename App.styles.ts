@@ -7,6 +7,7 @@ import { getFloatingHeaderStyles } from "./src/components/FloatingHeader.styles"
 import { getFloatingDockStyles } from "./src/components/FloatingDock.styles";
 import { getMoleculeInfoSheetStyles } from "./src/components/MoleculeInfoSheet.styles";
 import { getOverlaysStyles } from "./src/components/Overlays.styles";
+import { getFeaturedMoleculesStyles } from "./src/components/FeaturedMolecules.styles";
 
 export const getStyles = (width: number, height: number, insets: Insets) => {
   const metrics = getScaleMetrics(width, height, insets);
@@ -15,9 +16,6 @@ export const getStyles = (width: number, height: number, insets: Insets) => {
     container: {
       flex: 1,
       backgroundColor: COLORS.background,
-    },
-    mainContent: {
-      flex: 1,
     },
   });
 
@@ -29,6 +27,7 @@ export const getStyles = (width: number, height: number, insets: Insets) => {
     ...getFloatingDockStyles(metrics),
     ...getMoleculeInfoSheetStyles(metrics),
     ...getOverlaysStyles(metrics),
+    ...getFeaturedMoleculesStyles(metrics),
   };
 };
 

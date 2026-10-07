@@ -46,10 +46,21 @@ The app features a sleek, dark-themed UI designed for focus and clarity.
 
 ## ✨ Features
 
+### 🌟 **Curated Molecule Showcase**
+
+- **Instant Exploration:** Discover molecules right from the home screen without needing to search.
+- **Curated Collections:** Browse 12 iconic compounds across three hand-picked categories:
+  - 🧬 **Biochemicals:** Caffeine, Dopamine, Serotonin, Adenine (DNA base)
+  - 💊 **Medicinal:** Aspirin, Penicillin, Ibuprofen, Paracetamol
+  - 💎 **Crystals & Minerals:** Diamond, Sodium Chloride, Quartz, Calcite
+- **One-Tap 3D Spin:** Tap any card to immediately load and start an interactive, spinning 3D visualization.
+- **Adaptive Layout:** Automatically arranges into a balanced 2×2 grid in portrait and a widescreen 1×4 layout in landscape.
+
 ### 🔍 **Smart Search**
 
 - **Instant Search:** Find compounds by common names (e.g., "Caffeine", "Aspirin") or IUPAC names.
 - **Autocomplete:** Intelligent suggestions help you find the exact compound you're looking for as you type.
+- **Quick Reset:** Tap the cancel button (`✕`) in the search bar or the Moluxis header title to instantly clear the active molecule and return to the Curated Showcase.
 
 ### 🧪 **Interactive 3D & 2D Visualization**
 
@@ -63,12 +74,13 @@ The app features a sleek, dark-themed UI designed for focus and clarity.
 - **Auto-Rotation:** Toggle smooth 360° rotation to inspect molecules dynamically from every angle.
 - **Zen Mode (Full Screen):** Enter an immersive, distraction-free view hiding all overlays and floating controls.
 - **Responsive Landscape Mode:** Adaptive dual-pane orientation layout with floating dock and persistent compound name overlay.
-- **Crystal Structures:** Visualizes 3D crystal lattices for inorganic compounds via COD integration.
+- **Crystal Structures:** Visualizes 3D crystal lattices for inorganic compounds via COD integration (including Diamond, Salt, Quartz, and Calcite).
 - **Atom Labels:** Quick toggle to view or hide individual element labels.
 
 ### 📊 **Comprehensive Chemical Data**
 
 - **Physical Properties:** Molecular Weight, Formula, Density, Boiling/Melting Points, Solubility.
+- **Unicode Chemical Formulas:** Clean, standardized subscript formula formatting (e.g., `H₂O`, `C₈H₁₀N₄O₂`, `Ca(OH)₂`) across showcase cards and info panels.
 - **Chemical Attributes:** H-Bond Donors/Acceptors, Rotatable Bonds, TPSA, LogP.
 - **Identifiers:** IUPAC Names (Preferred & Traditional), Common Synonyms.
 - **External Links:** Direct access to full PubChem records and Crystallography Open Database (COD) entries.
