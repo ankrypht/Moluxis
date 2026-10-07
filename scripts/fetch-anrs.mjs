@@ -374,8 +374,13 @@ function formatMarkdownReport(issues, reports, packageName, options) {
 
   issues.forEach((issue, idx) => {
     const type = issue.type || options.type;
-    const cause = (issue.cause || "Unknown").replace(/\|/g, "\\|");
-    const loc = (issue.location || "").replace(/\|/g, "\\|");
+    // Escape backslashes first to prevent incomplete escaping / CodeQL warning CWE-116, then escape markdown table delimiters
+    const cause = (issue.cause || "Unknown")
+      .replace(/\\/g, "\\\\")
+      .replace(/\|/g, "\\|");
+    const loc = (issue.location || "")
+      .replace(/\\/g, "\\\\")
+      .replace(/\|/g, "\\|");
     const label = loc ? `\`${cause}\`<br>↳ \`${loc}\`` : `\`${cause}\``;
     const count = issue.errorReportCount || "N/A";
     const users = issue.distinctUsers || "N/A";
