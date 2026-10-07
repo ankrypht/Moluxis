@@ -98,4 +98,32 @@ describe("useStoreReview", () => {
     expect(consoleSpy).toHaveBeenCalled();
     consoleSpy.mockRestore();
   });
+
+  it("should not call StoreReview.isAvailableAsync on non-threshold counts to save bridge overhead", async () => {
+    (AsyncStorage.getItem as jest.Mock).mockResolvedValueOnce("0");
+
+    const { result } = renderHook(() => useStoreReview());
+
+    await act(async () => {
+      await result.current.incrementSearchCountAndReview();
+    });
+
+    expect(StoreReview.isAvailableAsync).not.toHaveBeenCalled();
+    expect(StoreReview.hasAction).not.toHaveBeenCalled();
+  });
+
+  it("should safely handle NaN/corrupted count from storage", async () => {
+    (AsyncStorage.getItem as jest.Mock).mockResolvedValueOnce("invalid_number");
+
+    const { result } = renderHook(() => useStoreReview());
+
+    await act(async () => {
+      await result.current.incrementSearchCountAndReview();
+    });
+
+    expect(AsyncStorage.setItem).toHaveBeenCalledWith(
+      "@moluxis_search_count",
+      "1",
+    );
+  });
 });

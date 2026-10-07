@@ -32,6 +32,8 @@ export default {
       monochromeImage: "./assets/adaptive-icon.png",
     },
     predictiveBackGestureEnabled: false,
+    playStoreUrl:
+      "https://play.google.com/store/apps/details?id=com.ankushsarkar.moluxis",
   },
   owner: "ankushsarkar",
   plugins: [
