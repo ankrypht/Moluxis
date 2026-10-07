@@ -2,7 +2,14 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { fetchAutocomplete } from "../services/pubchem/api";
 import { isAbortError } from "../services/pubchem/utils";
 
+const MAX_SUGGESTIONS_CACHE = 100;
 const suggestionCache = new Map<string, string[]>();
+
+export const clearSuggestionCache = () => {
+  suggestionCache.clear();
+};
+
+export const getSuggestionCacheSize = () => suggestionCache.size;
 
 export const useAutocomplete = () => {
   const [searchText, setSearchText] = useState("");
@@ -23,16 +30,24 @@ export const useAutocomplete = () => {
   }, []);
 
   const fetchSuggestions = async (text: string) => {
-    if (text.length < 3) {
+    const trimmed = text.trim();
+    if (trimmed.length < 3) {
       setSuggestions([]);
+      setShowSuggestions(false);
       return;
     }
 
+    const cacheKey = trimmed.toLowerCase();
+
     // Check cache first
-    if (suggestionCache.has(text)) {
+    if (suggestionCache.has(cacheKey)) {
       if (!isCancelledRef.current) {
-        setSuggestions(suggestionCache.get(text)!);
-        setShowSuggestions(true);
+        const cached = suggestionCache.get(cacheKey)!;
+        // Refresh LRU order
+        suggestionCache.delete(cacheKey);
+        suggestionCache.set(cacheKey, cached);
+        setSuggestions(cached);
+        setShowSuggestions(cached.length > 0);
       }
       return;
     }
@@ -43,14 +58,19 @@ export const useAutocomplete = () => {
     abortControllerRef.current = controller;
 
     try {
-      const results = await fetchAutocomplete(text, controller.signal);
+      const results = await fetchAutocomplete(trimmed, controller.signal);
       // Re-check after the async gap — clearSuggestions may have been called
-      if (isCancelledRef.current) return;
-      if (results.length > 0) {
-        suggestionCache.set(text, results);
-        setSuggestions(results);
-        setShowSuggestions(true);
+      if (isCancelledRef.current || controller.signal.aborted) return;
+
+      // LRU eviction if cache exceeds capacity
+      if (suggestionCache.size >= MAX_SUGGESTIONS_CACHE) {
+        const oldestKey = suggestionCache.keys().next().value;
+        if (oldestKey) suggestionCache.delete(oldestKey);
       }
+
+      suggestionCache.set(cacheKey, results);
+      setSuggestions(results);
+      setShowSuggestions(results.length > 0);
     } catch (error) {
       // Abort/cancellation is expected when the user types quickly or searches
       if (isAbortError(error, controller.signal)) return;

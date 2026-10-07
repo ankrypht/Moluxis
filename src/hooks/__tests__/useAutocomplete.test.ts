@@ -132,5 +132,70 @@ describe("useAutocomplete", () => {
         consoleSpy.mockRestore();
       }
     });
+
+    it("should return cached suggestions for identical queries without re-fetching", async () => {
+      (fetchAutocomplete as jest.Mock).mockResolvedValueOnce([
+        "benzene",
+        "benzonitrile",
+      ]);
+
+      const { result } = renderHook(() => useAutocomplete());
+
+      act(() => {
+        result.current.handleTextChange("benz");
+      });
+
+      await act(async () => {
+        jest.advanceTimersByTime(300);
+      });
+
+      expect(fetchAutocomplete).toHaveBeenCalledTimes(1);
+      expect(result.current.suggestions).toEqual(["benzene", "benzonitrile"]);
+
+      // Second query with same normalized text (different case)
+      act(() => {
+        result.current.handleTextChange("Benz");
+      });
+
+      await act(async () => {
+        jest.advanceTimersByTime(300);
+      });
+
+      // Should not call fetchAutocomplete again — served from cache
+      expect(fetchAutocomplete).toHaveBeenCalledTimes(1);
+      expect(result.current.suggestions).toEqual(["benzene", "benzonitrile"]);
+      expect(result.current.showSuggestions).toBe(true);
+    });
+
+    it("should clear stale suggestions and hide dropdown when query returns empty results", async () => {
+      (fetchAutocomplete as jest.Mock).mockResolvedValueOnce(["ethanol"]);
+
+      const { result } = renderHook(() => useAutocomplete());
+
+      act(() => {
+        result.current.handleTextChange("eth");
+      });
+
+      await act(async () => {
+        jest.advanceTimersByTime(300);
+      });
+
+      expect(result.current.suggestions).toEqual(["ethanol"]);
+      expect(result.current.showSuggestions).toBe(true);
+
+      // Now user types a query with no matches
+      (fetchAutocomplete as jest.Mock).mockResolvedValueOnce([]);
+
+      act(() => {
+        result.current.handleTextChange("ethxyz");
+      });
+
+      await act(async () => {
+        jest.advanceTimersByTime(300);
+      });
+
+      expect(result.current.suggestions).toEqual([]);
+      expect(result.current.showSuggestions).toBe(false);
+    });
   });
 });

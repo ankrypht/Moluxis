@@ -1,6 +1,6 @@
 import { renderHook, act } from "@testing-library/react-native";
 import { Alert, Keyboard } from "react-native";
-import { useMoleculeSearch } from "../useMoleculeSearch";
+import { useMoleculeSearch, clearMoleculeCache } from "../useMoleculeSearch";
 import {
   fetchMoleculeDetails,
   fetchCompoundByName,
@@ -30,6 +30,7 @@ describe("useMoleculeSearch", () => {
   beforeEach(() => {
     jest.useFakeTimers();
     jest.clearAllMocks();
+    clearMoleculeCache();
   });
 
   afterEach(() => {
@@ -199,6 +200,128 @@ describe("useMoleculeSearch", () => {
       });
 
       expect(mockIncrementSearchCountAndReview).toHaveBeenCalled();
+    });
+
+    it("should serve repeat searches from moleculeCache without re-fetching from API", async () => {
+      const mockSdf = "header\n".repeat(20) + "valid sdf data";
+
+      (fetchCompoundByName as jest.Mock).mockResolvedValueOnce({
+        PC_Compounds: [
+          {
+            id: { id: { cid: 962 } },
+            props: [
+              { urn: { label: "Molecular Formula" }, value: { sval: "H2O" } },
+              { urn: { label: "Molecular Weight" }, value: { sval: "18.015" } },
+            ],
+          },
+        ],
+      });
+
+      (fetchMoleculeDetails as jest.Mock).mockResolvedValueOnce({
+        propsJson: null,
+        ghsJson: null,
+        synonymsJson: null,
+        descJson: null,
+        sdfText3d: mockSdf,
+        sdfText2d: "2d sdf",
+        cifText: "",
+        codId: null,
+        useCif: false,
+      });
+
+      const { result } = renderHook(() => useMoleculeSearch());
+
+      // First search fetches from API
+      await act(async () => {
+        await result.current.searchMolecule("water");
+      });
+
+      expect(fetchCompoundByName).toHaveBeenCalledTimes(1);
+      expect(result.current.moleculeData?.name).toBe("water");
+      expect(result.current.isLoading).toBe(false);
+
+      // Reset mock increment counter to verify second call triggers it
+      mockIncrementSearchCountAndReview.mockClear();
+
+      // Second search for same molecule (case-insensitive) should hit cache
+      await act(async () => {
+        await result.current.searchMolecule("WATER");
+      });
+
+      // API was NOT called again
+      expect(fetchCompoundByName).toHaveBeenCalledTimes(1);
+      expect(result.current.moleculeData?.name).toBe("water");
+      expect(result.current.isLoading).toBe(false);
+      // Review interaction counter is still counted on cache hits
+      expect(mockIncrementSearchCountAndReview).toHaveBeenCalledTimes(1);
+    });
+
+    it("should prevent race conditions by discarding out-of-order stale network responses", async () => {
+      let resolveFirst: (val: any) => void = () => {};
+      const slowPromise = new Promise((resolve) => {
+        resolveFirst = resolve;
+      });
+
+      // Search 1: slow search
+      (fetchCompoundByName as jest.Mock).mockReturnValueOnce(slowPromise);
+
+      // Search 2: fast search
+      (fetchCompoundByName as jest.Mock).mockResolvedValueOnce({
+        PC_Compounds: [
+          {
+            id: { id: { cid: 2244 } },
+            props: [
+              {
+                urn: { label: "Molecular Formula" },
+                value: { sval: "C9H8O4" },
+              },
+            ],
+          },
+        ],
+      });
+      (fetchMoleculeDetails as jest.Mock).mockResolvedValueOnce({
+        propsJson: null,
+        ghsJson: null,
+        synonymsJson: null,
+        descJson: null,
+        sdfText3d: "aspirin 3d sdf",
+        sdfText2d: "aspirin 2d sdf",
+        cifText: "",
+        codId: null,
+        useCif: false,
+      });
+
+      const { result } = renderHook(() => useMoleculeSearch());
+
+      // Initiate slow search 1
+      act(() => {
+        result.current.searchMolecule("slow_compound");
+      });
+
+      expect(result.current.isLoading).toBe(true);
+
+      // Initiate fast search 2 while search 1 is still in flight
+      await act(async () => {
+        await result.current.searchMolecule("aspirin");
+      });
+
+      // Search 2 should be displayed
+      expect(result.current.moleculeData?.name).toBe("aspirin");
+
+      // Now slow search 1 resolves late
+      await act(async () => {
+        resolveFirst({
+          PC_Compounds: [
+            {
+              id: { id: { cid: 9999 } },
+              props: [],
+            },
+          ],
+        });
+      });
+
+      // Result should STILL be aspirin, NOT overwritten by slow_compound
+      expect(result.current.moleculeData?.name).toBe("aspirin");
     });
 
     it("should clear search text, suggestions, and molecule data when clearMolecule is called", async () => {
