@@ -106,9 +106,8 @@ function MoleculeExplorer() {
     }
   }, [moleculeData, addHistory]);
 
-  const isCurrentBookmarked = useMemo(
-    () => Boolean(moleculeData?.name && isBookmarked(moleculeData.name)),
-    [moleculeData?.name, isBookmarked],
+  const isCurrentBookmarked = Boolean(
+    moleculeData?.name && isBookmarked(moleculeData.name),
   );
 
   const styles = useMemo(
