@@ -25,9 +25,7 @@
 
 ## 📖 Overview
 
-**Moluxis** is a powerful Android application built with Expo that allows students, chemists, and enthusiasts to explore the molecular world. Powered by the **PubChem** database and the **Crystallography Open Database (COD)**, Moluxis provides real-time access to millions of chemical compounds, offering detailed chemical properties, safety data, and fully interactive 3D structures or crystal lattices directly on your mobile device.
-
-The app features a sleek, dark-themed UI designed for focus and clarity.
+**Moluxis** is an open-source Android application for exploring chemical compounds and crystal lattices in interactive 3D and 2D. Powered by the **PubChem** database and the **Crystallography Open Database (COD)**, Moluxis provides real-time access to millions of chemical structures, physical properties, and safety data.
 
 ## 📲 Installation
 
@@ -46,77 +44,47 @@ The app features a sleek, dark-themed UI designed for focus and clarity.
 
 ## ✨ Features
 
-### 🌟 **Curated Molecule Showcase**
+### 🧪 Interactive 3D & 2D Visualization
 
-- **Instant Exploration:** Discover molecules right from the home screen without needing to search.
-- **Jump Back In:** Quick-access horizontal carousel right above the showcase allowing returning users to jump back into their recent searches and bookmarked compounds with one tap.
-- **Curated Collections:** Browse 12 iconic compounds across three hand-picked categories:
-  - 🧬 **Biochemicals:** Caffeine, Dopamine, Serotonin, Adenine (DNA base)
-  - 💊 **Medicinal:** Aspirin, Penicillin, Ibuprofen, Paracetamol
-  - 💎 **Crystals & Minerals:** Diamond, Sodium Chloride, Quartz, Calcite
-- **One-Tap 3D Spin:** Tap any card to immediately load and start an interactive, spinning 3D visualization.
-- **Adaptive Layout:** Automatically arranges into a balanced 2×2 grid in portrait and a widescreen 1×4 layout in landscape.
+- **Dual View Modes:** Seamlessly switch between interactive 3D models and 2D chemical diagrams.
+- **Render Styles:** Ball & Stick, Sticks, Space-Fill, and Wireframe.
+- **Crystal Lattices:** Visualize 3D crystal structures for inorganic minerals via COD.
+- **Viewer Controls:** 360° auto-rotation, atom labels, and Zen (full-screen) mode.
+- **Adaptive Layout:** Responsive split-screen view in landscape orientation.
 
-### ⏱️ **Recent Searches & Bookmarks**
+### 🔍 Smart Search & Autocomplete
 
-- **Quick-Access Hub:** Revisit previously inspected compounds or view your saved favorites via the history button (`🕒`) in the header.
-- **One-Tap Bookmarking:** Save any active molecule directly from the floating header (`🔖`) for immediate access later.
-- **Offline Persistence:** All recent searches (up to 30 items) and saved bookmarks persist securely on-device across app restarts.
-- **Relative Timestamps:** Track inspection recency with clean relative time indicators (e.g., `1m ago`, `2h ago`, `Yesterday`).
-- **Flexible Management:** Toggle individual bookmarks directly from history items, remove single entries, or clear lists with confirmation prompts.
+- **Instant Search:** Find compounds by common name or IUPAC nomenclature.
+- **Live Suggestions:** Intelligent suggestions as you type.
 
-### 🔍 **Smart Search**
+### 🌟 Curated Molecule Showcase
 
-- **Instant Search:** Find compounds by common names (e.g., "Caffeine", "Aspirin") or IUPAC names.
-- **Autocomplete:** Intelligent suggestions help you find the exact compound you're looking for as you type.
-- **Quick Reset:** Tap the cancel button (`✕`) in the search bar or the Moluxis header title to instantly clear the active molecule and return to the Curated Showcase.
+- **Home Exploration:** Discover iconic molecules across Biochemicals, Medicinal, and Crystals & Minerals.
+- **One-Tap 3D View:** Tap any card to immediately load and inspect spinning 3D structures.
 
-### 🧪 **Interactive 3D & 2D Visualization**
+### ⏱️ Recent Searches & Bookmarks
 
-- **2D & 3D Structure Modes:** Seamlessly switch between flat 2D chemical diagrams and interactive 3D models.
-- **High-Performance Rendering:** Powered by `3Dmol.js` within a customized WebView.
-- **Multiple Visualization Modes:**
-  - 🎾 **Ball & Stick:** Standard chemistry visualization.
-  - 🥢 **Sticks:** Clean view emphasizing bond connectivity.
-  - 🔴 **Space-Fill:** Realistic van der Waals volume representation.
-  - 🕸️ **Wireframe:** Minimalist view for complex structures.
-- **Auto-Rotation:** Toggle smooth 360° rotation to inspect molecules dynamically from every angle.
-- **Zen Mode (Full Screen):** Enter an immersive, distraction-free view hiding all overlays and floating controls.
-- **Responsive Landscape Mode:** Adaptive dual-pane orientation layout with floating dock and persistent compound name overlay.
-- **Crystal Structures:** Visualizes 3D crystal lattices for inorganic compounds via COD integration (including Diamond, Salt, Quartz, and Calcite).
-- **Atom Labels:** Quick toggle to view or hide individual element labels.
+- **Jump Back In:** Quick-access carousel on the home screen to revisit recent searches and favorites.
+- **Offline History & Bookmarks:** On-device persistence with quick management and relative timestamps.
+- **One-Tap Bookmarking:** Save active compounds directly from the viewer header.
 
-### 📊 **Comprehensive Chemical Data**
+### 📊 Chemical Data & Safety
 
-- **Physical Properties:** Molecular Weight, Formula, Density, Boiling/Melting Points, Solubility.
-- **Unicode Chemical Formulas:** Clean, standardized subscript formula formatting (e.g., `H₂O`, `C₈H₁₀N₄O₂`, `Ca(OH)₂`) across showcase cards and info panels.
-- **Chemical Attributes:** H-Bond Donors/Acceptors, Rotatable Bonds, TPSA, LogP.
-- **Identifiers:** IUPAC Names (Preferred & Traditional), Common Synonyms.
-- **External Links:** Direct access to full PubChem records and Crystallography Open Database (COD) entries.
-
-### ⚠️ **Safety & Hazards**
-
-- **GHS Classification:** Displays standard GHS Signal Words (e.g., "Danger", "Warning").
-- **Hazard Statements:** Clear list of specific hazard warnings and safety precautions.
+- **Properties & Attributes:** Molecular weight, formula, density, melting/boiling points, solubility, hydrogen bonds, LogP, and TPSA.
+- **Safety Data:** Standard GHS classifications, signal words, and hazard statements.
+- **External References:** Direct links to PubChem and COD source records.
 
 ## 🛠️ Tech Stack
 
-- **Framework:** [React Native](https://reactnative.dev/) (0.86+) via [Expo](https://expo.dev/) (SDK 57)
+- **Framework:** [React Native](https://reactnative.dev/) via [Expo](https://expo.dev/) (SDK 57)
 - **Language:** TypeScript
-- **3D Engine:** [3Dmol.js](https://3Dmol.csb.pitt.edu/) (embedded via `react-native-webview`)
-- **Data & Storage:**
-  - [PubChem PUG REST API](https://pubchem.ncbi.nlm.nih.gov/docs/pug-rest)
-  - [Crystallography Open Database (COD)](https://www.crystallography.net/)
-  - [@react-native-async-storage/async-storage](https://react-native-async-storage.github.io/async-storage/) for offline search history and bookmarks persistence
-- **Build & Optimization:** Android R8 code & resource shrinking (`expo-build-properties`) and Metro inline requires
-- **Testing:** Jest, `@testing-library/react-native`
-- **UI Components:** Custom modular components with responsive scaling
+- **3D Engine:** [3Dmol.js](https://3Dmol.csb.pitt.edu/) embedded via `react-native-webview`
+- **Data & Storage:** [PubChem PUG REST API](https://pubchem.ncbi.nlm.nih.gov/docs/pug-rest), [Crystallography Open Database (COD)](https://www.crystallography.net/), and [AsyncStorage](https://react-native-async-storage.github.io/async-storage/)
+- **Testing:** Jest & `@testing-library/react-native`
 
 ## 🤝 Contributing
 
-### Pull requests are welcome
-
-- If you want to **develop new functions** or **fix a bug**, fork the repository and send a pull request.
+Contributions are welcome! Feel free to open an issue or submit a pull request.
 
 ### Prerequisites
 
@@ -124,7 +92,7 @@ The app features a sleek, dark-themed UI designed for focus and clarity.
 - npm or yarn
 - Android physical device or Android Emulator
 
-### Running On Your System
+### Development Setup
 
 1. **Clone the repository:**
 
@@ -145,15 +113,15 @@ The app features a sleek, dark-themed UI designed for focus and clarity.
    npm start
    ```
 
-4. **Run on Device or Emulator:**
-   - **Development Build (Recommended):** Run `npm run android` to build and launch on your connected device or emulator.
+4. **Run on Android:**
+   - **Development Build:** Run `npm run android` to build and launch on your connected device or emulator.
    - **Expo Go:** Press `s` in the terminal to switch to Expo Go if supported.
 
-5. **Run Tests & Linter:**
+5. **Run tests & linter:**
 
    ```bash
-   npm test       # Run Jest test suite
-   npm run lint   # Run Expo linter
+   npm test
+   npm run lint
    ```
 
 ## 📄 License
@@ -164,6 +132,6 @@ Licensed under the Apache License, Version 2.0.
 
 ## 🙏 Acknowledgments
 
-- **PubChem:** For providing the extensive chemical database and API.
-- **3Dmol.js:** For the excellent JavaScript-based molecular visualization library.
-- **Crystallography Open Database (COD):** For providing the open-access collection of crystal structures.
+- **PubChem:** Comprehensive chemical database and API.
+- **3Dmol.js:** High-performance molecular visualization library.
+- **Crystallography Open Database (COD):** Open-access collection of crystal structures.
