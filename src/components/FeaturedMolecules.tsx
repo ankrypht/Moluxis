@@ -24,6 +24,9 @@ import {
 import { FeaturedMoleculesStyles } from "./FeaturedMolecules.styles";
 import { COLORS, addOpacity } from "../constants/colors";
 
+import { SavedCompoundItem } from "../types";
+import { ChemicalFormula } from "./ChemicalFormula";
+
 let savedShowcaseScrollOffset = 0;
 
 export const resetShowcaseScrollOffset = () => {
@@ -40,6 +43,9 @@ export interface FeaturedMoleculesProps {
   topOffset?: number;
   initialScrollOffset?: number;
   onScrollOffsetChange?: (offset: number) => void;
+  history?: SavedCompoundItem[];
+  bookmarks?: SavedCompoundItem[];
+  onOpenHistory?: (initialTab?: "history" | "bookmarks") => void;
 }
 
 export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
@@ -49,6 +55,9 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
     topOffset,
     initialScrollOffset: propsInitialScrollOffset,
     onScrollOffsetChange,
+    history,
+    bookmarks,
+    onOpenHistory,
   }) => {
     const { width, height } = useWindowDimensions();
     const isLandscape = width > height;
@@ -114,6 +123,38 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
       }
       return groups;
     }, []);
+
+    const recentItems = useMemo(() => {
+      const itemMap = new Map<string, SavedCompoundItem>();
+
+      for (const item of history || []) {
+        if (!item?.name) continue;
+        const lower = item.name.trim().toLowerCase();
+        if (
+          !itemMap.has(lower) ||
+          (item.timestamp &&
+            item.timestamp > (itemMap.get(lower)?.timestamp || 0))
+        ) {
+          itemMap.set(lower, item);
+        }
+      }
+
+      for (const item of bookmarks || []) {
+        if (!item?.name) continue;
+        const lower = item.name.trim().toLowerCase();
+        if (
+          !itemMap.has(lower) ||
+          (item.timestamp &&
+            item.timestamp > (itemMap.get(lower)?.timestamp || 0))
+        ) {
+          itemMap.set(lower, item);
+        }
+      }
+
+      return Array.from(itemMap.values())
+        .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
+        .slice(0, 8);
+    }, [history, bookmarks]);
 
     const renderCard = useCallback(
       (molecule: FeaturedMolecule) => {
@@ -262,6 +303,97 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
           ]}
           keyboardShouldPersistTaps="handled"
         >
+          {/* Jump Back In (Recent Searches & Favorites) */}
+          {recentItems.length > 0 && (
+            <View style={styles.jumpBackSection}>
+              <View style={styles.jumpBackHeader}>
+                <View style={styles.jumpBackHeaderLeft}>
+                  <Ionicons
+                    name="time-outline"
+                    size={17}
+                    color={COLORS.primary}
+                  />
+                  <Text allowFontScaling={false} style={styles.jumpBackTitle}>
+                    Jump Back In
+                  </Text>
+                </View>
+                {onOpenHistory && (
+                  <TouchableOpacity
+                    testID="jump-back-view-all"
+                    accessibilityRole="button"
+                    accessibilityLabel="View full history and bookmarks"
+                    style={styles.jumpBackViewAllBtn}
+                    onPress={() => onOpenHistory()}
+                  >
+                    <Text
+                      allowFontScaling={false}
+                      style={styles.jumpBackViewAllText}
+                    >
+                      View All
+                    </Text>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={12}
+                      color={COLORS.primary}
+                    />
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.jumpBackChipsScroll}
+                keyboardShouldPersistTaps="handled"
+              >
+                {recentItems.map((item) => {
+                  const isFav = bookmarks?.some(
+                    (b) => b.name.toLowerCase() === item.name.toLowerCase(),
+                  );
+                  return (
+                    <TouchableOpacity
+                      key={item.name}
+                      testID={`recent-chip-${item.name.toLowerCase()}`}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Revisit ${item.name}`}
+                      style={styles.jumpBackChip}
+                      onPress={() => onSelectMolecule(item.name)}
+                      activeOpacity={0.7}
+                    >
+                      <View
+                        style={[
+                          styles.jumpBackChipIcon,
+                          isFav && styles.jumpBackChipIconFav,
+                        ]}
+                      >
+                        <Ionicons
+                          name={isFav ? "bookmark" : "time-outline"}
+                          size={14}
+                          color={isFav ? COLORS.warning : COLORS.primary}
+                        />
+                      </View>
+                      <View>
+                        <Text
+                          allowFontScaling={false}
+                          style={styles.jumpBackChipName}
+                          numberOfLines={1}
+                        >
+                          {item.name}
+                        </Text>
+                        {item.formula ? (
+                          <ChemicalFormula
+                            formula={item.formula}
+                            style={styles.jumpBackChipFormula}
+                          />
+                        ) : null}
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
+          )}
+
           {/* Hero Section */}
           <View style={styles.heroSection}>
             <View style={styles.heroBadge}>

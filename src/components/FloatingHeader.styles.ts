@@ -57,6 +57,30 @@ export const getFloatingHeaderStyles = ({
       color: COLORS.primary,
       letterSpacing: -0.5,
     },
+    headerTopActions: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: hScaleSize(8),
+    },
+    headerIconButton: {
+      width: scaleSize(48),
+      height: scaleSize(48),
+      borderRadius: scaleSize(16),
+      backgroundColor: addOpacity(COLORS.surfaceElevated, 0.8),
+      borderWidth: 1,
+      borderColor: addOpacity(COLORS.border, 0.6),
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    headerIconButtonActive: {
+      backgroundColor: addOpacity(COLORS.warning, 0.15),
+      borderColor: addOpacity(COLORS.warning, 0.5),
+    },
+    headerIconButtonLandscape: {
+      width: scaleSize(40),
+      height: scaleSize(40),
+      borderRadius: scaleSize(14),
+    },
     titleLandscape: {
       display: "none",
     },

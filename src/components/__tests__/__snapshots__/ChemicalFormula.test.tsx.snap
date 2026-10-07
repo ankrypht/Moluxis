@@ -10,7 +10,7 @@ exports[`ChemicalFormula handles empty formula string 1`] = `
         "fontWeight": "800",
       },
       {
-        "fontSize": 23,
+        "fontSize": 26,
       },
     ]
   }
@@ -27,7 +27,7 @@ exports[`ChemicalFormula matches snapshot 1`] = `
         "fontWeight": "800",
       },
       {
-        "fontSize": 23,
+        "fontSize": 26,
       },
     ]
   }

@@ -8,6 +8,7 @@ import { getFloatingDockStyles } from "./src/components/FloatingDock.styles";
 import { getMoleculeInfoSheetStyles } from "./src/components/MoleculeInfoSheet.styles";
 import { getOverlaysStyles } from "./src/components/Overlays.styles";
 import { getFeaturedMoleculesStyles } from "./src/components/FeaturedMolecules.styles";
+import { getHistoryBookmarksModalStyles } from "./src/components/HistoryBookmarksModal.styles";
 
 export const getStyles = (width: number, height: number, insets: Insets) => {
   const metrics = getScaleMetrics(width, height, insets);
@@ -28,6 +29,7 @@ export const getStyles = (width: number, height: number, insets: Insets) => {
     ...getMoleculeInfoSheetStyles(metrics),
     ...getOverlaysStyles(metrics),
     ...getFeaturedMoleculesStyles(metrics),
+    ...getHistoryBookmarksModalStyles(metrics),
   };
 };
 

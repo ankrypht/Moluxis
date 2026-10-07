@@ -31,7 +31,7 @@ export const ChemicalFormula: React.FC<ChemicalFormulaProps> = React.memo(
         style={
           [
             styles.statValue,
-            { fontSize: getResponsiveSize(16, width, height) },
+            { fontSize: getResponsiveSize(18, width, height) },
             style,
           ].filter(Boolean) as StyleProp<TextStyle>
         }

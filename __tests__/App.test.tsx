@@ -19,6 +19,13 @@ jest.mock("expo-navigation-bar", () => ({
   },
 }));
 
+jest.mock("@react-native-async-storage/async-storage", () => ({
+  getItem: jest.fn().mockResolvedValue(null),
+  setItem: jest.fn().mockResolvedValue(undefined),
+  removeItem: jest.fn().mockResolvedValue(undefined),
+  clear: jest.fn().mockResolvedValue(undefined),
+}));
+
 jest.mock("react-native-webview", () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { View } = require("react-native");
@@ -210,14 +217,88 @@ describe("Featured Molecules on First Launch", () => {
       properties: {},
       safety: {},
     };
-    rerender(<App />);
+    await act(async () => {
+      rerender(<App />);
+    });
 
     // Clear back to showcase
     mockMoleculeData = null;
-    rerender(<App />);
+    await act(async () => {
+      rerender(<App />);
+    });
 
     // Check that ScrollView rendered with remembered scroll offset
     const restoredScrollView = getByTestId("featured-molecules-scroll");
     expect(restoredScrollView.props.contentOffset).toEqual({ x: 0, y: 420 });
+  });
+});
+
+describe("Recent Searches & Favorites", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.spyOn(Keyboard, "dismiss").mockImplementation(() => {});
+    mockMoleculeData = {
+      name: "Caffeine",
+      formula: "C8H10N4O2",
+      molecularWeight: "194.19",
+      cid: "2519",
+      sdf2d: "sdf2d-data",
+      sdf3d: "sdf3d-data",
+      properties: {},
+      safety: {},
+    };
+  });
+
+  it("allows opening and closing the History / Bookmarks modal from the header", async () => {
+    const { getByTestId, queryByTestId } = render(<App />);
+
+    const historyBtn = getByTestId("header-history-button");
+    await act(async () => {
+      fireEvent.press(historyBtn);
+    });
+
+    expect(getByTestId("tab-toggle-history")).toBeTruthy();
+    expect(getByTestId("tab-toggle-bookmarks")).toBeTruthy();
+
+    const closeBtn = getByTestId("close-history-modal");
+    await act(async () => {
+      fireEvent.press(closeBtn);
+    });
+
+    expect(queryByTestId("tab-toggle-history")).toBeNull();
+  });
+
+  it("toggles bookmark on active molecule from header", async () => {
+    const { getByTestId, queryByTestId } = render(<App />);
+
+    const headerBookmarkBtn = getByTestId("header-bookmark-button");
+    await act(async () => {
+      fireEvent.press(headerBookmarkBtn);
+    });
+
+    // Save button should not be in floating dock
+    expect(queryByTestId("dock-bookmark-chip")).toBeNull();
+  });
+
+  it("revisits compound with one tap when selected from history modal", async () => {
+    const { getByTestId, getByText } = render(<App />);
+
+    // Open history modal
+    const historyBtn = getByTestId("header-history-button");
+    await act(async () => {
+      fireEvent.press(historyBtn);
+    });
+
+    // The currently inspected compound (Caffeine) is in history
+    await waitFor(() => {
+      expect(getByText("Caffeine")).toBeTruthy();
+    });
+
+    // Tap to revisit with one tap
+    await act(async () => {
+      fireEvent.press(getByText("Caffeine"));
+    });
+
+    expect(mockSelectSuggestion).toHaveBeenCalledWith("Caffeine");
   });
 });

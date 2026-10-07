@@ -39,6 +39,9 @@ export interface FloatingHeaderProps {
   onSelectFormat: (format: "3d" | "2d") => void;
   onLayoutHeader?: (height: number) => void;
   onClear?: () => void;
+  isBookmarked?: boolean;
+  onToggleBookmark?: () => void;
+  onOpenHistory?: () => void;
 }
 
 export const FloatingHeader: React.FC<FloatingHeaderProps> = ({
@@ -62,6 +65,9 @@ export const FloatingHeader: React.FC<FloatingHeaderProps> = ({
   onSelectFormat,
   onLayoutHeader,
   onClear,
+  isBookmarked,
+  onToggleBookmark,
+  onOpenHistory,
 }) => {
   const renderSuggestionItem = useCallback(
     ({ item }: { item: string }) => (
@@ -101,6 +107,51 @@ export const FloatingHeader: React.FC<FloatingHeaderProps> = ({
                   Moluxis
                 </Text>
               </TouchableOpacity>
+
+              <View style={styles.headerTopActions}>
+                {moleculeData && onToggleBookmark && (
+                  <TouchableOpacity
+                    testID="header-bookmark-button"
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                      isBookmarked
+                        ? `Remove ${moleculeData.name} from bookmarks`
+                        : `Bookmark ${moleculeData.name}`
+                    }
+                    style={[
+                      styles.headerIconButton,
+                      isBookmarked && styles.headerIconButtonActive,
+                    ]}
+                    onPress={onToggleBookmark}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Ionicons
+                      name={isBookmarked ? "bookmark" : "bookmark-outline"}
+                      size={20}
+                      color={
+                        isBookmarked ? COLORS.warning : COLORS.textSecondary
+                      }
+                    />
+                  </TouchableOpacity>
+                )}
+
+                {onOpenHistory && (
+                  <TouchableOpacity
+                    testID="header-history-button"
+                    accessibilityRole="button"
+                    accessibilityLabel="Open search history and bookmarks"
+                    style={styles.headerIconButton}
+                    onPress={onOpenHistory}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Ionicons
+                      name="time-outline"
+                      size={20}
+                      color={COLORS.textSecondary}
+                    />
+                  </TouchableOpacity>
+                )}
+              </View>
             </View>
           )}
           <View
@@ -156,6 +207,51 @@ export const FloatingHeader: React.FC<FloatingHeaderProps> = ({
                 <Ionicons name="search" size={20} color={COLORS.textPrimary} />
               )}
             </TouchableOpacity>
+
+            {isLandscape && moleculeData && onToggleBookmark && (
+              <TouchableOpacity
+                testID="header-bookmark-button"
+                accessibilityRole="button"
+                accessibilityLabel={
+                  isBookmarked
+                    ? `Remove ${moleculeData.name} from bookmarks`
+                    : `Bookmark ${moleculeData.name}`
+                }
+                style={[
+                  styles.headerIconButton,
+                  styles.headerIconButtonLandscape,
+                  isBookmarked && styles.headerIconButtonActive,
+                ]}
+                onPress={onToggleBookmark}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Ionicons
+                  name={isBookmarked ? "bookmark" : "bookmark-outline"}
+                  size={20}
+                  color={isBookmarked ? COLORS.warning : COLORS.textSecondary}
+                />
+              </TouchableOpacity>
+            )}
+
+            {isLandscape && onOpenHistory && (
+              <TouchableOpacity
+                testID="header-history-button"
+                accessibilityRole="button"
+                accessibilityLabel="Open search history and bookmarks"
+                style={[
+                  styles.headerIconButton,
+                  styles.headerIconButtonLandscape,
+                ]}
+                onPress={onOpenHistory}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Ionicons
+                  name="time-outline"
+                  size={20}
+                  color={COLORS.textSecondary}
+                />
+              </TouchableOpacity>
+            )}
           </View>
 
           {/* Autocomplete Dropdown */}

@@ -35,3 +35,11 @@ export interface MoleculeInfo {
   properties: ChemicalProperties;
   safety: SafetyInfo;
 }
+
+export interface SavedCompoundItem {
+  name: string;
+  formula?: string;
+  cid?: string;
+  molecularWeight?: string;
+  timestamp: number;
+}

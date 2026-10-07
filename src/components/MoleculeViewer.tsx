@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { WebView } from "react-native-webview";
 
-import { MoleculeInfo, VisualizationType } from "../types";
+import { MoleculeInfo, VisualizationType, SavedCompoundItem } from "../types";
 import { VIEWER_HTML } from "../constants/viewerHtml";
 import { COLORS } from "../constants/colors";
 import { MoleculeViewerStyles } from "./MoleculeViewer.styles";
@@ -45,6 +45,9 @@ export interface MoleculeViewerProps {
   topOffset?: number;
   initialScrollOffset?: number;
   onScrollOffsetChange?: (offset: number) => void;
+  history?: SavedCompoundItem[];
+  bookmarks?: SavedCompoundItem[];
+  onOpenHistory?: (initialTab?: "history" | "bookmarks") => void;
 }
 
 export const MoleculeViewer: React.FC<MoleculeViewerProps> = ({
@@ -60,6 +63,9 @@ export const MoleculeViewer: React.FC<MoleculeViewerProps> = ({
   topOffset,
   initialScrollOffset,
   onScrollOffsetChange,
+  history,
+  bookmarks,
+  onOpenHistory,
 }) => {
   const webViewRef = useRef<WebView>(null);
 
@@ -224,6 +230,9 @@ export const MoleculeViewer: React.FC<MoleculeViewerProps> = ({
           topOffset={topOffset}
           initialScrollOffset={initialScrollOffset}
           onScrollOffsetChange={onScrollOffsetChange}
+          history={history}
+          bookmarks={bookmarks}
+          onOpenHistory={onOpenHistory}
         />
       )}
     </View>

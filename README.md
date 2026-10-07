@@ -49,12 +49,21 @@ The app features a sleek, dark-themed UI designed for focus and clarity.
 ### 🌟 **Curated Molecule Showcase**
 
 - **Instant Exploration:** Discover molecules right from the home screen without needing to search.
+- **Jump Back In:** Quick-access horizontal carousel right above the showcase allowing returning users to jump back into their recent searches and bookmarked compounds with one tap.
 - **Curated Collections:** Browse 12 iconic compounds across three hand-picked categories:
   - 🧬 **Biochemicals:** Caffeine, Dopamine, Serotonin, Adenine (DNA base)
   - 💊 **Medicinal:** Aspirin, Penicillin, Ibuprofen, Paracetamol
   - 💎 **Crystals & Minerals:** Diamond, Sodium Chloride, Quartz, Calcite
 - **One-Tap 3D Spin:** Tap any card to immediately load and start an interactive, spinning 3D visualization.
 - **Adaptive Layout:** Automatically arranges into a balanced 2×2 grid in portrait and a widescreen 1×4 layout in landscape.
+
+### ⏱️ **Recent Searches & Bookmarks**
+
+- **Quick-Access Hub:** Revisit previously inspected compounds or view your saved favorites via the history button (`🕒`) in the header.
+- **One-Tap Bookmarking:** Save any active molecule directly from the floating header (`🔖`) for immediate access later.
+- **Offline Persistence:** All recent searches (up to 30 items) and saved bookmarks persist securely on-device across app restarts.
+- **Relative Timestamps:** Track inspection recency with clean relative time indicators (e.g., `1m ago`, `2h ago`, `Yesterday`).
+- **Flexible Management:** Toggle individual bookmarks directly from history items, remove single entries, or clear lists with confirmation prompts.
 
 ### 🔍 **Smart Search**
 
@@ -95,9 +104,10 @@ The app features a sleek, dark-themed UI designed for focus and clarity.
 - **Framework:** [React Native](https://reactnative.dev/) (0.86+) via [Expo](https://expo.dev/) (SDK 57)
 - **Language:** TypeScript
 - **3D Engine:** [3Dmol.js](https://3Dmol.csb.pitt.edu/) (embedded via `react-native-webview`)
-- **Data Sources:**
+- **Data & Storage:**
   - [PubChem PUG REST API](https://pubchem.ncbi.nlm.nih.gov/docs/pug-rest)
   - [Crystallography Open Database (COD)](https://www.crystallography.net/)
+  - [@react-native-async-storage/async-storage](https://react-native-async-storage.github.io/async-storage/) for offline search history and bookmarks persistence
 - **Build & Optimization:** Android R8 code & resource shrinking (`expo-build-properties`) and Metro inline requires
 - **Testing:** Jest, `@testing-library/react-native`
 - **UI Components:** Custom modular components with responsive scaling

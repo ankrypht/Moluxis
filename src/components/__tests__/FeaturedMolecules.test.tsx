@@ -156,4 +156,88 @@ describe("FeaturedMolecules Component", () => {
     expect(getByText("Featured Molecules")).toBeTruthy();
     expect(getByText("Caffeine")).toBeTruthy();
   });
+
+  it("renders Jump Back In section when history or bookmarks exist and allows 1-tap select", async () => {
+    const mockSelect = jest.fn();
+    const mockOpenHistory = jest.fn();
+    const sampleHistory = [
+      { name: "Ethanol", formula: "C2H6O", timestamp: Date.now() },
+    ];
+    const sampleBookmarks = [
+      { name: "Caffeine", formula: "C8H10N4O2", timestamp: Date.now() },
+    ];
+
+    const { getByText, getByTestId } = render(
+      <FeaturedMolecules
+        onSelectMolecule={mockSelect}
+        styles={styles}
+        history={sampleHistory}
+        bookmarks={sampleBookmarks}
+        onOpenHistory={mockOpenHistory}
+      />,
+    );
+
+    const jumpBackNode = getByText("Jump Back In");
+    const curatedShowcaseNode = getByText("Curated Showcase");
+    expect(jumpBackNode).toBeTruthy();
+    expect(curatedShowcaseNode).toBeTruthy();
+    expect(getByTestId("recent-chip-ethanol")).toBeTruthy();
+    expect(getByTestId("recent-chip-caffeine")).toBeTruthy();
+
+    // 1-tap revisit
+    await act(async () => {
+      fireEvent.press(getByTestId("recent-chip-ethanol"));
+    });
+    expect(mockSelect).toHaveBeenCalledWith("Ethanol");
+
+    // View All button
+    await act(async () => {
+      fireEvent.press(getByTestId("jump-back-view-all"));
+    });
+    expect(mockOpenHistory).toHaveBeenCalled();
+  });
+
+  it("does not render Jump Back In section when history and bookmarks are empty", () => {
+    const mockSelect = jest.fn();
+    const { queryByText } = render(
+      <FeaturedMolecules
+        onSelectMolecule={mockSelect}
+        styles={styles}
+        history={[]}
+        bookmarks={[]}
+      />,
+    );
+
+    expect(queryByText("Jump Back In")).toBeNull();
+  });
+
+  it("sorts Jump Back In items by timestamp recency", () => {
+    const mockSelect = jest.fn();
+    const history = [
+      { name: "OldHistory", timestamp: 1000 },
+      { name: "RecentHistory", timestamp: 3000 },
+    ];
+    const bookmarks = [
+      { name: "OlderBookmark", timestamp: 500 },
+      { name: "NewestBookmark", timestamp: 5000 },
+    ];
+
+    const { getAllByTestId } = render(
+      <FeaturedMolecules
+        onSelectMolecule={mockSelect}
+        styles={styles}
+        history={history}
+        bookmarks={bookmarks}
+      />,
+    );
+
+    expect(getAllByTestId(/recent-chip-/).map((el) => el.props.testID)).toEqual(
+      [
+        "recent-chip-newestbookmark",
+        "recent-chip-recenthistory",
+        "recent-chip-oldhistory",
+        "recent-chip-olderbookmark",
+      ],
+    );
+  });
 });

@@ -21,6 +21,7 @@ import { NavigationBar } from "expo-navigation-bar";
 
 import { VisualizationType } from "./src/types";
 import { useMoleculeSearch } from "./src/hooks/useMoleculeSearch";
+import { useCompoundHistoryAndBookmarks } from "./src/hooks/useCompoundHistoryAndBookmarks";
 import { getStyles } from "./App.styles";
 
 import { MoleculeViewer } from "./src/components/MoleculeViewer";
@@ -29,6 +30,7 @@ import { FloatingDock } from "./src/components/FloatingDock";
 import { MoleculeInfoSheet } from "./src/components/MoleculeInfoSheet";
 import { LandscapeNameOverlay } from "./src/components/LandscapeNameOverlay";
 import { ExitFullScreenButton } from "./src/components/ExitFullScreenButton";
+import { HistoryBookmarksModal } from "./src/components/HistoryBookmarksModal";
 
 export default function App() {
   return (
@@ -55,6 +57,18 @@ function MoleculeExplorer() {
   const { width, height } = useWindowDimensions();
   const isLandscape = width > height;
 
+  const {
+    history,
+    bookmarks,
+    addHistory,
+    removeHistory,
+    clearHistory,
+    toggleBookmark,
+    removeBookmark,
+    clearBookmarks,
+    isBookmarked,
+  } = useCompoundHistoryAndBookmarks();
+
   // Visualization State
   const searchInputRef = useRef<TextInput>(null);
   const [vizStyle, setVizStyle] = useState<VisualizationType>("ballStick");
@@ -66,6 +80,36 @@ function MoleculeExplorer() {
   const [prevMoleculeData, setPrevMoleculeData] = useState(moleculeData);
   const [showStyleMenu, setShowStyleMenu] = useState(false);
   const [headerHeight, setHeaderHeight] = useState(0);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [historyModalTab, setHistoryModalTab] = useState<
+    "history" | "bookmarks"
+  >("history");
+
+  // Automatically record inspected compounds in search history
+  const lastRecordedNameRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!moleculeData) {
+      lastRecordedNameRef.current = null;
+      return;
+    }
+    if (
+      moleculeData.name &&
+      moleculeData.name !== lastRecordedNameRef.current
+    ) {
+      lastRecordedNameRef.current = moleculeData.name;
+      addHistory({
+        name: moleculeData.name,
+        formula: moleculeData.formula,
+        cid: moleculeData.cid,
+        molecularWeight: moleculeData.molecularWeight,
+      });
+    }
+  }, [moleculeData, addHistory]);
+
+  const isCurrentBookmarked = useMemo(
+    () => Boolean(moleculeData?.name && isBookmarked(moleculeData.name)),
+    [moleculeData?.name, isBookmarked],
+  );
 
   const styles = useMemo(
     () => getStyles(width, height, insets),
@@ -144,8 +188,36 @@ function MoleculeExplorer() {
     Keyboard.dismiss();
     setShowInfo(false);
     setShowStyleMenu(false);
+    setShowHistoryModal(false);
     clearMolecule();
   }, [clearMolecule]);
+
+  const handleToggleCurrentBookmark = useCallback(() => {
+    if (moleculeData?.name) {
+      toggleBookmark({
+        name: moleculeData.name,
+        formula: moleculeData.formula,
+        cid: moleculeData.cid,
+        molecularWeight: moleculeData.molecularWeight,
+      });
+    }
+  }, [moleculeData, toggleBookmark]);
+
+  const handleOpenHistoryModal = useCallback(
+    (initialTab: "history" | "bookmarks" = "history") => {
+      searchInputRef.current?.blur();
+      Keyboard.dismiss();
+      setHistoryModalTab(initialTab);
+      setShowHistoryModal(true);
+      setShowInfo(false);
+      setShowStyleMenu(false);
+    },
+    [],
+  );
+
+  const handleCloseHistoryModal = useCallback(() => {
+    setShowHistoryModal(false);
+  }, []);
 
   const handleToggleInfo = useCallback(() => {
     searchInputRef.current?.blur();
@@ -176,6 +248,7 @@ function MoleculeExplorer() {
     setShowControls(false);
     setShowInfo(false);
     setShowStyleMenu(false);
+    setShowHistoryModal(false);
   }, []);
 
   const handleExitZenMode = useCallback(() => {
@@ -198,6 +271,9 @@ function MoleculeExplorer() {
         styles={styles}
         onSelectMolecule={handleSelectFeaturedMolecule}
         topOffset={headerHeight}
+        history={history}
+        bookmarks={bookmarks}
+        onOpenHistory={handleOpenHistoryModal}
       />
 
       {/* FLOATING HEADER (Island) */}
@@ -223,6 +299,9 @@ function MoleculeExplorer() {
           onSelectFormat={setStructureFormat}
           onLayoutHeader={setHeaderHeight}
           onClear={handleClearToShowcase}
+          isBookmarked={isCurrentBookmarked}
+          onToggleBookmark={handleToggleCurrentBookmark}
+          onOpenHistory={() => handleOpenHistoryModal("history")}
         />
       )}
 
@@ -266,6 +345,25 @@ function MoleculeExplorer() {
       {!showControls && (
         <ExitFullScreenButton onPress={handleExitZenMode} styles={styles} />
       )}
+
+      {/* RECENT SEARCHES & FAVORITES MODAL */}
+      <HistoryBookmarksModal
+        visible={showHistoryModal}
+        onClose={handleCloseHistoryModal}
+        onSelectCompound={handleSelectFeaturedMolecule}
+        history={history}
+        bookmarks={bookmarks}
+        onToggleBookmark={toggleBookmark}
+        onRemoveHistoryItem={removeHistory}
+        onRemoveBookmarkItem={removeBookmark}
+        onClearHistory={clearHistory}
+        onClearBookmarks={clearBookmarks}
+        isBookmarked={isBookmarked}
+        initialTab={historyModalTab}
+        styles={styles}
+        isLandscape={isLandscape}
+        height={height}
+      />
     </View>
   );
 }
