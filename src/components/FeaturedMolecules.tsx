@@ -28,6 +28,7 @@ import { SavedCompoundItem } from "../types";
 import { ChemicalFormula } from "./ChemicalFormula";
 
 let savedShowcaseScrollOffset = 0;
+let savedFeaturedCategory: FeaturedCategoryKey = "biochemicals";
 
 export const resetShowcaseScrollOffset = () => {
   savedShowcaseScrollOffset = 0;
@@ -35,6 +36,14 @@ export const resetShowcaseScrollOffset = () => {
 
 export const getSavedShowcaseScrollOffset = () => {
   return savedShowcaseScrollOffset;
+};
+
+export const resetSavedFeaturedCategory = () => {
+  savedFeaturedCategory = "biochemicals";
+};
+
+export const getSavedFeaturedCategory = () => {
+  return savedFeaturedCategory;
 };
 
 export interface FeaturedMoleculesProps {
@@ -46,6 +55,8 @@ export interface FeaturedMoleculesProps {
   history?: SavedCompoundItem[];
   bookmarks?: SavedCompoundItem[];
   onOpenHistory?: (initialTab?: "history" | "bookmarks") => void;
+  initialCategory?: FeaturedCategoryKey;
+  onCategoryChange?: (category: FeaturedCategoryKey) => void;
 }
 
 export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
@@ -58,11 +69,27 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
     history,
     bookmarks,
     onOpenHistory,
+    initialCategory,
+    onCategoryChange,
   }) => {
     const { width, height } = useWindowDimensions();
     const isLandscape = width > height;
     const scrollViewRef = useRef<ScrollView>(null);
     const hasRestoredScrollRef = useRef(false);
+
+    const [selectedCategory, setSelectedCategory] =
+      useState<FeaturedCategoryKey>(
+        () => initialCategory ?? savedFeaturedCategory,
+      );
+
+    const handleSelectCategory = useCallback(
+      (category: FeaturedCategoryKey) => {
+        savedFeaturedCategory = category;
+        setSelectedCategory(category);
+        onCategoryChange?.(category);
+      },
+      [onCategoryChange],
+    );
 
     const [initialScrollOffset] = useState(
       () => propsInitialScrollOffset ?? savedShowcaseScrollOffset,
@@ -411,15 +438,97 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
             </Text>
           </View>
 
-          {/* Curated Categories */}
-          {FEATURED_CATEGORIES.map((category) =>
-            renderCategorySection(
-              category.title,
-              category.icon,
-              category.color,
-              groupedMolecules[category.key],
-            ),
-          )}
+          {/* Category Filter Tabs */}
+          <View style={styles.tabBarContainer}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.tabBarScroll}
+              keyboardShouldPersistTaps="handled"
+            >
+              {FEATURED_CATEGORIES.map((category) => {
+                const isActive = selectedCategory === category.key;
+                return (
+                  <TouchableOpacity
+                    key={category.key}
+                    testID={`category-tab-${category.key}`}
+                    accessibilityRole="tab"
+                    accessibilityState={{ selected: isActive }}
+                    accessibilityLabel={`${category.title} category`}
+                    activeOpacity={0.75}
+                    style={[
+                      styles.categoryTab,
+                      isActive && [
+                        styles.categoryTabActive,
+                        {
+                          backgroundColor: addOpacity(category.color, 0.16),
+                          borderColor: addOpacity(category.color, 0.55),
+                        },
+                      ],
+                    ]}
+                    onPress={() => handleSelectCategory(category.key)}
+                  >
+                    <View
+                      style={[
+                        styles.categoryTabIconBadge,
+                        {
+                          backgroundColor: isActive
+                            ? addOpacity(category.color, 0.25)
+                            : addOpacity(COLORS.surfaceElevated, 0.9),
+                        },
+                      ]}
+                    >
+                      <Ionicons
+                        name={category.icon}
+                        size={12}
+                        color={isActive ? category.color : COLORS.textMuted}
+                      />
+                    </View>
+                    <Text
+                      allowFontScaling={false}
+                      style={[
+                        styles.categoryTabText,
+                        isActive && styles.categoryTabTextActive,
+                      ]}
+                    >
+                      {category.title}
+                    </Text>
+                    <View
+                      style={[
+                        styles.categoryTabCountBadge,
+                        isActive && {
+                          backgroundColor: addOpacity(category.color, 0.22),
+                        },
+                      ]}
+                    >
+                      <Text
+                        allowFontScaling={false}
+                        style={[
+                          styles.categoryTabCountText,
+                          isActive && { color: category.color },
+                        ]}
+                      >
+                        {groupedMolecules[category.key]?.length || 4}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+
+          {/* Active Category Molecules */}
+          {(() => {
+            const activeCategory =
+              FEATURED_CATEGORIES.find((c) => c.key === selectedCategory) ||
+              FEATURED_CATEGORIES[0];
+            return renderCategorySection(
+              activeCategory.title,
+              activeCategory.icon,
+              activeCategory.color,
+              groupedMolecules[activeCategory.key] || [],
+            );
+          })()}
         </ScrollView>
       </View>
     );

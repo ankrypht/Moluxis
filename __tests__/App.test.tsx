@@ -2,7 +2,10 @@ import React from "react";
 import { render, fireEvent, waitFor, act } from "@testing-library/react-native";
 import { Keyboard } from "react-native";
 import App from "../App";
-import { resetShowcaseScrollOffset } from "../src/components/FeaturedMolecules";
+import {
+  resetShowcaseScrollOffset,
+  resetSavedFeaturedCategory,
+} from "../src/components/FeaturedMolecules";
 
 // Mock dependencies
 jest.mock("react-native-safe-area-context", () => {
@@ -118,6 +121,7 @@ describe("Featured Molecules on First Launch", () => {
     jest.spyOn(Keyboard, "dismiss").mockImplementation(() => {});
     mockMoleculeData = null; // empty state on first launch
     resetShowcaseScrollOffset();
+    resetSavedFeaturedCategory();
   });
 
   it("displays featured molecules on launch and allows immediate search by tapping a chip", async () => {
@@ -136,7 +140,12 @@ describe("Featured Molecules on First Launch", () => {
     expect(Keyboard.dismiss).toHaveBeenCalled();
     expect(mockSelectSuggestion).toHaveBeenCalledWith("Caffeine");
 
-    // Tapping another featured chip
+    // Switch to crystals tab and tap diamond chip
+    const crystalsTab = getByTestId("category-tab-crystals");
+    await act(async () => {
+      fireEvent.press(crystalsTab);
+    });
+
     const diamondChip = getByTestId("featured-chip-diamond");
     await act(async () => {
       fireEvent.press(diamondChip);
@@ -201,17 +210,17 @@ describe("Featured Molecules on First Launch", () => {
     });
 
     // Tap a chip to view compound
-    const aspirinChip = getByTestId("featured-chip-aspirin");
+    const caffeineChip = getByTestId("featured-chip-caffeine");
     await act(async () => {
-      fireEvent.press(aspirinChip);
+      fireEvent.press(caffeineChip);
     });
 
     // Simulate compound loaded
     mockMoleculeData = {
-      name: "Aspirin",
-      formula: "C9H8O4",
-      molecularWeight: "180.16",
-      cid: "2244",
+      name: "Caffeine",
+      formula: "C8H10N4O2",
+      molecularWeight: "194.19",
+      cid: "2519",
       sdf2d: "sdf2d-data",
       sdf3d: "sdf3d-data",
       properties: {},
@@ -230,6 +239,50 @@ describe("Featured Molecules on First Launch", () => {
     // Check that ScrollView rendered with remembered scroll offset
     const restoredScrollView = getByTestId("featured-molecules-scroll");
     expect(restoredScrollView.props.contentOffset).toEqual({ x: 0, y: 420 });
+  });
+
+  it("remembers selected featured category chip when clearing back to showcase", async () => {
+    const { getByTestId, queryByTestId, getByText, queryByText, rerender } =
+      render(<App />);
+
+    // Default category is Biochemicals (Caffeine visible)
+    expect(getByText("Caffeine")).toBeTruthy();
+    expect(queryByText("Aspirin")).toBeNull();
+
+    // Switch to Medicinal tab
+    await act(async () => {
+      fireEvent.press(getByTestId("category-tab-medicinal"));
+    });
+
+    // Medicinal items are now visible
+    expect(getByText("Aspirin")).toBeTruthy();
+    expect(queryByText("Caffeine")).toBeNull();
+
+    // Select a molecule to transition to 3D view
+    mockMoleculeData = {
+      name: "Aspirin",
+      formula: "C9H8O4",
+      molecularWeight: "180.16",
+      cid: "2244",
+      sdf2d: "sdf2d-data",
+      sdf3d: "sdf3d-data",
+      properties: {},
+      safety: {},
+    };
+    await act(async () => {
+      rerender(<App />);
+    });
+
+    // Click clear / return to showcase
+    mockMoleculeData = null;
+    await act(async () => {
+      rerender(<App />);
+    });
+
+    // The chosen category (Medicinal) is remembered
+    expect(getByTestId("featured-chip-aspirin")).toBeTruthy();
+    expect(getByTestId("featured-chip-paracetamol")).toBeTruthy();
+    expect(queryByTestId("featured-chip-caffeine")).toBeNull();
   });
 });
 

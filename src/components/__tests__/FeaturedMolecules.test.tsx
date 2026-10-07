@@ -4,6 +4,8 @@ import {
   FeaturedMolecules,
   resetShowcaseScrollOffset,
   getSavedShowcaseScrollOffset,
+  resetSavedFeaturedCategory,
+  getSavedFeaturedCategory,
 } from "../FeaturedMolecules";
 import { getFeaturedMoleculesStyles } from "../FeaturedMolecules.styles";
 import { getScaleMetrics } from "../../utils/scaling";
@@ -26,11 +28,12 @@ describe("FeaturedMolecules Component", () => {
 
   beforeEach(() => {
     resetShowcaseScrollOffset();
+    resetSavedFeaturedCategory();
   });
 
-  it("renders header and all 3 categories with 4 examples each in grid layout", async () => {
+  it("renders category filter tabs and active category (Biochemicals) with 4 molecules by default", async () => {
     const mockSelect = jest.fn();
-    const { getByText, getAllByText } = render(
+    const { getByText, queryByText, getByTestId } = render(
       <FeaturedMolecules onSelectMolecule={mockSelect} styles={styles} />,
     );
 
@@ -38,34 +41,56 @@ describe("FeaturedMolecules Component", () => {
     expect(getByText("Featured Molecules")).toBeTruthy();
     expect(getByText("Curated Showcase")).toBeTruthy();
 
-    // Category section titles
-    expect(getByText("Biochemicals")).toBeTruthy();
-    expect(getByText("Medicinal")).toBeTruthy();
-    expect(getByText("Crystals / Minerals")).toBeTruthy();
+    // Category filter tabs exist
+    expect(getByTestId("category-tab-biochemicals")).toBeTruthy();
+    expect(getByTestId("category-tab-medicinal")).toBeTruthy();
+    expect(getByTestId("category-tab-crystals")).toBeTruthy();
 
-    // 4 items indicator in all 3 sections
-    expect(getAllByText("4 items")).toHaveLength(3);
-
-    // Biochemicals (4 items)
+    // Default category: Biochemicals (4 items rendered)
     expect(getByText("Caffeine")).toBeTruthy();
     expect(getByText("Dopamine")).toBeTruthy();
     expect(getByText("Serotonin")).toBeTruthy();
     expect(getByText("Adenine")).toBeTruthy();
 
-    // Medicinal (4 items)
+    // Other categories are filtered out to prevent overwhelming the user
+    expect(queryByText("Aspirin")).toBeNull();
+    expect(queryByText("Diamond")).toBeNull();
+  });
+
+  it("switches category when category tabs are pressed", async () => {
+    const mockSelect = jest.fn();
+    const { getByText, queryByText, getByTestId } = render(
+      <FeaturedMolecules onSelectMolecule={mockSelect} styles={styles} />,
+    );
+
+    // Initially Biochemicals
+    expect(getByText("Caffeine")).toBeTruthy();
+    expect(queryByText("Aspirin")).toBeNull();
+
+    // Switch to Medicinal
+    await act(async () => {
+      fireEvent.press(getByTestId("category-tab-medicinal"));
+    });
+
+    expect(queryByText("Caffeine")).toBeNull();
     expect(getByText("Aspirin")).toBeTruthy();
     expect(getByText("Penicillin")).toBeTruthy();
     expect(getByText("Ibuprofen")).toBeTruthy();
     expect(getByText("Paracetamol")).toBeTruthy();
 
-    // Crystals / Minerals (4 items)
+    // Switch to Crystals / Minerals
+    await act(async () => {
+      fireEvent.press(getByTestId("category-tab-crystals"));
+    });
+
+    expect(queryByText("Aspirin")).toBeNull();
     expect(getByText("Diamond")).toBeTruthy();
     expect(getByText("Sodium Chloride")).toBeTruthy();
     expect(getByText("Quartz")).toBeTruthy();
     expect(getByText("Calcite")).toBeTruthy();
   });
 
-  it("triggers onSelectMolecule immediately when any molecule chip is pressed", async () => {
+  it("triggers onSelectMolecule immediately when molecule chip is pressed", async () => {
     const mockSelect = jest.fn();
     const { getByTestId } = render(
       <FeaturedMolecules onSelectMolecule={mockSelect} styles={styles} />,
@@ -79,6 +104,11 @@ describe("FeaturedMolecules Component", () => {
     expect(mockSelect).toHaveBeenCalledTimes(1);
     expect(mockSelect).toHaveBeenCalledWith("Caffeine");
 
+    // Switch to medicinal tab to select paracetamol
+    await act(async () => {
+      fireEvent.press(getByTestId("category-tab-medicinal"));
+    });
+
     const paracetamolChip = getByTestId("featured-chip-paracetamol");
     await act(async () => {
       fireEvent.press(paracetamolChip);
@@ -87,6 +117,11 @@ describe("FeaturedMolecules Component", () => {
     expect(mockSelect).toHaveBeenCalledTimes(2);
     expect(mockSelect).toHaveBeenCalledWith("Paracetamol");
 
+    // Switch to crystals tab to select calcite
+    await act(async () => {
+      fireEvent.press(getByTestId("category-tab-crystals"));
+    });
+
     const calciteChip = getByTestId("featured-chip-calcite");
     await act(async () => {
       fireEvent.press(calciteChip);
@@ -94,6 +129,70 @@ describe("FeaturedMolecules Component", () => {
 
     expect(mockSelect).toHaveBeenCalledTimes(3);
     expect(mockSelect).toHaveBeenCalledWith("Calcite");
+  });
+
+  it("supports initialCategory prop", () => {
+    const mockSelect = jest.fn();
+    const { getByText, queryByText } = render(
+      <FeaturedMolecules
+        onSelectMolecule={mockSelect}
+        styles={styles}
+        initialCategory="medicinal"
+      />,
+    );
+
+    expect(getByText("Aspirin")).toBeTruthy();
+    expect(getByText("Paracetamol")).toBeTruthy();
+    expect(queryByText("Caffeine")).toBeNull();
+  });
+
+  it("remembers selected category across component unmounts and remounts", async () => {
+    const mockSelect = jest.fn();
+    const { getByTestId, unmount } = render(
+      <FeaturedMolecules onSelectMolecule={mockSelect} styles={styles} />,
+    );
+
+    // Default category is biochemicals
+    expect(getSavedFeaturedCategory()).toBe("biochemicals");
+
+    // Switch to crystals tab
+    await act(async () => {
+      fireEvent.press(getByTestId("category-tab-crystals"));
+    });
+
+    expect(getSavedFeaturedCategory()).toBe("crystals");
+
+    // Unmount
+    unmount();
+
+    // Re-mount component (e.g. after returning from 3D viewer)
+    const { getByText, queryByText } = render(
+      <FeaturedMolecules onSelectMolecule={mockSelect} styles={styles} />,
+    );
+
+    // Should remember crystals and render crystals compounds immediately
+    expect(getByText("Diamond")).toBeTruthy();
+    expect(getByText("Sodium Chloride")).toBeTruthy();
+    expect(queryByText("Caffeine")).toBeNull();
+    expect(queryByText("Aspirin")).toBeNull();
+  });
+
+  it("invokes onCategoryChange callback when tab is selected", async () => {
+    const mockSelect = jest.fn();
+    const mockCategoryChange = jest.fn();
+    const { getByTestId } = render(
+      <FeaturedMolecules
+        onSelectMolecule={mockSelect}
+        styles={styles}
+        onCategoryChange={mockCategoryChange}
+      />,
+    );
+
+    await act(async () => {
+      fireEvent.press(getByTestId("category-tab-medicinal"));
+    });
+
+    expect(mockCategoryChange).toHaveBeenCalledWith("medicinal");
   });
 
   it("applies topOffset when provided", async () => {
