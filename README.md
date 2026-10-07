@@ -17,7 +17,7 @@
 ![GitHub pull requests](https://img.shields.io/github/issues-pr/ankrypht/Moluxis?label=Pull%20Requests&style=social)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/ankrypht/Moluxis?label=Code%20Size&style=social)
 
-![PlayBadges card for com.ankushsarkar.moluxis](https://playbadges.pavi2410.com/badge/full?id=com.ankushsarkar.moluxis&theme=dark)
+![PlayBadges card for com.ankushsarkar.moluxis](https://playbadges.pavi2410.com/badge/full?id=com.ankushsarkar.moluxis&country=in&theme=dark)
 
 </div>
 
