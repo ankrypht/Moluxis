@@ -14,12 +14,18 @@ export const ExitFullScreenButton: React.FC<ExitFullScreenButtonProps> = ({
   styles,
 }) => {
   return (
-    <TouchableOpacity style={styles.exitFullScreenButton} onPress={onPress}>
+    <TouchableOpacity
+      style={styles.exitFullScreenButton}
+      onPress={onPress}
+      activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel="Exit Zen mode"
+    >
       <Ionicons
         allowFontScaling={false}
         name="contract-outline"
-        size={24}
-        color={COLORS.textPrimary}
+        size={22}
+        color={COLORS.primary}
       />
     </TouchableOpacity>
   );

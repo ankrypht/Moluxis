@@ -12,7 +12,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 
 import { MoleculeInfo } from "../types";
-import { COLORS } from "../constants/colors";
+import { COLORS, addOpacity } from "../constants/colors";
 import { Insets } from "../utils/scaling";
 import { ChemicalFormula } from "./ChemicalFormula";
 import { CollapsibleSection } from "./CollapsibleSection";
@@ -105,7 +105,10 @@ export const MoleculeInfoSheet: React.FC<MoleculeInfoSheetProps> = ({
         <Pressable
           style={({ pressed }) => [
             styles.closeButtonInline,
-            pressed && { opacity: 0.6 },
+            pressed && {
+              opacity: 0.7,
+              backgroundColor: addOpacity(COLORS.danger, 0.25),
+            },
           ]}
           hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
           pressRetentionOffset={{
@@ -121,7 +124,7 @@ export const MoleculeInfoSheet: React.FC<MoleculeInfoSheetProps> = ({
           <Ionicons
             name="close"
             size={22}
-            color={COLORS.textPrimary}
+            color={COLORS.danger}
             allowFontScaling={false}
           />
         </Pressable>
@@ -139,10 +142,25 @@ export const MoleculeInfoSheet: React.FC<MoleculeInfoSheetProps> = ({
       >
         {/* Quick Stats */}
         <View style={styles.statsGrid}>
-          <View style={styles.statCard}>
-            <Text allowFontScaling={false} style={styles.statLabel}>
-              Formula
-            </Text>
+          <View style={[styles.statCard, styles.statCardFormula]}>
+            <View style={styles.statCardHeader}>
+              <Text allowFontScaling={false} style={styles.statLabel}>
+                Formula
+              </Text>
+              <View
+                style={[
+                  styles.statIconBadge,
+                  { backgroundColor: addOpacity(COLORS.emerald, 0.15) },
+                ]}
+              >
+                <Ionicons
+                  name="flask-outline"
+                  size={12}
+                  color={COLORS.emerald}
+                  allowFontScaling={false}
+                />
+              </View>
+            </View>
             {moleculeData.formula ? (
               <ChemicalFormula formula={moleculeData.formula} />
             ) : (
@@ -151,28 +169,73 @@ export const MoleculeInfoSheet: React.FC<MoleculeInfoSheetProps> = ({
               </Text>
             )}
           </View>
-          <View style={styles.statCard}>
-            <Text allowFontScaling={false} style={styles.statLabel}>
-              Molecular Weight
-            </Text>
+          <View style={[styles.statCard, styles.statCardWeight]}>
+            <View style={styles.statCardHeader}>
+              <Text allowFontScaling={false} style={styles.statLabel}>
+                Molecular Weight
+              </Text>
+              <View
+                style={[
+                  styles.statIconBadge,
+                  { backgroundColor: addOpacity(COLORS.cyan, 0.15) },
+                ]}
+              >
+                <Ionicons
+                  name="scale-outline"
+                  size={12}
+                  color={COLORS.cyan}
+                  allowFontScaling={false}
+                />
+              </View>
+            </View>
             <Text allowFontScaling={false} style={styles.statValue}>
               {moleculeData.molecularWeight || "N/A"}
             </Text>
           </View>
         </View>
         <View style={styles.statsGrid}>
-          <View style={styles.statCard}>
-            <Text allowFontScaling={false} style={styles.statLabel}>
-              IUPAC Name
-            </Text>
+          <View style={[styles.statCard, styles.statCardIupac]}>
+            <View style={styles.statCardHeader}>
+              <Text allowFontScaling={false} style={styles.statLabel}>
+                IUPAC Name
+              </Text>
+              <View
+                style={[
+                  styles.statIconBadge,
+                  { backgroundColor: addOpacity(COLORS.purple, 0.15) },
+                ]}
+              >
+                <Ionicons
+                  name="text-outline"
+                  size={12}
+                  color={COLORS.purple}
+                  allowFontScaling={false}
+                />
+              </View>
+            </View>
             <Text allowFontScaling={false} style={styles.statValue}>
               {moleculeData.properties.iupacName || "N/A"}
             </Text>
           </View>
-          <View style={styles.statCard}>
-            <Text allowFontScaling={false} style={styles.statLabel}>
-              Common Name
-            </Text>
+          <View style={[styles.statCard, styles.statCardCommon]}>
+            <View style={styles.statCardHeader}>
+              <Text allowFontScaling={false} style={styles.statLabel}>
+                Common Name
+              </Text>
+              <View
+                style={[
+                  styles.statIconBadge,
+                  { backgroundColor: addOpacity(COLORS.amber, 0.15) },
+                ]}
+              >
+                <Ionicons
+                  name="pricetag-outline"
+                  size={12}
+                  color={COLORS.amber}
+                  allowFontScaling={false}
+                />
+              </View>
+            </View>
             <Text allowFontScaling={false} style={styles.statValue}>
               {moleculeData.properties.commonName || "N/A"}
             </Text>
@@ -183,6 +246,7 @@ export const MoleculeInfoSheet: React.FC<MoleculeInfoSheetProps> = ({
         <CollapsibleSection
           title="Chemical Properties"
           icon="flask-outline"
+          iconColor={COLORS.emerald}
           defaultExpanded
         >
           <PropertyRow
@@ -233,7 +297,11 @@ export const MoleculeInfoSheet: React.FC<MoleculeInfoSheetProps> = ({
         {/* Safety & Hazards */}
         {(moleculeData.safety.hazardStatements ||
           moleculeData.safety.signal) && (
-          <CollapsibleSection title="Safety & Hazards" icon="warning-outline">
+          <CollapsibleSection
+            title="Safety & Hazards"
+            icon="warning-outline"
+            iconColor={COLORS.danger}
+          >
             {moleculeData.safety.signal &&
               moleculeData.safety.signal.length > 0 && (
                 <View style={styles.safetySection}>
@@ -256,22 +324,34 @@ export const MoleculeInfoSheet: React.FC<MoleculeInfoSheetProps> = ({
         )}
 
         {/* Collapsible Sections */}
-        <CollapsibleSection title="Description" icon="document-text-outline">
+        <CollapsibleSection
+          title="Description"
+          icon="document-text-outline"
+          iconColor={COLORS.purple}
+        >
           <Text allowFontScaling={false} style={styles.descriptionText}>
             {moleculeData.description}
           </Text>
         </CollapsibleSection>
 
-        <CollapsibleSection title="Synonyms" icon="list-outline">
+        <CollapsibleSection
+          title="Synonyms"
+          icon="list-outline"
+          iconColor={COLORS.cyan}
+        >
           <View style={styles.synonymsContainer}>{synonymsList}</View>
         </CollapsibleSection>
 
-        <CollapsibleSection title="Databases" icon="link-outline">
+        <CollapsibleSection
+          title="Databases"
+          icon="link-outline"
+          iconColor={COLORS.blue}
+        >
           <Text allowFontScaling={false} style={styles.infoText}>
             PubChem CID: {moleculeData.cid}
           </Text>
           <TouchableOpacity
-            style={styles.linkButton}
+            style={[styles.linkButton, styles.linkButtonPubChem]}
             onPress={() => {
               if (isValidId(moleculeData.cid)) {
                 Linking.openURL(
@@ -279,15 +359,21 @@ export const MoleculeInfoSheet: React.FC<MoleculeInfoSheetProps> = ({
                 );
               }
             }}
+            activeOpacity={0.7}
+            accessibilityRole="link"
+            accessibilityLabel="View on PubChem"
           >
-            <Text allowFontScaling={false} style={styles.linkButtonText}>
+            <Text
+              allowFontScaling={false}
+              style={[styles.linkButtonText, { color: COLORS.blue }]}
+            >
               View on PubChem
             </Text>
             <Ionicons
               allowFontScaling={false}
               name="open-outline"
               size={styles.linkIcon.fontSize}
-              color={styles.linkIcon.color}
+              color={COLORS.blue}
             />
           </TouchableOpacity>
 
@@ -300,7 +386,7 @@ export const MoleculeInfoSheet: React.FC<MoleculeInfoSheetProps> = ({
                 COD ID: {moleculeData.codId}
               </Text>
               <TouchableOpacity
-                style={styles.linkButton}
+                style={[styles.linkButton, styles.linkButtonCod]}
                 onPress={() => {
                   if (isValidId(moleculeData.codId)) {
                     Linking.openURL(
@@ -308,15 +394,21 @@ export const MoleculeInfoSheet: React.FC<MoleculeInfoSheetProps> = ({
                     );
                   }
                 }}
+                activeOpacity={0.7}
+                accessibilityRole="link"
+                accessibilityLabel="View Crystal Data on COD"
               >
-                <Text allowFontScaling={false} style={styles.linkButtonText}>
+                <Text
+                  allowFontScaling={false}
+                  style={[styles.linkButtonText, { color: COLORS.purple }]}
+                >
                   View Crystal Data (COD)
                 </Text>
                 <Ionicons
                   allowFontScaling={false}
                   name="open-outline"
                   size={styles.linkIcon.fontSize}
-                  color={styles.linkIcon.color}
+                  color={COLORS.purple}
                 />
               </TouchableOpacity>
             </>

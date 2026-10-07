@@ -93,4 +93,36 @@ describe("CollapsibleSection Component", () => {
     // The content should now be hidden
     expect(queryByText("Child Content")).toBeNull();
   });
+
+  it("applies custom iconColor and renders with accessibility attributes", async () => {
+    const { getByRole, getByText } = render(
+      <CollapsibleSection
+        title="Custom Color Section"
+        icon="flask-outline"
+        iconColor="#10B981"
+        defaultExpanded={false}
+      >
+        <Text>Colored Content</Text>
+      </CollapsibleSection>,
+    );
+
+    await waitFor(() => {
+      const button = getByRole("button");
+      expect(button).toBeTruthy();
+      expect(button.props.accessibilityState).toEqual({ expanded: false });
+      expect(button.props.accessibilityLabel).toBe(
+        "Custom Color Section, collapsed",
+      );
+    });
+
+    fireEvent.press(getByText("Custom Color Section"));
+
+    await waitFor(() => {
+      const button = getByRole("button");
+      expect(button.props.accessibilityState).toEqual({ expanded: true });
+      expect(button.props.accessibilityLabel).toBe(
+        "Custom Color Section, expanded",
+      );
+    });
+  });
 });

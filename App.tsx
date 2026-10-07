@@ -318,6 +318,7 @@ function MoleculeExplorer() {
           onToggleInfo={handleToggleInfo}
           onToggleLabels={handleToggleLabels}
           onEnterZenMode={handleEnterZenMode}
+          isLandscape={isLandscape}
         />
       )}
 

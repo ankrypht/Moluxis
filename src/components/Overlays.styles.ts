@@ -43,7 +43,7 @@ export const getOverlaysStyles = ({
       justifyContent: "center",
       alignItems: "center",
       borderWidth: 1,
-      borderColor: COLORS.surfaceElevated,
+      borderColor: addOpacity(COLORS.primary, 0.4),
       shadowColor: COLORS.shadow,
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.3,

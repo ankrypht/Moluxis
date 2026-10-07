@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, Switch, TouchableOpacity, Alert } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { MoleculeInfo } from "../types";
 import { COLORS, addOpacity } from "../constants/colors";
 import { StructureControlsStyles } from "./StructureControls.styles";
@@ -23,19 +24,39 @@ export const StructureControls: React.FC<StructureControlsProps> = ({
 }) => {
   return (
     <>
-      <View style={styles.toggleContainer}>
-        <Text allowFontScaling={false} style={styles.toggleText}>
+      <View
+        style={[
+          styles.toggleContainer,
+          isAnimated && styles.toggleContainerActive,
+        ]}
+      >
+        <Ionicons
+          allowFontScaling={false}
+          name={isAnimated ? "sync" : "sync-outline"}
+          size={13}
+          color={isAnimated ? COLORS.primary : COLORS.textMuted}
+        />
+        <Text
+          allowFontScaling={false}
+          style={[
+            styles.toggleText,
+            isAnimated && { color: COLORS.textPrimary },
+          ]}
+        >
           Animate
         </Text>
         <Switch
           trackColor={{
             false: COLORS.border,
-            true: addOpacity(COLORS.primary, 0.4),
+            true: addOpacity(COLORS.primary, 0.45),
           }}
           thumbColor={isAnimated ? COLORS.primary : COLORS.textSecondary}
           onValueChange={onToggleAnimation}
           value={isAnimated}
           style={{ transform: [{ scale: 0.8 }] }}
+          accessibilityRole="switch"
+          accessibilityLabel="Toggle rotation animation"
+          accessibilityState={{ checked: isAnimated }}
         />
       </View>
       <View style={styles.badgeContainer}>
@@ -53,7 +74,27 @@ export const StructureControls: React.FC<StructureControlsProps> = ({
                   "No 2D structure data available for this compound.",
                 )
           }
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel={
+            moleculeData.sdf2d ? "2D Structure" : "2D Structure (Unavailable)"
+          }
+          accessibilityState={{
+            selected: structureFormat === "2d",
+          }}
         >
+          <Ionicons
+            allowFontScaling={false}
+            name="layers-outline"
+            size={13}
+            color={
+              structureFormat === "2d"
+                ? COLORS.primary
+                : moleculeData.sdf2d
+                  ? COLORS.textSecondary
+                  : COLORS.textMuted
+            }
+          />
           <Text
             allowFontScaling={false}
             style={[
@@ -81,7 +122,29 @@ export const StructureControls: React.FC<StructureControlsProps> = ({
                   "No 3D structure data available for this compound.",
                 )
           }
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel={
+            moleculeData.sdf3d || moleculeData.useCif
+              ? "3D Structure"
+              : "3D Structure (Unavailable)"
+          }
+          accessibilityState={{
+            selected: structureFormat === "3d",
+          }}
         >
+          <Ionicons
+            allowFontScaling={false}
+            name="cube-outline"
+            size={13}
+            color={
+              structureFormat === "3d"
+                ? COLORS.primary
+                : moleculeData.sdf3d || moleculeData.useCif
+                  ? COLORS.textSecondary
+                  : COLORS.textMuted
+            }
+          />
           <Text
             allowFontScaling={false}
             style={[

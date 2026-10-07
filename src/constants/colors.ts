@@ -11,11 +11,25 @@ export const COLORS = {
   warning: "#F59E0B", // amber-500
   textOnPrimary: "#FFFFFF",
   shadow: "#000000",
+  // Semantic accents
+  emerald: "#10B981",
+  cyan: "#06B6D4",
+  blue: "#3B82F6",
+  purple: "#8B5CF6",
+  violet: "#A855F7",
+  rose: "#F43F5E",
+  amber: "#F59E0B",
 };
 
 export const addOpacity = (hex: string, opacity: number): string => {
+  if (!hex || !hex.startsWith("#")) {
+    return hex;
+  }
   const cleanHex = hex.replace("#", "");
-  const alpha = Math.round(opacity * 255);
+  if (cleanHex.length !== 6) {
+    return hex;
+  }
+  const alpha = Math.round(Math.min(Math.max(opacity, 0), 1) * 255);
   const alphaHex = alpha.toString(16).padStart(2, "0").toUpperCase();
   return `#${cleanHex}${alphaHex}`;
 };
