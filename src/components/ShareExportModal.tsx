@@ -29,6 +29,7 @@ import {
   triggerSuccessHaptic,
   triggerSelectionHaptic,
 } from "../utils/haptics";
+import { formatSubscriptFormula } from "../utils/formula";
 
 export interface ShareExportModalProps {
   visible: boolean;
@@ -385,7 +386,6 @@ export const ShareExportModal: React.FC<ShareExportModalProps> = React.memo(
                     <Text
                       allowFontScaling={false}
                       style={styles.shareOptionDescription}
-                      numberOfLines={1}
                     >
                       Export high-res 3D render image
                     </Text>
@@ -454,7 +454,6 @@ export const ShareExportModal: React.FC<ShareExportModalProps> = React.memo(
                     <Text
                       allowFontScaling={false}
                       style={styles.shareOptionDescription}
-                      numberOfLines={1}
                     >
                       Name, formula, weight & PubChem link
                     </Text>
@@ -520,7 +519,6 @@ export const ShareExportModal: React.FC<ShareExportModalProps> = React.memo(
                       <Text
                         allowFontScaling={false}
                         style={styles.shareOptionDescription}
-                        numberOfLines={1}
                       >
                         {pubchemUrl}
                       </Text>
@@ -583,10 +581,11 @@ export const ShareExportModal: React.FC<ShareExportModalProps> = React.memo(
                     <Text
                       allowFontScaling={false}
                       style={styles.shareOptionDescription}
-                      numberOfLines={1}
                     >
                       {moleculeData.name}
-                      {moleculeData.formula ? ` • ${moleculeData.formula}` : ""}
+                      {moleculeData.formula
+                        ? ` • ${formatSubscriptFormula(moleculeData.formula)}`
+                        : ""}
                     </Text>
                   </View>
                 </View>

@@ -72,7 +72,7 @@ describe("shareService", () => {
   describe("buildCompoundShareText", () => {
     it("formats compound details nicely", () => {
       const text = buildCompoundShareText(mockMolecule);
-      expect(text).toContain("🔬 Caffeine (C8H10N4O2)");
+      expect(text).toContain("🔬 Caffeine (C₈H₁₀N₄O₂)");
       expect(text).toContain("Molecular Weight: 194.19 g/mol");
       expect(text).toContain(
         "PubChem: https://pubchem.ncbi.nlm.nih.gov/compound/2519",
@@ -99,7 +99,7 @@ describe("shareService", () => {
       expect(Share.share).toHaveBeenCalledWith(
         expect.objectContaining({
           title: "Caffeine - Moluxis",
-          message: expect.stringContaining("🔬 Caffeine (C8H10N4O2)"),
+          message: expect.stringContaining("🔬 Caffeine (C₈H₁₀N₄O₂)"),
           url: "https://pubchem.ncbi.nlm.nih.gov/compound/2519",
         }),
       );
@@ -140,7 +140,7 @@ describe("shareService", () => {
       expect(Share.share).toHaveBeenCalledWith(
         expect.objectContaining({
           title: "Caffeine Formula",
-          message: expect.stringContaining("Caffeine (C8H10N4O2)"),
+          message: expect.stringContaining("Caffeine (C₈H₁₀N₄O₂)"),
         }),
       );
     });

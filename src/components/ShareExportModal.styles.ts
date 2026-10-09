@@ -121,7 +121,7 @@ export const getShareExportModalStyles = ({
       borderWidth: 1,
       borderColor: addOpacity(COLORS.border, 0.7),
       padding: scaleSize(14),
-      marginBottom: scaleSize(16),
+      marginBottom: scaleSize(10),
       shadowColor: COLORS.shadow,
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.25,

@@ -1,16 +1,9 @@
 import { Share } from "react-native";
 import * as FileSystem from "expo-file-system/legacy";
+import * as Sharing from "expo-sharing";
 import { MoleculeInfo } from "../../types";
 import { isValidId } from "../pubchem/utils";
-
-// Safely resolve expo-sharing so builds without the native module don't fail at bundle load
-let expoSharingModule: typeof import("expo-sharing") | null = null;
-try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  expoSharingModule = require("expo-sharing");
-} catch {
-  expoSharingModule = null;
-}
+import { formatSubscriptFormula } from "../../utils/formula";
 
 /**
  * Returns the PubChem compound URL if a valid CID is present.
@@ -27,7 +20,9 @@ export function getCompoundPubChemUrl(cid?: string | null): string | null {
  */
 export function buildCompoundShareText(molecule: MoleculeInfo): string {
   const parts: string[] = [];
-  const formulaPart = molecule.formula ? ` (${molecule.formula})` : "";
+  const formulaPart = molecule.formula
+    ? ` (${formatSubscriptFormula(molecule.formula)})`
+    : "";
   parts.push(`🔬 ${molecule.name}${formulaPart}`);
 
   if (molecule.molecularWeight) {
@@ -96,7 +91,9 @@ export async function shareNameAndFormula(
   molecule: MoleculeInfo,
 ): Promise<boolean> {
   try {
-    const formulaPart = molecule.formula ? ` (${molecule.formula})` : "";
+    const formulaPart = molecule.formula
+      ? ` (${formatSubscriptFormula(molecule.formula)})`
+      : "";
     const text = `🔬 ${molecule.name}${formulaPart}\nExplored with Moluxis`;
 
     await Share.share({
@@ -133,26 +130,17 @@ export async function shareSnapshotImage(
       encoding: FileSystem.EncodingType.Base64,
     });
 
-    if (expoSharingModule) {
-      try {
-        const isAvailable = await expoSharingModule.isAvailableAsync();
-        if (isAvailable) {
-          await expoSharingModule.shareAsync(fileUri, {
-            mimeType: "image/png",
-            dialogTitle: `Share ${moleculeName} 3D Snapshot`,
-            UTI: "public.png",
-          });
-          return true;
-        }
-      } catch (sharingError) {
-        console.warn(
-          "expo-sharing unavailable in current build, falling back to Share:",
-          sharingError,
-        );
-      }
+    const isAvailable = await Sharing.isAvailableAsync();
+    if (isAvailable) {
+      await Sharing.shareAsync(fileUri, {
+        mimeType: "image/png",
+        dialogTitle: `Share ${moleculeName} 3D Snapshot`,
+        UTI: "public.png",
+      });
+      return true;
     }
 
-    // Fallback to React Native core Share
+    // Fallback to React Native core Share if Sharing is unavailable
     await Share.share({
       title: `${moleculeName} 3D Snapshot`,
       message: `Check out the 3D structure of ${moleculeName} on Moluxis!`,

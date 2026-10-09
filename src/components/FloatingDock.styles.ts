@@ -32,11 +32,11 @@ export const getFloatingDockStyles = ({
       shadowOpacity: 0.3,
       shadowRadius: 12,
       elevation: 8,
-      maxWidth: "98%",
+      maxWidth: isLandscape ? "70%" : "90%",
     },
     dockCompact: {
-      maxWidth: "98%",
-      padding: scaleSize(4),
+      maxWidth: "90%",
+      padding: scaleSize(5),
       borderRadius: scaleSize(26),
     },
     styleMenu: {
@@ -56,7 +56,7 @@ export const getFloatingDockStyles = ({
       minWidth: scaleSize(210),
     },
     styleMenuLandscape: {
-      bottom: scaleSize(58),
+      bottom: scaleSize(65),
     },
     styleMenuCompact: {
       minWidth: scaleSize(190),

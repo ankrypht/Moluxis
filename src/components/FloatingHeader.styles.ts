@@ -98,7 +98,7 @@ export const getFloatingHeaderStyles = ({
       width: "100%",
       backgroundColor: addOpacity(COLORS.surfaceElevated, 0.8),
       borderRadius: scaleSize(16),
-      paddingHorizontal: hScaleSize(16),
+      paddingHorizontal: hScaleSize(10),
       paddingVertical: scaleSize(12),
       fontSize: scaleSize(15),
       borderWidth: 1,
@@ -114,8 +114,7 @@ export const getFloatingHeaderStyles = ({
     },
     clearButton: {
       position: "absolute",
-      right: scaleSize(12),
-      padding: scaleSize(4),
+      right: scaleSize(10),
       justifyContent: "center",
       alignItems: "center",
       zIndex: 5,
