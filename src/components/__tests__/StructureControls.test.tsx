@@ -17,6 +17,14 @@ jest.mock("@expo/vector-icons", () => {
   };
 });
 
+const mockTriggerSelectionHaptic = jest.fn();
+const mockTriggerWarningHaptic = jest.fn();
+
+jest.mock("../../utils/haptics", () => ({
+  triggerSelectionHaptic: () => mockTriggerSelectionHaptic(),
+  triggerWarningHaptic: () => mockTriggerWarningHaptic(),
+}));
+
 describe("StructureControls Component", () => {
   const metrics = getScaleMetrics(390, 844, {
     top: 44,
@@ -40,7 +48,11 @@ describe("StructureControls Component", () => {
     safety: {},
   };
 
-  it("renders structure format buttons and handles format selection", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("renders structure format buttons and handles format selection with haptics", () => {
     const handleSelectFormat = jest.fn();
     const handleToggleAnimation = jest.fn();
 
@@ -67,6 +79,7 @@ describe("StructureControls Component", () => {
 
     fireEvent.press(button2D);
     expect(handleSelectFormat).toHaveBeenCalledWith("2d");
+    expect(mockTriggerSelectionHaptic).toHaveBeenCalledTimes(1);
   });
 
   it("shows an alert when 2D structure is unavailable and pressed", () => {
@@ -100,6 +113,7 @@ describe("StructureControls Component", () => {
       "No 2D structure data available for this compound.",
     );
     expect(handleSelectFormat).not.toHaveBeenCalled();
+    expect(mockTriggerWarningHaptic).toHaveBeenCalledTimes(1);
 
     alertSpy.mockRestore();
   });
@@ -161,5 +175,6 @@ describe("StructureControls Component", () => {
 
     fireEvent(switchComponent, "valueChange", true);
     expect(handleToggleAnimation).toHaveBeenCalledTimes(1);
+    expect(mockTriggerSelectionHaptic).toHaveBeenCalledTimes(1);
   });
 });

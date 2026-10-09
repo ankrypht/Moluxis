@@ -16,6 +16,11 @@ import { COLORS } from "../constants/colors";
 import { HistoryBookmarksModalStyles } from "./HistoryBookmarksModal.styles";
 import { ChemicalFormula } from "./ChemicalFormula";
 import { formatRelativeTime } from "../utils/formatTime";
+import {
+  triggerSelectionHaptic,
+  triggerImpactLight,
+  triggerWarningHaptic,
+} from "../utils/haptics";
 
 export interface HistoryBookmarksModalProps {
   visible: boolean;
@@ -124,6 +129,7 @@ export const HistoryBookmarksModal: React.FC<HistoryBookmarksModalProps> =
 
       const handleSelectItem = useCallback(
         (name: string) => {
+          triggerSelectionHaptic();
           onSelectCompound(name);
           onClose();
         },
@@ -194,7 +200,10 @@ export const HistoryBookmarksModal: React.FC<HistoryBookmarksModalProps> =
                       : `Bookmark ${item.name}`
                   }
                   style={styles.actionIconButton}
-                  onPress={() => onToggleBookmark(item)}
+                  onPress={() => {
+                    triggerImpactLight();
+                    onToggleBookmark(item);
+                  }}
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
                   <Ionicons
@@ -210,6 +219,7 @@ export const HistoryBookmarksModal: React.FC<HistoryBookmarksModalProps> =
                   accessibilityLabel={`Delete ${item.name} from list`}
                   style={styles.actionIconButton}
                   onPress={() => {
+                    triggerImpactLight();
                     if (isHistoryTab) {
                       onRemoveHistoryItem(item.name);
                     } else {
@@ -309,7 +319,10 @@ export const HistoryBookmarksModal: React.FC<HistoryBookmarksModalProps> =
                           : "Clear all bookmarks"
                       }
                       style={styles.modalClearButton}
-                      onPress={handlePromptClear}
+                      onPress={() => {
+                        triggerWarningHaptic();
+                        handlePromptClear();
+                      }}
                     >
                       <Ionicons
                         name="trash-outline"
@@ -330,7 +343,10 @@ export const HistoryBookmarksModal: React.FC<HistoryBookmarksModalProps> =
                     accessibilityRole="button"
                     accessibilityLabel="Close history and bookmarks"
                     style={styles.closeButton}
-                    onPress={onClose}
+                    onPress={() => {
+                      triggerImpactLight();
+                      onClose();
+                    }}
                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                   >
                     <Ionicons
@@ -356,7 +372,10 @@ export const HistoryBookmarksModal: React.FC<HistoryBookmarksModalProps> =
                     styles.toggleSegmentButton,
                     activeTab === "history" && styles.toggleSegmentButtonActive,
                   ]}
-                  onPress={() => setActiveTab("history")}
+                  onPress={() => {
+                    triggerSelectionHaptic();
+                    setActiveTab("history");
+                  }}
                 >
                   <Ionicons
                     name="time-outline"
@@ -403,7 +422,10 @@ export const HistoryBookmarksModal: React.FC<HistoryBookmarksModalProps> =
                     activeTab === "bookmarks" &&
                       styles.toggleSegmentButtonActive,
                   ]}
-                  onPress={() => setActiveTab("bookmarks")}
+                  onPress={() => {
+                    triggerSelectionHaptic();
+                    setActiveTab("bookmarks");
+                  }}
                 >
                   <Ionicons
                     name="bookmark"

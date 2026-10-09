@@ -3,6 +3,7 @@ import { TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "../constants/colors";
 import { OverlaysStyles } from "./Overlays.styles";
+import { triggerZenModeHaptic } from "../utils/haptics";
 
 export interface ExitFullScreenButtonProps {
   onPress: () => void;
@@ -16,7 +17,10 @@ export const ExitFullScreenButton: React.FC<ExitFullScreenButtonProps> = ({
   return (
     <TouchableOpacity
       style={styles.exitFullScreenButton}
-      onPress={onPress}
+      onPress={() => {
+        triggerZenModeHaptic();
+        onPress();
+      }}
       activeOpacity={0.7}
       accessibilityRole="button"
       accessibilityLabel="Exit Zen mode"

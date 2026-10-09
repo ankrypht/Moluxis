@@ -50,12 +50,13 @@
 - **Render Styles:** Ball & Stick, Sticks, Space-Fill, and Wireframe.
 - **Crystal Lattices:** Visualize 3D crystal structures for inorganic minerals via COD.
 - **Viewer Controls:** 360° auto-rotation, atom labels, and Zen (full-screen) mode.
+- **Tactile Feedback:** Built-in haptic sensations powered by `expo-haptics` across style changes, full-screen Zen mode toggles, search suggestions, format switches, and bookmarking.
 - **Adaptive Layout:** Responsive split-screen view in landscape orientation.
 
 ### 🔍 Smart Search & Autocomplete
 
 - **Instant Search:** Find compounds by common name or IUPAC nomenclature.
-- **Live Suggestions:** Intelligent suggestions as you type.
+- **Live Suggestions:** Intelligent suggestions as you type with instant tactile selection feedback.
 
 ### 🌟 Curated Molecule Showcase
 
@@ -86,6 +87,7 @@
 - **Framework:** [React Native](https://reactnative.dev/) via [Expo](https://expo.dev/) (SDK 57)
 - **Language:** TypeScript
 - **3D Engine:** [3Dmol.js](https://3Dmol.csb.pitt.edu/) embedded via `react-native-webview`
+- **Sensory & Haptics:** [Expo Haptics](https://docs.expo.dev/versions/latest/sdk/haptics/)
 - **Data & Storage:** [PubChem PUG REST API](https://pubchem.ncbi.nlm.nih.gov/docs/pug-rest), [Crystallography Open Database (COD)](https://www.crystallography.net/), and [AsyncStorage](https://react-native-async-storage.github.io/async-storage/)
 - **Architecture:** Multi-tier caching (RAM + Disk), rate-limiting request queue, and circuit breaker resilience
 - **Testing:** Jest & `@testing-library/react-native`

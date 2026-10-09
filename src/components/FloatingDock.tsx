@@ -11,6 +11,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { VisualizationType } from "../types";
 import { COLORS, addOpacity } from "../constants/colors";
 import { FloatingDockStyles } from "./FloatingDock.styles";
+import {
+  triggerStylePressHaptic,
+  triggerZenModeHaptic,
+  triggerImpactLight,
+  triggerSelectionHaptic,
+} from "../utils/haptics";
 
 export interface FloatingDockProps {
   vizStyle: VisualizationType;
@@ -125,7 +131,10 @@ export const FloatingDock: React.FC<FloatingDockProps> = React.memo(
                       },
                     ],
                   ]}
-                  onPress={() => onSelectStyle(style)}
+                  onPress={() => {
+                    triggerStylePressHaptic();
+                    onSelectStyle(style);
+                  }}
                   activeOpacity={0.7}
                   accessibilityRole="button"
                   accessibilityLabel={`${label} style`}
@@ -178,7 +187,10 @@ export const FloatingDock: React.FC<FloatingDockProps> = React.memo(
           >
             <TouchableOpacity
               style={[styles.dockChip, isCompact && styles.dockChipCompact]}
-              onPress={onEnterZenMode}
+              onPress={() => {
+                triggerZenModeHaptic();
+                onEnterZenMode();
+              }}
               activeOpacity={0.7}
               accessibilityRole="button"
               accessibilityLabel="Enter Zen full screen mode"
@@ -207,7 +219,10 @@ export const FloatingDock: React.FC<FloatingDockProps> = React.memo(
                 isCompact && styles.dockChipCompact,
                 showInfo && styles.dockChipActive,
               ]}
-              onPress={onToggleInfo}
+              onPress={() => {
+                triggerImpactLight();
+                onToggleInfo();
+              }}
               activeOpacity={0.7}
               accessibilityRole="button"
               accessibilityLabel="Toggle molecule information"
@@ -240,7 +255,10 @@ export const FloatingDock: React.FC<FloatingDockProps> = React.memo(
                 isCompact && styles.dockChipCompact,
                 showLabels && styles.dockChipActive,
               ]}
-              onPress={onToggleLabels}
+              onPress={() => {
+                triggerSelectionHaptic();
+                onToggleLabels();
+              }}
               activeOpacity={0.7}
               accessibilityRole="button"
               accessibilityLabel="Toggle atom labels"
@@ -271,7 +289,10 @@ export const FloatingDock: React.FC<FloatingDockProps> = React.memo(
                 isCompact && styles.dockChipCompact,
                 showStyleMenu && styles.dockChipActive,
               ]}
-              onPress={onToggleStyleMenu}
+              onPress={() => {
+                triggerStylePressHaptic();
+                onToggleStyleMenu();
+              }}
               activeOpacity={0.7}
               accessibilityRole="button"
               accessibilityLabel="Toggle rendering styles menu"

@@ -26,6 +26,7 @@
     "expo-build-properties": "~57.0.22",
     "expo-dev-client": "~57.0.19",
     "expo-font": "~57.0.4",
+    "expo-haptics": "~57.0.3",
     "expo-navigation-bar": "~57.0.3",
     "expo-status-bar": "~57.0.1",
     "expo-store-review": "~57.0.3",

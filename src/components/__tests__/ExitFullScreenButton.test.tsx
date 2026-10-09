@@ -15,6 +15,12 @@ jest.mock("@expo/vector-icons", () => {
   };
 });
 
+const mockTriggerZenModeHaptic = jest.fn();
+
+jest.mock("../../utils/haptics", () => ({
+  triggerZenModeHaptic: () => mockTriggerZenModeHaptic(),
+}));
+
 describe("ExitFullScreenButton Component", () => {
   const metrics = getScaleMetrics(390, 844, {
     top: 44,
@@ -24,7 +30,11 @@ describe("ExitFullScreenButton Component", () => {
   });
   const styles = getOverlaysStyles(metrics);
 
-  it("renders correctly with accessibility attributes and handles onPress", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("renders correctly with accessibility attributes and handles onPress and haptics", () => {
     const handlePress = jest.fn();
     const { getByRole } = render(
       <ExitFullScreenButton onPress={handlePress} styles={styles} />,
@@ -36,5 +46,6 @@ describe("ExitFullScreenButton Component", () => {
 
     fireEvent.press(button);
     expect(handlePress).toHaveBeenCalledTimes(1);
+    expect(mockTriggerZenModeHaptic).toHaveBeenCalledTimes(1);
   });
 });

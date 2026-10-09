@@ -10,6 +10,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { getResponsiveSize } from "../utils/responsive";
 import { COLORS, addOpacity } from "../constants/colors";
+import { triggerSelectionHaptic } from "../utils/haptics";
 
 interface CollapsibleSectionProps {
   title: string;
@@ -51,6 +52,7 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   );
 
   const toggleExpand = () => {
+    triggerSelectionHaptic();
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setExpanded(!expanded);
   };

@@ -8,6 +8,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { getResponsiveSize } from "../utils/responsive";
 import { COLORS } from "../constants/colors";
+import { triggerSelectionHaptic } from "../utils/haptics";
 
 interface SuggestionItemProps {
   item: string;
@@ -33,7 +34,10 @@ export const SuggestionItem = React.memo<SuggestionItemProps>(
     return (
       <TouchableOpacity
         style={[styles.suggestionItem, { padding: sizes.padding }]}
-        onPress={() => onSelect(item)}
+        onPress={() => {
+          triggerSelectionHaptic();
+          onSelect(item);
+        }}
       >
         <Ionicons
           allowFontScaling={false}

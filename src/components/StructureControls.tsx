@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { MoleculeInfo } from "../types";
 import { COLORS, addOpacity } from "../constants/colors";
 import { StructureControlsStyles } from "./StructureControls.styles";
+import { triggerSelectionHaptic, triggerWarningHaptic } from "../utils/haptics";
 
 export interface StructureControlsProps {
   moleculeData: MoleculeInfo;
@@ -52,7 +53,10 @@ export const StructureControls: React.FC<StructureControlsProps> = React.memo(
               true: addOpacity(COLORS.primary, 0.45),
             }}
             thumbColor={isAnimated ? COLORS.primary : COLORS.textSecondary}
-            onValueChange={onToggleAnimation}
+            onValueChange={() => {
+              triggerSelectionHaptic();
+              onToggleAnimation();
+            }}
             value={isAnimated}
             style={styles.switchScale}
             accessibilityRole="switch"
@@ -67,14 +71,18 @@ export const StructureControls: React.FC<StructureControlsProps> = React.memo(
               moleculeData.sdf2d ? null : styles.badgeNotAvailable,
               structureFormat === "2d" && styles.badgeActive,
             ]}
-            onPress={() =>
-              moleculeData.sdf2d
-                ? onSelectFormat("2d")
-                : Alert.alert(
-                    "2D Structure Unavailable",
-                    "No 2D structure data available for this compound.",
-                  )
-            }
+            onPress={() => {
+              if (moleculeData.sdf2d) {
+                triggerSelectionHaptic();
+                onSelectFormat("2d");
+              } else {
+                triggerWarningHaptic();
+                Alert.alert(
+                  "2D Structure Unavailable",
+                  "No 2D structure data available for this compound.",
+                );
+              }
+            }}
             activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityLabel={
@@ -115,14 +123,18 @@ export const StructureControls: React.FC<StructureControlsProps> = React.memo(
                 : styles.badgeNotAvailable,
               structureFormat === "3d" && styles.badgeActive,
             ]}
-            onPress={() =>
-              moleculeData.sdf3d || moleculeData.useCif
-                ? onSelectFormat("3d")
-                : Alert.alert(
-                    "3D Structure Unavailable",
-                    "No 3D structure data available for this compound.",
-                  )
-            }
+            onPress={() => {
+              if (moleculeData.sdf3d || moleculeData.useCif) {
+                triggerSelectionHaptic();
+                onSelectFormat("3d");
+              } else {
+                triggerWarningHaptic();
+                Alert.alert(
+                  "3D Structure Unavailable",
+                  "No 3D structure data available for this compound.",
+                );
+              }
+            }}
             activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityLabel={

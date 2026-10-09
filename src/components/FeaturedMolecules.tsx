@@ -20,6 +20,7 @@ import { COLORS, addOpacity } from "../constants/colors";
 
 import { SavedCompoundItem } from "../types";
 import { ChemicalFormula } from "./ChemicalFormula";
+import { triggerSelectionHaptic, triggerImpactLight } from "../utils/haptics";
 
 let savedShowcaseScrollOffset = 0;
 let savedFeaturedCategory: FeaturedCategoryKey = "biochemicals";
@@ -78,6 +79,7 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
 
     const handleSelectCategory = useCallback(
       (category: FeaturedCategoryKey) => {
+        triggerSelectionHaptic();
         savedFeaturedCategory = category;
         setSelectedCategory(category);
         onCategoryChange?.(category);
@@ -177,7 +179,10 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
               styles.card,
               { borderColor: addOpacity(molecule.color, 0.35) },
             ]}
-            onPress={() => onSelectMolecule(molecule.query)}
+            onPress={() => {
+              triggerSelectionHaptic();
+              onSelectMolecule(molecule.query);
+            }}
           >
             <View style={styles.cardTopRow}>
               <View
@@ -331,7 +336,10 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
                     accessibilityRole="button"
                     accessibilityLabel="View full history and bookmarks"
                     style={styles.jumpBackViewAllBtn}
-                    onPress={() => onOpenHistory()}
+                    onPress={() => {
+                      triggerImpactLight();
+                      onOpenHistory();
+                    }}
                   >
                     <Text
                       allowFontScaling={false}
@@ -365,7 +373,10 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
                       accessibilityRole="button"
                       accessibilityLabel={`Revisit ${item.name}`}
                       style={styles.jumpBackChip}
-                      onPress={() => onSelectMolecule(item.name)}
+                      onPress={() => {
+                        triggerSelectionHaptic();
+                        onSelectMolecule(item.name);
+                      }}
                       activeOpacity={0.7}
                     >
                       <View

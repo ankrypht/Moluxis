@@ -17,6 +17,7 @@ import { SuggestionItem } from "./SuggestionItem";
 import { StructureControls } from "./StructureControls";
 import { FloatingHeaderStyles } from "./FloatingHeader.styles";
 import { StructureControlsStyles } from "./StructureControls.styles";
+import { triggerImpactLight, triggerSelectionHaptic } from "../utils/haptics";
 
 export interface FloatingHeaderProps {
   searchInputRef: React.RefObject<TextInput | null>;
@@ -98,7 +99,10 @@ export const FloatingHeader: React.FC<FloatingHeaderProps> = React.memo(
             {!isLandscape && (
               <View style={styles.titleRow}>
                 <TouchableOpacity
-                  onPress={onClear}
+                  onPress={() => {
+                    triggerImpactLight();
+                    onClear?.();
+                  }}
                   disabled={!onClear}
                   activeOpacity={0.7}
                   accessibilityRole="button"
@@ -123,7 +127,10 @@ export const FloatingHeader: React.FC<FloatingHeaderProps> = React.memo(
                         styles.headerIconButton,
                         isBookmarked && styles.headerIconButtonActive,
                       ]}
-                      onPress={onToggleBookmark}
+                      onPress={() => {
+                        triggerImpactLight();
+                        onToggleBookmark();
+                      }}
                       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     >
                       <Ionicons
@@ -142,7 +149,10 @@ export const FloatingHeader: React.FC<FloatingHeaderProps> = React.memo(
                       accessibilityRole="button"
                       accessibilityLabel="Open search history and bookmarks"
                       style={styles.headerIconButton}
-                      onPress={onOpenHistory}
+                      onPress={() => {
+                        triggerImpactLight();
+                        onOpenHistory();
+                      }}
                       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     >
                       <Ionicons
@@ -177,7 +187,10 @@ export const FloatingHeader: React.FC<FloatingHeaderProps> = React.memo(
                   onChangeText={onTextChange}
                   onFocus={onFocus}
                   returnKeyType="search"
-                  onSubmitEditing={() => onSearch()}
+                  onSubmitEditing={() => {
+                    triggerSelectionHaptic();
+                    onSearch();
+                  }}
                   keyboardAppearance="dark"
                 />
                 {Boolean(searchText || moleculeData) && onClear && (
@@ -186,7 +199,10 @@ export const FloatingHeader: React.FC<FloatingHeaderProps> = React.memo(
                     accessibilityRole="button"
                     accessibilityLabel="Clear and back to showcase"
                     style={styles.clearButton}
-                    onPress={onClear}
+                    onPress={() => {
+                      triggerImpactLight();
+                      onClear();
+                    }}
                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                   >
                     <Ionicons
@@ -203,7 +219,10 @@ export const FloatingHeader: React.FC<FloatingHeaderProps> = React.memo(
                   isLandscape && styles.buttonLandscape,
                   isLoading && styles.buttonDisabled,
                 ]}
-                onPress={() => onSearch()}
+                onPress={() => {
+                  triggerSelectionHaptic();
+                  onSearch();
+                }}
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -231,7 +250,10 @@ export const FloatingHeader: React.FC<FloatingHeaderProps> = React.memo(
                     styles.headerIconButtonLandscape,
                     isBookmarked && styles.headerIconButtonActive,
                   ]}
-                  onPress={onToggleBookmark}
+                  onPress={() => {
+                    triggerImpactLight();
+                    onToggleBookmark();
+                  }}
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
                   <Ionicons
@@ -251,7 +273,10 @@ export const FloatingHeader: React.FC<FloatingHeaderProps> = React.memo(
                     styles.headerIconButton,
                     styles.headerIconButtonLandscape,
                   ]}
-                  onPress={onOpenHistory}
+                  onPress={() => {
+                    triggerImpactLight();
+                    onOpenHistory();
+                  }}
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
                   <Ionicons

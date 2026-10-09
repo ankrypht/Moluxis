@@ -15,6 +15,18 @@ jest.mock("@expo/vector-icons", () => {
   };
 });
 
+const mockTriggerStylePressHaptic = jest.fn();
+const mockTriggerZenModeHaptic = jest.fn();
+const mockTriggerImpactLight = jest.fn();
+const mockTriggerSelectionHaptic = jest.fn();
+
+jest.mock("../../utils/haptics", () => ({
+  triggerStylePressHaptic: () => mockTriggerStylePressHaptic(),
+  triggerZenModeHaptic: () => mockTriggerZenModeHaptic(),
+  triggerImpactLight: () => mockTriggerImpactLight(),
+  triggerSelectionHaptic: () => mockTriggerSelectionHaptic(),
+}));
+
 describe("FloatingDock Component", () => {
   const metrics = getScaleMetrics(390, 844, {
     top: 44,
@@ -41,7 +53,7 @@ describe("FloatingDock Component", () => {
     jest.clearAllMocks();
   });
 
-  it("renders main dock chips and triggers callbacks on press", () => {
+  it("renders main dock chips and triggers callbacks and haptics on press", () => {
     const onEnterZenMode = jest.fn();
     const onToggleInfo = jest.fn();
     const onToggleLabels = jest.fn();
@@ -64,15 +76,19 @@ describe("FloatingDock Component", () => {
 
     fireEvent.press(zenButton);
     expect(onEnterZenMode).toHaveBeenCalledTimes(1);
+    expect(mockTriggerZenModeHaptic).toHaveBeenCalledTimes(1);
 
     fireEvent.press(infoButton);
     expect(onToggleInfo).toHaveBeenCalledTimes(1);
+    expect(mockTriggerImpactLight).toHaveBeenCalledTimes(1);
 
     fireEvent.press(labelsButton);
     expect(onToggleLabels).toHaveBeenCalledTimes(1);
+    expect(mockTriggerSelectionHaptic).toHaveBeenCalledTimes(1);
 
     fireEvent.press(styleButton);
     expect(onToggleStyleMenu).toHaveBeenCalledTimes(1);
+    expect(mockTriggerStylePressHaptic).toHaveBeenCalledTimes(1);
   });
 
   it("reflects active state accessibility values", () => {
@@ -113,6 +129,7 @@ describe("FloatingDock Component", () => {
 
     fireEvent.press(sticksOption);
     expect(onSelectStyle).toHaveBeenCalledWith("stick");
+    expect(mockTriggerStylePressHaptic).toHaveBeenCalledTimes(1);
   });
 
   it("renders properly in compact landscape mode", () => {

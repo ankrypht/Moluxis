@@ -19,6 +19,7 @@ import { CollapsibleSection } from "./CollapsibleSection";
 import { PropertyRow } from "./PropertyRow";
 import { isValidId } from "../services/pubchem/utils";
 import { MoleculeInfoSheetStyles } from "./MoleculeInfoSheet.styles";
+import { triggerImpactLight, triggerSelectionHaptic } from "../utils/haptics";
 
 export interface MoleculeInfoSheetProps {
   moleculeData: MoleculeInfo;
@@ -117,7 +118,10 @@ export const MoleculeInfoSheet: React.FC<MoleculeInfoSheetProps> = ({
             left: 20,
             right: 20,
           }}
-          onPress={onClose}
+          onPress={() => {
+            triggerImpactLight();
+            onClose();
+          }}
           accessibilityRole="button"
           accessibilityLabel="Close info panel"
         >
@@ -353,6 +357,7 @@ export const MoleculeInfoSheet: React.FC<MoleculeInfoSheetProps> = ({
           <TouchableOpacity
             style={[styles.linkButton, styles.linkButtonPubChem]}
             onPress={() => {
+              triggerSelectionHaptic();
               if (isValidId(moleculeData.cid)) {
                 Linking.openURL(
                   `https://pubchem.ncbi.nlm.nih.gov/compound/${moleculeData.cid}`,
@@ -388,6 +393,7 @@ export const MoleculeInfoSheet: React.FC<MoleculeInfoSheetProps> = ({
               <TouchableOpacity
                 style={[styles.linkButton, styles.linkButtonCod]}
                 onPress={() => {
+                  triggerSelectionHaptic();
                   if (isValidId(moleculeData.codId)) {
                     Linking.openURL(
                       `https://www.crystallography.net/cod/${moleculeData.codId}.html`,
