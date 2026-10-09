@@ -1,113 +1,122 @@
 <div align="center">
-  <img src="./assets/adaptive-icon.png" alt="Moluxis Logo" width="200" height="200" />
+  <img src="./assets/splash-icon.png" alt="Moluxis Logo" width="200" height="200" />
   <h1>Moluxis</h1>
   <p>
-    <b>A Modern 3D Molecule Explorer for Android</b>
+    <b>A Modern, Fast 3D Molecule & Crystal Explorer for Android</b>
   </p>
   <p>
-    Search, visualize, and explore chemical compounds in interactive 3D.
+    Search, inspect, and visualize chemical compounds and mineral crystal lattices in interactive 3D and 2D.
   </p>
 
-![GitHub Release](https://img.shields.io/github/v/release/ankrypht/Moluxis?label=Latest%20Release&logo=github&logoColor=black&style=social)
-![GitHub License](https://img.shields.io/github/license/ankrypht/Moluxis?label=License&logo=apache&logoColor=black&style=social)
-![GitHub last commit (branch)](https://img.shields.io/github/last-commit/ankrypht/Moluxis/main?label=Last%20Commit&logo=Git&logoColor=black&style=social)
-![GitHub commit activity](https://img.shields.io/github/commit-activity/t/ankrypht/Moluxis?label=Total%20Commits&style=social)
-![GitHub top language](https://img.shields.io/github/languages/top/ankrypht/Moluxis?label=TypeScript&logo=typescript&logoColor=black&style=social)
-![GitHub issues](https://img.shields.io/github/issues/ankrypht/Moluxis?label=Issues&style=social)
-![GitHub pull requests](https://img.shields.io/github/issues-pr/ankrypht/Moluxis?label=Pull%20Requests&style=social)
-![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/ankrypht/Moluxis?label=Code%20Size&style=social)
+  <p>
+    <a href="https://github.com/ankrypht/Moluxis/releases/latest"><img src="https://img.shields.io/github/v/release/ankrypht/Moluxis?style=flat&color=10b981&label=Release" alt="Latest Release" /></a>
+    <a href="LICENSE"><img src="https://img.shields.io/github/license/ankrypht/Moluxis?style=flat&color=6366f1&label=License" alt="License" /></a>
+    <a href="https://play.google.com/store/apps/details?id=com.ankushsarkar.moluxis"><img src="https://img.shields.io/badge/Platform-Android-3DDC84?style=flat&logo=android&logoColor=white" alt="Platform" /></a>
+    <a href="https://expo.dev"><img src="https://img.shields.io/badge/Expo-SDK%2057-000020?style=flat&logo=expo&logoColor=white" alt="Expo" /></a>
+    <a href="https://reactnative.dev"><img src="https://img.shields.io/badge/React%20Native-0.86-61DAFB?style=flat&logo=react&logoColor=black" alt="React Native" /></a>
+    <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-Strict-3178C6?style=flat&logo=typescript&logoColor=white" alt="TypeScript" /></a>
+  </p>
 
-![PlayBadges card for com.ankushsarkar.moluxis](https://playbadges.pavi2410.com/badge/full?id=com.ankushsarkar.moluxis&country=in&theme=dark)
+  <p>
+    <a href="https://play.google.com/store/apps/details?id=com.ankushsarkar.moluxis">
+      <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="55" />
+    </a>
+    &nbsp;&nbsp;
+    <a href="https://github.com/ankrypht/Moluxis/releases/latest">
+      <img src="https://raw.githubusercontent.com/Kunzisoft/Github-badge/main/get-it-on-github.png" alt="Get it on GitHub" height="55" />
+    </a>
+  </p>
 
+  <a href="https://play.google.com/store/apps/details?id=com.ankushsarkar.moluxis">
+    <img src="https://playbadges.pavi2410.com/badge/full?id=com.ankushsarkar.moluxis&country=in&theme=dark" alt="Google Play Store Details" />
+  </a>
 </div>
 
 ---
 
 ## 📖 Overview
 
-**Moluxis** is an open-source Android application for exploring chemical compounds and crystal lattices in interactive 3D and 2D. Powered by the **PubChem** database and the **Crystallography Open Database (COD)**, Moluxis provides real-time access to millions of chemical structures, physical properties, and safety data.
+**Moluxis** is an open-source Android application for exploring chemical compounds and crystal structures in interactive 3D and 2D. Powered by the **PubChem** database and the **Crystallography Open Database (COD)**, Moluxis provides instant access to millions of molecular structures, physical and chemical properties, safety hazards, and crystal geometry — all wrapped in a sleek, dark-themed native interface.
 
-## 📲 Installation
-
-[<img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="80">](https://play.google.com/store/apps/details?id=com.ankushsarkar.moluxis)
-[<img src="https://raw.githubusercontent.com/Kunzisoft/Github-badge/main/get-it-on-github.png" alt="Get it on GitHub" height="80">](https://github.com/ankrypht/Moluxis/releases/latest)
+---
 
 ## 📱 Screenshots
 
 <div align="center">
-   <img src="./assets/screenshots/1.png" width="55%" />
-   <img src="./assets/screenshots/2.png" width="45%" />
-   <img src="./assets/screenshots/3.png" width="45%" />
-   <img src="./assets/screenshots/4.png" width="45%" />
-   <img src="./assets/screenshots/5.png" width="45%" />
+  <img src="./assets/screenshots/1.png" alt="Curated Showcase & Categories" width="19%" />
+  <img src="./assets/screenshots/2.png" alt="Interactive 3D Molecule Viewer" width="19%" />
+  <img src="./assets/screenshots/3.png" alt="Properties & Safety Data Sheet" width="19%" />
+  <img src="./assets/screenshots/4.png" alt="Share & Snapshot Export" width="19%" />
+  <img src="./assets/screenshots/5.png" alt="History & Offline Bookmarks" width="19%" />
 </div>
+
+---
 
 ## ✨ Features
 
-### 🧪 Interactive 3D & 2D Visualization
+- **🧪 Interactive 3D & 2D Visualization**
+  - **Multiple Render Styles:** Switch between Ball & Stick, Sticks, Space-Fill (VDW), and Wireframe.
+  - **Viewer Controls:** 360° auto-rotation, element atom labels, and a distraction-free Zen (full-screen) mode.
+  - **Dual Representation:** Seamlessly toggle between 3D molecular models and 2D chemical structural diagrams.
+  - **Adaptive Layout:** Responsive split-screen view optimized for landscape orientation and tablets.
 
-- **Dual View Modes:** Seamlessly switch between interactive 3D models and 2D chemical diagrams.
-- **Render Styles:** Ball & Stick, Sticks, Space-Fill, and Wireframe.
-- **Crystal Lattices:** Visualize 3D crystal structures for inorganic minerals via COD.
-- **Viewer Controls:** 360° auto-rotation, atom labels, and Zen (full-screen) mode.
-- **Tactile Feedback:** Built-in haptic sensations powered by `expo-haptics` across style changes, full-screen Zen mode toggles, search suggestions, format switches, and bookmarking.
-- **Adaptive Layout:** Responsive split-screen view in landscape orientation.
+- **💎 Crystal Lattices & Minerals**
+  - Visualize 3D unit cells and crystal lattice geometries for inorganic minerals via COD.
 
-### 🔍 Smart Search & Autocomplete
+- **🌟 Curated Showcase & Category Tabs**
+  - Discover iconic molecules across **Biochemicals**, **Medicinal**, and **Crystals & Minerals** with persistent tab filters.
+  - Zero-latency startup with pre-bundled datasets loading instantly offline (0ms).
 
-- **Instant Search:** Find compounds by common name or IUPAC nomenclature.
-- **Live Suggestions:** Intelligent suggestions as you type with instant tactile selection feedback.
+- **🔍 Smart Search & Chemical Typography**
+  - Instant search across millions of compounds with real-time suggestions as you type.
+  - Rich subscript formula formatting ($C_8H_{10}N_4O_2$, $H_2O$) across search results, cards, and property sheets.
 
-### 🌟 Curated Molecule Showcase
+- **📊 Deep Molecular & Safety Intelligence**
+  - **Quick Stats:** Instant formula, molecular weight, IUPAC name, and common names.
+  - **Expandable Drawers:** Collapsible sections for chemical properties (LogP, TPSA, H-bonds), physical constants (melting/boiling points, density, solubility), and synonyms.
+  - **Safety & Hazards:** Standard GHS classifications, signal words, and hazard statements.
+  - **Verified Citations:** Direct links to official PubChem and COD source records.
 
-- **Home Exploration:** Discover iconic molecules across Biochemicals, Medicinal, and Crystals & Minerals.
-- **Instant Offline Showcase:** Pre-bundled datasets for all featured molecules load instantly (0ms) with zero network requests.
-- **One-Tap 3D View:** Tap any card to immediately load and inspect spinning 3D structures.
+- **📤 High-Res Snapshot Export & Sharing**
+  - **3D Canvas Snapshots:** Capture high-resolution PNG images of the 3D model at any angle or zoom level.
+  - **Rich Share Sheets:** One-tap sharing of compound summaries, chemical formulas, and direct PubChem links.
 
-### ⏱️ Recent Searches & Bookmarks
+- **⏱️ Recent History & Pinned Bookmarks**
+  - "Jump Back In" quick-access carousel on launch to instantly revisit recent molecules.
+  - One-tap bookmarking to save favorite compounds with protected persistent offline storage.
 
-- **Jump Back In:** Quick-access carousel on the home screen to revisit recent searches and favorites.
-- **Multi-Tier Offline Cache:** High-speed RAM cache backed by persistent disk storage with LRU eviction and pinned bookmark protection.
-- **One-Tap Bookmarking:** Save active compounds directly from the viewer header.
+- **📳 Tactile Sensory & Themed Design**
+  - Context-aware haptic feedback across style changes, Zen mode toggles, bookmarking, and search selections.
+  - Custom dark-themed glassmorphic alert popups replacing generic system alerts.
+  - Edge-to-edge Android layout with transparent system navigation bar integration.
 
-### 📤 Export & Share
+- **⚡ Engineered for Speed & Stability**
+  - **Smooth 60 FPS WebGL Loop:** Throttled requestAnimationFrame engine with automatic WebGL activity pausing during text input or modal inspection to eliminate ANRs and save battery.
+  - **Multi-Tier Caching:** High-speed in-memory LRU cache backed by persistent disk storage.
+  - **Smart Rate Limiting:** PubChem request queue with concurrency pacing and an automatic circuit breaker against server throttling.
 
-- **3D Render Snapshots:** Instantly capture high-resolution snapshot images of the current 3D view at any orientation, zoom, and render style.
-- **Compound Details Export:** Share compound summaries including name, chemical formula, molecular weight, and direct PubChem links via native share sheets.
-- **Direct PubChem Link & Formula Sharing:** One-tap sharing of chemical identifiers and web links to colleagues and messaging apps.
-- **Automated View Capture:** Automatically captures the latest 3D canvas render on share modal open with zero manual reload clicks.
-
-### 🛡️ High Reliability & Smart Networking
-
-- **Adaptive Rate Limiting:** Request queue with dynamic pacing and concurrency control respecting PubChem's `X-Throttling-Control` headers.
-- **Circuit Breaker:** Automatic cooldown trip and queue draining on server throttling (429/503) to protect client IP addresses.
-- **Optimized Data Pipeline:** Staged waterfall queries bypass redundant structure views, and in-flight searches cancel cleanly via `AbortController`.
-
-### 📊 Chemical Data & Safety
-
-- **Properties & Attributes:** Molecular weight, formula, density, melting/boiling points, solubility, hydrogen bonds, LogP, and TPSA.
-- **Safety Data:** Standard GHS classifications, signal words, and hazard statements.
-- **External References:** Direct links to PubChem and COD source records.
+---
 
 ## 🛠️ Tech Stack
 
-- **Framework:** [React Native](https://reactnative.dev/) via [Expo](https://expo.dev/) (SDK 57)
-- **Language:** TypeScript
-- **3D Engine:** [3Dmol.js](https://3Dmol.csb.pitt.edu/) embedded via `react-native-webview`
-- **Sensory & Haptics:** [Expo Haptics](https://docs.expo.dev/versions/latest/sdk/haptics/)
-- **Sharing & File Export:** [Expo Sharing](https://docs.expo.dev/versions/latest/sdk/sharing/) & [Expo FileSystem](https://docs.expo.dev/versions/latest/sdk/filesystem/) with native platform share dialog fallback
-- **Data & Storage:** [PubChem PUG REST API](https://pubchem.ncbi.nlm.nih.gov/docs/pug-rest), [Crystallography Open Database (COD)](https://www.crystallography.net/), and [AsyncStorage](https://react-native-async-storage.github.io/async-storage/)
-- **Architecture:** Multi-tier caching (RAM + Disk), rate-limiting request queue, and circuit breaker resilience
-- **Testing:** Jest & `@testing-library/react-native`
+| Layer                 | Technologies                                                                                                                                    |
+| :-------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Mobile Core**       | [React Native](https://reactnative.dev/) (0.86), [Expo](https://expo.dev/) (SDK 57), [TypeScript](https://www.typescriptlang.org/)              |
+| **3D Engine**         | [3Dmol.js](https://3Dmol.csb.pitt.edu/) via `react-native-webview`                                                                              |
+| **Data Sources**      | [PubChem PUG REST API](https://pubchem.ncbi.nlm.nih.gov/docs/pug-rest), [Crystallography Open Database (COD)](https://www.crystallography.net/) |
+| **Storage & Caching** | AsyncStorage, FileSystem, Multi-tier LRU Memory & Disk Cache                                                                                    |
+| **Sensory & Haptics** | [Expo Haptics](https://docs.expo.dev/versions/latest/sdk/haptics/)                                                                              |
+| **Export & Sharing**  | [Expo Sharing](https://docs.expo.dev/versions/latest/sdk/sharing/), [Expo FileSystem](https://docs.expo.dev/versions/latest/sdk/filesystem/)    |
+| **UI & Systems**      | Expo Navigation Bar, Expo System UI, Custom Glassmorphic Modal Alerts                                                                           |
+| **Testing & Quality** | Jest, `@testing-library/react-native`, ESLint, Prettier                                                                                         |
 
-## 🤝 Contributing
+---
 
-Contributions are welcome! Feel free to open an issue or submit a pull request.
+## 🚀 Getting Started
 
 ### Prerequisites
 
-- Node.js (LTS recommended)
-- npm or yarn
+- [Node.js](https://nodejs.org/) (LTS recommended)
 - Android physical device or Android Emulator
 
 ### Development Setup
@@ -115,8 +124,8 @@ Contributions are welcome! Feel free to open an issue or submit a pull request.
 1. **Clone the repository:**
 
    ```bash
-   git clone https://github.com/ankrypht/moluxis.git
-   cd moluxis
+   git clone https://github.com/ankrypht/Moluxis.git
+   cd Moluxis
    ```
 
 2. **Install dependencies:**
@@ -132,24 +141,27 @@ Contributions are welcome! Feel free to open an issue or submit a pull request.
    ```
 
 4. **Run on Android:**
-   - **Development Build:** Run `npm run android` to build and launch on your connected device or emulator.
-   - **Expo Go:** Press `s` in the terminal to switch to Expo Go if supported.
+
+   ```bash
+   npm run android
+   ```
 
 5. **Run tests & linter:**
-
    ```bash
    npm test
    npm run lint
    ```
 
+---
+
 ## 📄 License
 
-Copyright © 2026 Ankush Sarkar
+Distributed under the **Apache License 2.0**. See [`LICENSE`](LICENSE) for details.
 
-Licensed under the Apache License, Version 2.0.
+---
 
 ## 🙏 Acknowledgments
 
-- **PubChem:** Comprehensive chemical database and API.
-- **3Dmol.js:** High-performance molecular visualization library.
-- **Crystallography Open Database (COD):** Open-access collection of crystal structures.
+- **[PubChem](https://pubchem.ncbi.nlm.nih.gov/)** — Comprehensive open chemical database and API.
+- **[3Dmol.js](https://3Dmol.csb.pitt.edu/)** — High-performance WebGL molecular visualization library.
+- **[Crystallography Open Database (COD)](https://www.crystallography.net/)** — Open-access collection of crystal structures.
