@@ -20,9 +20,6 @@ export const getFloatingDockStyles = ({
         ? Math.max(insets.bottom, scaleSize(12))
         : insets.bottom + scaleSize(16),
     },
-    floatingDockLandscape: {
-      paddingBottom: scaleSize(12),
-    },
     dock: {
       flexDirection: "row",
       backgroundColor: addOpacity(COLORS.surface, 0.85),
@@ -119,7 +116,6 @@ export const getFloatingDockStyles = ({
       color: COLORS.textPrimary,
       fontWeight: "700",
     },
-    dockLandscape: {},
     dockScroll: {
       paddingHorizontal: scaleSize(4),
       gap: isLandscape ? hScaleSize(4) : hScaleSize(2),
@@ -128,10 +124,15 @@ export const getFloatingDockStyles = ({
       justifyContent: "space-around",
       flexGrow: 1,
     },
-    dockScrollLandscape: {},
     dockScrollCompact: {
       paddingHorizontal: scaleSize(2),
       gap: scaleSize(2),
+    },
+    dockIcon: {
+      marginRight: 4,
+    },
+    dockIconCompact: {
+      marginRight: 3,
     },
     dockChip: {
       paddingHorizontal: isLandscape ? hScaleSize(12) : hScaleSize(10),

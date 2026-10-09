@@ -15,7 +15,7 @@ export async function getRecentHistory(): Promise<SavedCompoundItem[]> {
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter((entry): entry is SavedCompoundItem =>
+    const valid = parsed.filter((entry): entry is SavedCompoundItem =>
       Boolean(
         entry &&
         typeof entry === "object" &&
@@ -23,6 +23,13 @@ export async function getRecentHistory(): Promise<SavedCompoundItem[]> {
         entry.name.trim().length > 0,
       ),
     );
+    const seen = new Set<string>();
+    return valid.filter((entry) => {
+      const key = entry.name.trim().toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
   } catch (error) {
     console.warn("Failed to load search history:", error);
     return [];
@@ -118,7 +125,7 @@ export async function getBookmarks(): Promise<SavedCompoundItem[]> {
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter((entry): entry is SavedCompoundItem =>
+    const valid = parsed.filter((entry): entry is SavedCompoundItem =>
       Boolean(
         entry &&
         typeof entry === "object" &&
@@ -126,6 +133,13 @@ export async function getBookmarks(): Promise<SavedCompoundItem[]> {
         entry.name.trim().length > 0,
       ),
     );
+    const seen = new Set<string>();
+    return valid.filter((entry) => {
+      const key = entry.name.trim().toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
   } catch (error) {
     console.warn("Failed to load bookmarks:", error);
     return [];
@@ -208,24 +222,47 @@ export async function toggleBookmark(
     return { bookmarks: current, isBookmarked: false };
   }
 
-  const current = await getBookmarks();
-  const normalizedName = item.name.trim().toLowerCase();
-  const exists = current.some(
-    (entry) => entry.name.trim().toLowerCase() === normalizedName,
-  );
+  let current: SavedCompoundItem[] = [];
+  try {
+    current = await getBookmarks();
+    const normalizedName = item.name.trim().toLowerCase();
+    const exists = current.some(
+      (entry) => entry.name.trim().toLowerCase() === normalizedName,
+    );
 
-  if (exists) {
-    const updated = await removeBookmark(item.name);
-    const isStillBookmarked = updated.some(
-      (entry) => entry.name.trim().toLowerCase() === normalizedName,
-    );
-    return { bookmarks: updated, isBookmarked: isStillBookmarked };
-  } else {
-    const updated = await addBookmark(item);
-    const isNowBookmarked = updated.some(
-      (entry) => entry.name.trim().toLowerCase() === normalizedName,
-    );
-    return { bookmarks: updated, isBookmarked: isNowBookmarked };
+    if (exists) {
+      const updated = current.filter(
+        (entry) => entry.name.trim().toLowerCase() !== normalizedName,
+      );
+      await AsyncStorage.setItem(
+        BOOKMARKS_STORAGE_KEY,
+        JSON.stringify(updated),
+      );
+      return { bookmarks: updated, isBookmarked: false };
+    } else {
+      const existing = current.find(
+        (entry) => entry.name.trim().toLowerCase() === normalizedName,
+      );
+      const mergedItem: SavedCompoundItem = {
+        name: item.name.trim(),
+        formula: item.formula || existing?.formula,
+        cid: item.cid || existing?.cid,
+        molecularWeight: item.molecularWeight || existing?.molecularWeight,
+        timestamp: item.timestamp ?? Date.now(),
+      };
+      const filtered = current.filter(
+        (entry) => entry.name.trim().toLowerCase() !== normalizedName,
+      );
+      const updated = [mergedItem, ...filtered].slice(0, MAX_BOOKMARKS_ITEMS);
+      await AsyncStorage.setItem(
+        BOOKMARKS_STORAGE_KEY,
+        JSON.stringify(updated),
+      );
+      return { bookmarks: updated, isBookmarked: true };
+    }
+  } catch (error) {
+    console.warn("Failed to toggle bookmark:", error);
+    return { bookmarks: current, isBookmarked: false };
   }
 }
 

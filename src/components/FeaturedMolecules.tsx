@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -19,7 +13,7 @@ import {
   FeaturedMolecule,
   FeaturedCategoryKey,
   FEATURED_CATEGORIES,
-  FEATURED_MOLECULES,
+  FEATURED_MOLECULES_BY_CATEGORY,
 } from "../constants/featuredMolecules";
 import { FeaturedMoleculesStyles } from "./FeaturedMolecules.styles";
 import { COLORS, addOpacity } from "../constants/colors";
@@ -123,34 +117,6 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
       [initialScrollOffset],
     );
 
-    useEffect(() => {
-      if (initialScrollOffset > 0 && !hasRestoredScrollRef.current) {
-        const timer = setTimeout(() => {
-          if (!hasRestoredScrollRef.current) {
-            hasRestoredScrollRef.current = true;
-            scrollViewRef.current?.scrollTo({
-              y: initialScrollOffset,
-              animated: false,
-            });
-          }
-        }, 50);
-        return () => clearTimeout(timer);
-      }
-    }, [initialScrollOffset]);
-    const groupedMolecules = useMemo(() => {
-      const groups: Record<FeaturedCategoryKey, FeaturedMolecule[]> = {
-        biochemicals: [],
-        medicinal: [],
-        crystals: [],
-      };
-      for (const item of FEATURED_MOLECULES) {
-        if (groups[item.category]) {
-          groups[item.category].push(item);
-        }
-      }
-      return groups;
-    }, []);
-
     const recentItems = useMemo(() => {
       const itemMap = new Map<string, SavedCompoundItem>();
 
@@ -182,6 +148,21 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
         .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
         .slice(0, 8);
     }, [history, bookmarks]);
+
+    const bookmarkNamesSet = useMemo(() => {
+      const set = new Set<string>();
+      for (const item of bookmarks || []) {
+        if (item?.name) set.add(item.name.trim().toLowerCase());
+      }
+      return set;
+    }, [bookmarks]);
+
+    const activeCategory = useMemo(
+      () =>
+        FEATURED_CATEGORIES.find((c) => c.key === selectedCategory) ||
+        FEATURED_CATEGORIES[0],
+      [selectedCategory],
+    );
 
     const renderCard = useCallback(
       (molecule: FeaturedMolecule) => {
@@ -374,8 +355,8 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
                 keyboardShouldPersistTaps="handled"
               >
                 {recentItems.map((item) => {
-                  const isFav = bookmarks?.some(
-                    (b) => b.name.toLowerCase() === item.name.toLowerCase(),
+                  const isFav = bookmarkNamesSet.has(
+                    item.name.trim().toLowerCase(),
                   );
                   return (
                     <TouchableOpacity
@@ -508,7 +489,8 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
                           isActive && { color: category.color },
                         ]}
                       >
-                        {groupedMolecules[category.key]?.length || 4}
+                        {FEATURED_MOLECULES_BY_CATEGORY[category.key]?.length ||
+                          4}
                       </Text>
                     </View>
                   </TouchableOpacity>
@@ -518,17 +500,12 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
           </View>
 
           {/* Active Category Molecules */}
-          {(() => {
-            const activeCategory =
-              FEATURED_CATEGORIES.find((c) => c.key === selectedCategory) ||
-              FEATURED_CATEGORIES[0];
-            return renderCategorySection(
-              activeCategory.title,
-              activeCategory.icon,
-              activeCategory.color,
-              groupedMolecules[activeCategory.key] || [],
-            );
-          })()}
+          {renderCategorySection(
+            activeCategory.title,
+            activeCategory.icon,
+            activeCategory.color,
+            FEATURED_MOLECULES_BY_CATEGORY[activeCategory.key] || [],
+          )}
         </ScrollView>
       </View>
     );

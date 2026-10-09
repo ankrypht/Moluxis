@@ -4,7 +4,7 @@ import {
   PubChemViewResponse,
   PubChemInformationResponse,
 } from "../../types/pubchem";
-import { isAbortError } from "./utils";
+import { isAbortError, isValidId } from "./utils";
 
 const BASE_URL = "https://pubchem.ncbi.nlm.nih.gov/rest";
 
@@ -173,7 +173,8 @@ export const fetchMoleculeDetails = async (cid: number) => {
   };
 
   // Priority 2: Crystal Structure (CIF) if 3D SDF is not available
-  const codId = findCodId(structuresJson) || KNOWN_COD_IDS[cid] || null;
+  const rawCodId = findCodId(structuresJson) || KNOWN_COD_IDS[cid] || null;
+  const codId = isValidId(rawCodId) ? rawCodId : null;
 
   if (codId) {
     cifText = await fetchCifData(codId);

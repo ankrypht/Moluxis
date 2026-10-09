@@ -44,232 +44,259 @@ export interface FloatingHeaderProps {
   onOpenHistory?: () => void;
 }
 
-export const FloatingHeader: React.FC<FloatingHeaderProps> = ({
-  searchInputRef,
-  searchText,
-  suggestions,
-  showSuggestions,
-  isLoading,
-  moleculeData,
-  isLandscape,
-  showInfo,
-  isAnimated,
-  structureFormat,
-  containerStyle,
-  styles,
-  onTextChange,
-  onFocus,
-  onSearch,
-  onSelectSuggestion,
-  onToggleAnimation,
-  onSelectFormat,
-  onLayoutHeader,
-  onClear,
-  isBookmarked,
-  onToggleBookmark,
-  onOpenHistory,
-}) => {
-  const renderSuggestionItem = useCallback(
-    ({ item }: { item: string }) => (
-      <SuggestionItem item={item} onSelect={onSelectSuggestion} />
-    ),
-    [onSelectSuggestion],
-  );
+export const FloatingHeader: React.FC<FloatingHeaderProps> = React.memo(
+  ({
+    searchInputRef,
+    searchText,
+    suggestions,
+    showSuggestions,
+    isLoading,
+    moleculeData,
+    isLandscape,
+    showInfo,
+    isAnimated,
+    structureFormat,
+    containerStyle,
+    styles,
+    onTextChange,
+    onFocus,
+    onSearch,
+    onSelectSuggestion,
+    onToggleAnimation,
+    onSelectFormat,
+    onLayoutHeader,
+    onClear,
+    isBookmarked,
+    onToggleBookmark,
+    onOpenHistory,
+  }) => {
+    const renderSuggestionItem = useCallback(
+      ({ item }: { item: string }) => (
+        <SuggestionItem item={item} onSelect={onSelectSuggestion} />
+      ),
+      [onSelectSuggestion],
+    );
 
-  return (
-    <View
-      style={[styles.floatingHeaderContainer, containerStyle]}
-      pointerEvents="box-none"
-    >
+    return (
       <View
-        style={styles.header}
+        style={[styles.floatingHeaderContainer, containerStyle]}
         pointerEvents="box-none"
-        onLayout={(e) =>
-          onLayoutHeader?.(Math.round(e.nativeEvent.layout.height))
-        }
       >
         <View
-          style={[
-            styles.headerIsland,
-            isLandscape && styles.headerIslandLandscape,
-          ]}
+          style={styles.header}
+          pointerEvents="box-none"
+          onLayout={(e) =>
+            onLayoutHeader?.(Math.round(e.nativeEvent.layout.height))
+          }
         >
-          {!isLandscape && (
-            <View style={styles.titleRow}>
-              <TouchableOpacity
-                onPress={onClear}
-                disabled={!onClear}
-                activeOpacity={0.7}
-                accessibilityRole="button"
-                accessibilityLabel="Moluxis Home"
-              >
-                <Text allowFontScaling={false} style={styles.title}>
-                  Moluxis
-                </Text>
-              </TouchableOpacity>
+          <View
+            style={[
+              styles.headerIsland,
+              isLandscape && styles.headerIslandLandscape,
+            ]}
+          >
+            {!isLandscape && (
+              <View style={styles.titleRow}>
+                <TouchableOpacity
+                  onPress={onClear}
+                  disabled={!onClear}
+                  activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityLabel="Moluxis Home"
+                >
+                  <Text allowFontScaling={false} style={styles.title}>
+                    Moluxis
+                  </Text>
+                </TouchableOpacity>
 
-              <View style={styles.headerTopActions}>
-                {moleculeData && onToggleBookmark && (
-                  <TouchableOpacity
-                    testID="header-bookmark-button"
-                    accessibilityRole="button"
-                    accessibilityLabel={
-                      isBookmarked
-                        ? `Remove ${moleculeData.name} from bookmarks`
-                        : `Bookmark ${moleculeData.name}`
-                    }
-                    style={[
-                      styles.headerIconButton,
-                      isBookmarked && styles.headerIconButtonActive,
-                    ]}
-                    onPress={onToggleBookmark}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                  >
-                    <Ionicons
-                      name={isBookmarked ? "bookmark" : "bookmark-outline"}
-                      size={20}
-                      color={
-                        isBookmarked ? COLORS.warning : COLORS.textSecondary
+                <View style={styles.headerTopActions}>
+                  {moleculeData && onToggleBookmark && (
+                    <TouchableOpacity
+                      testID="header-bookmark-button"
+                      accessibilityRole="button"
+                      accessibilityLabel={
+                        isBookmarked
+                          ? `Remove ${moleculeData.name} from bookmarks`
+                          : `Bookmark ${moleculeData.name}`
                       }
-                    />
-                  </TouchableOpacity>
-                )}
+                      style={[
+                        styles.headerIconButton,
+                        isBookmarked && styles.headerIconButtonActive,
+                      ]}
+                      onPress={onToggleBookmark}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                      <Ionicons
+                        name={isBookmarked ? "bookmark" : "bookmark-outline"}
+                        size={20}
+                        color={
+                          isBookmarked ? COLORS.warning : COLORS.textSecondary
+                        }
+                      />
+                    </TouchableOpacity>
+                  )}
 
-                {onOpenHistory && (
+                  {onOpenHistory && (
+                    <TouchableOpacity
+                      testID="header-history-button"
+                      accessibilityRole="button"
+                      accessibilityLabel="Open search history and bookmarks"
+                      style={styles.headerIconButton}
+                      onPress={onOpenHistory}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                      <Ionicons
+                        name="time-outline"
+                        size={20}
+                        color={COLORS.textSecondary}
+                      />
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+            )}
+            <View
+              style={[
+                styles.searchRow,
+                isLandscape && styles.searchRowLandscape,
+              ]}
+            >
+              <View style={styles.inputWrapper}>
+                <TextInput
+                  ref={searchInputRef}
+                  allowFontScaling={false}
+                  style={[
+                    styles.input,
+                    isLandscape && styles.inputLandscape,
+                    Boolean(searchText || moleculeData) &&
+                      styles.inputWithClear,
+                  ]}
+                  placeholder="Search by name or formula"
+                  placeholderTextColor={COLORS.textSecondary}
+                  value={searchText}
+                  onChangeText={onTextChange}
+                  onFocus={onFocus}
+                  returnKeyType="search"
+                  onSubmitEditing={() => onSearch()}
+                  keyboardAppearance="dark"
+                />
+                {Boolean(searchText || moleculeData) && onClear && (
                   <TouchableOpacity
-                    testID="header-history-button"
+                    testID="clear-search-button"
                     accessibilityRole="button"
-                    accessibilityLabel="Open search history and bookmarks"
-                    style={styles.headerIconButton}
-                    onPress={onOpenHistory}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    accessibilityLabel="Clear and back to showcase"
+                    style={styles.clearButton}
+                    onPress={onClear}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                   >
                     <Ionicons
-                      name="time-outline"
+                      name="close-circle"
                       size={20}
                       color={COLORS.textSecondary}
                     />
                   </TouchableOpacity>
                 )}
               </View>
-            </View>
-          )}
-          <View
-            style={[styles.searchRow, isLandscape && styles.searchRowLandscape]}
-          >
-            <View style={styles.inputWrapper}>
-              <TextInput
-                ref={searchInputRef}
-                allowFontScaling={false}
+              <TouchableOpacity
                 style={[
-                  styles.input,
-                  isLandscape && styles.inputLandscape,
-                  Boolean(searchText || moleculeData) && styles.inputWithClear,
+                  styles.button,
+                  isLandscape && styles.buttonLandscape,
+                  isLoading && styles.buttonDisabled,
                 ]}
-                placeholder="Search by name or formula"
-                placeholderTextColor={COLORS.textSecondary}
-                value={searchText}
-                onChangeText={onTextChange}
-                onFocus={onFocus}
-                returnKeyType="search"
-                onSubmitEditing={() => onSearch()}
-                keyboardAppearance="dark"
-              />
-              {Boolean(searchText || moleculeData) && onClear && (
+                onPress={() => onSearch()}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <ActivityIndicator color={COLORS.textPrimary} size="small" />
+                ) : (
+                  <Ionicons
+                    name="search"
+                    size={20}
+                    color={COLORS.textPrimary}
+                  />
+                )}
+              </TouchableOpacity>
+
+              {isLandscape && moleculeData && onToggleBookmark && (
                 <TouchableOpacity
-                  testID="clear-search-button"
+                  testID="header-bookmark-button"
                   accessibilityRole="button"
-                  accessibilityLabel="Clear and back to showcase"
-                  style={styles.clearButton}
-                  onPress={onClear}
-                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  accessibilityLabel={
+                    isBookmarked
+                      ? `Remove ${moleculeData.name} from bookmarks`
+                      : `Bookmark ${moleculeData.name}`
+                  }
+                  style={[
+                    styles.headerIconButton,
+                    styles.headerIconButtonLandscape,
+                    isBookmarked && styles.headerIconButtonActive,
+                  ]}
+                  onPress={onToggleBookmark}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
                   <Ionicons
-                    name="close-circle"
+                    name={isBookmarked ? "bookmark" : "bookmark-outline"}
+                    size={20}
+                    color={isBookmarked ? COLORS.warning : COLORS.textSecondary}
+                  />
+                </TouchableOpacity>
+              )}
+
+              {isLandscape && onOpenHistory && (
+                <TouchableOpacity
+                  testID="header-history-button"
+                  accessibilityRole="button"
+                  accessibilityLabel="Open search history and bookmarks"
+                  style={[
+                    styles.headerIconButton,
+                    styles.headerIconButtonLandscape,
+                  ]}
+                  onPress={onOpenHistory}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Ionicons
+                    name="time-outline"
                     size={20}
                     color={COLORS.textSecondary}
                   />
                 </TouchableOpacity>
               )}
             </View>
-            <TouchableOpacity
-              style={[
-                styles.button,
-                isLandscape && styles.buttonLandscape,
-                isLoading && styles.buttonDisabled,
-              ]}
-              onPress={() => onSearch()}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <ActivityIndicator color={COLORS.textPrimary} size="small" />
-              ) : (
-                <Ionicons name="search" size={20} color={COLORS.textPrimary} />
-              )}
-            </TouchableOpacity>
 
-            {isLandscape && moleculeData && onToggleBookmark && (
-              <TouchableOpacity
-                testID="header-bookmark-button"
-                accessibilityRole="button"
-                accessibilityLabel={
-                  isBookmarked
-                    ? `Remove ${moleculeData.name} from bookmarks`
-                    : `Bookmark ${moleculeData.name}`
-                }
-                style={[
-                  styles.headerIconButton,
-                  styles.headerIconButtonLandscape,
-                  isBookmarked && styles.headerIconButtonActive,
-                ]}
-                onPress={onToggleBookmark}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              >
-                <Ionicons
-                  name={isBookmarked ? "bookmark" : "bookmark-outline"}
-                  size={20}
-                  color={isBookmarked ? COLORS.warning : COLORS.textSecondary}
+            {/* Autocomplete Dropdown */}
+            {showSuggestions && suggestions.length > 0 && (
+              <View style={styles.suggestionsContainer}>
+                <FlatList
+                  data={suggestions}
+                  keyExtractor={(item, index) => `${item}-${index}`}
+                  renderItem={renderSuggestionItem}
+                  keyboardShouldPersistTaps="handled"
+                  style={{ maxHeight: 200 }}
                 />
-              </TouchableOpacity>
+              </View>
             )}
 
-            {isLandscape && onOpenHistory && (
-              <TouchableOpacity
-                testID="header-history-button"
-                accessibilityRole="button"
-                accessibilityLabel="Open search history and bookmarks"
-                style={[
-                  styles.headerIconButton,
-                  styles.headerIconButtonLandscape,
-                ]}
-                onPress={onOpenHistory}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              >
-                <Ionicons
-                  name="time-outline"
-                  size={20}
-                  color={COLORS.textSecondary}
+            {/* In LANDSCAPE: compact controls row INSIDE the island */}
+            {isLandscape && moleculeData && !isLoading && (
+              <View style={styles.islandInlineControls}>
+                <StructureControls
+                  moleculeData={moleculeData}
+                  isAnimated={isAnimated}
+                  structureFormat={structureFormat}
+                  onToggleAnimation={onToggleAnimation}
+                  onSelectFormat={onSelectFormat}
+                  styles={styles}
                 />
-              </TouchableOpacity>
+              </View>
             )}
           </View>
 
-          {/* Autocomplete Dropdown */}
-          {showSuggestions && suggestions.length > 0 && (
-            <View style={styles.suggestionsContainer}>
-              <FlatList
-                data={suggestions}
-                keyExtractor={(item) => item}
-                renderItem={renderSuggestionItem}
-                keyboardShouldPersistTaps="handled"
-                style={{ maxHeight: 200 }}
-              />
-            </View>
-          )}
-
-          {/* In LANDSCAPE: compact controls row INSIDE the island */}
-          {isLandscape && moleculeData && !isLoading && (
-            <View style={styles.islandInlineControls}>
+          {/* In PORTRAIT: controls row BELOW the island */}
+          {!isLandscape && moleculeData && !isLoading && (
+            <View
+              style={styles.controlsRow}
+              pointerEvents={showInfo ? "none" : "auto"}
+            >
               <StructureControls
                 moleculeData={moleculeData}
                 isAnimated={isAnimated}
@@ -281,24 +308,9 @@ export const FloatingHeader: React.FC<FloatingHeaderProps> = ({
             </View>
           )}
         </View>
-
-        {/* In PORTRAIT: controls row BELOW the island */}
-        {!isLandscape && moleculeData && !isLoading && (
-          <View
-            style={styles.controlsRow}
-            pointerEvents={showInfo ? "none" : "auto"}
-          >
-            <StructureControls
-              moleculeData={moleculeData}
-              isAnimated={isAnimated}
-              structureFormat={structureFormat}
-              onToggleAnimation={onToggleAnimation}
-              onSelectFormat={onSelectFormat}
-              styles={styles}
-            />
-          </View>
-        )}
       </View>
-    </View>
-  );
-};
+    );
+  },
+);
+
+FloatingHeader.displayName = "FloatingHeader";

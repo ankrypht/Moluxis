@@ -47,7 +47,10 @@ export const getHistoryBookmarksModalStyles = ({
       borderBottomRightRadius: 0,
     },
     modalHeader: {
-      paddingHorizontal: scaleSize(18),
+      paddingLeft: scaleSize(18),
+      paddingRight: isLandscape
+        ? Math.max(insets.right, scaleSize(18))
+        : scaleSize(18),
       paddingTop: isLandscape
         ? Math.max(insets.top, scaleSize(12))
         : scaleSize(16),
@@ -152,9 +155,14 @@ export const getHistoryBookmarksModalStyles = ({
       alignItems: "center",
     },
     listContent: {
-      paddingHorizontal: scaleSize(20),
+      paddingLeft: scaleSize(20),
+      paddingRight: isLandscape
+        ? Math.max(insets.right, scaleSize(20))
+        : scaleSize(20),
       paddingTop: scaleSize(12),
-      paddingBottom: scaleSize(32),
+      paddingBottom: isLandscape
+        ? Math.max(insets.bottom, scaleSize(16)) + scaleSize(16)
+        : scaleSize(32),
     },
     itemCard: {
       backgroundColor: COLORS.surfaceElevated,

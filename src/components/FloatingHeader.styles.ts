@@ -81,12 +81,6 @@ export const getFloatingHeaderStyles = ({
       height: scaleSize(40),
       borderRadius: scaleSize(14),
     },
-    titleLandscape: {
-      display: "none",
-    },
-    titleRowLandscape: {
-      display: "none",
-    },
     searchRow: {
       flexDirection: "row",
       gap: hScaleSize(12),
@@ -172,6 +166,9 @@ export const getFloatingHeaderStyles = ({
       paddingHorizontal: hScaleSize(16),
       marginTop: scaleSize(12),
       zIndex: 50,
+      maxWidth: 500,
+      width: "100%",
+      alignSelf: "center",
     },
     islandInlineControls: {
       flexDirection: "row",

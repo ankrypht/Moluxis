@@ -11,6 +11,7 @@ import {
   Keyboard,
   useWindowDimensions,
   ViewStyle,
+  Platform,
 } from "react-native";
 import {
   useSafeAreaInsets,
@@ -145,8 +146,10 @@ function MoleculeExplorer() {
   }
 
   useEffect(() => {
-    // Hide navigation bar
-    NavigationBar.setHidden(true);
+    // Hide navigation bar on Android only
+    if (Platform.OS === "android") {
+      NavigationBar.setHidden(true);
+    }
   }, []);
 
   const toggleAnimation = useCallback(

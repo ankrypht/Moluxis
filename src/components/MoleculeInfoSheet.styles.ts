@@ -40,7 +40,10 @@ export const getMoleculeInfoSheetStyles = ({
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      paddingHorizontal: scaleSize(24),
+      paddingLeft: scaleSize(24),
+      paddingRight: isLandscape
+        ? Math.max(insets.right, scaleSize(24))
+        : scaleSize(24),
       paddingTop: isLandscape
         ? Math.max(insets.top, scaleSize(16))
         : scaleSize(20),
@@ -154,12 +157,6 @@ export const getMoleculeInfoSheetStyles = ({
       fontWeight: "800",
       color: COLORS.danger,
       marginBottom: scaleSize(8),
-    },
-    safetyText: {
-      fontSize: scaleSize(14),
-      color: COLORS.textSecondary,
-      marginBottom: scaleSize(6),
-      lineHeight: scaleSize(22),
     },
     hazardText: {
       fontSize: scaleSize(14),

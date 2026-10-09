@@ -63,6 +63,9 @@ export const getStructureControlsStyles = ({
     badgeTextNotAvailable: {
       color: COLORS.textMuted,
     },
+    switchScale: {
+      transform: [{ scale: 0.8 }],
+    },
   });
 
 export type StructureControlsStyles = ReturnType<

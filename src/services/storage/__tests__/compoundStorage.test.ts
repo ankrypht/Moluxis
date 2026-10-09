@@ -126,6 +126,21 @@ describe("compoundStorage", () => {
       expect(items[0].name).toBe("Methanol");
     });
 
+    it("deduplicates case-insensitively when reading from storage", async () => {
+      mockStorageMap.set(
+        HISTORY_STORAGE_KEY,
+        JSON.stringify([
+          { name: "Ibuprofen", cid: "5761" },
+          { name: "ibuprofen", cid: "5761" },
+          { name: "Aspirin", cid: "2244" },
+        ]),
+      );
+      const items = await getRecentHistory();
+      expect(items).toHaveLength(2);
+      expect(items[0].name).toBe("Ibuprofen");
+      expect(items[1].name).toBe("Aspirin");
+    });
+
     it("preserves existing items when AsyncStorage.setItem fails during add", async () => {
       await addRecentHistory({ name: "Caffeine" });
       (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce(

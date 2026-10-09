@@ -1,8 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { formatSubscriptFormula } from "../utils/formula";
 
-export { formatSubscriptFormula };
-
 export type FeaturedCategoryKey = "biochemicals" | "medicinal" | "crystals";
 
 export interface FeaturedMolecule {
@@ -197,3 +195,12 @@ export const FEATURED_MOLECULES: FeaturedMolecule[] = [
     accentBg: "rgba(6, 182, 212, 0.15)",
   },
 ];
+
+export const FEATURED_MOLECULES_BY_CATEGORY: Record<
+  FeaturedCategoryKey,
+  FeaturedMolecule[]
+> = {
+  biochemicals: FEATURED_MOLECULES.filter((m) => m.category === "biochemicals"),
+  medicinal: FEATURED_MOLECULES.filter((m) => m.category === "medicinal"),
+  crystals: FEATURED_MOLECULES.filter((m) => m.category === "crystals"),
+};

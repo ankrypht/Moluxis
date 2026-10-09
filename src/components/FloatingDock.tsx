@@ -66,233 +66,240 @@ const STYLES_LIST: StyleOption[] = [
   },
 ];
 
-export const FloatingDock: React.FC<FloatingDockProps> = ({
-  vizStyle,
-  showLabels,
-  showInfo,
-  showStyleMenu,
-  containerStyle,
-  styles,
-  onSelectStyle,
-  onToggleStyleMenu,
-  onToggleInfo,
-  onToggleLabels,
-  onEnterZenMode,
-  isLandscape = false,
-}) => {
-  const isCompact = Boolean(isLandscape && showInfo);
+export const FloatingDock: React.FC<FloatingDockProps> = React.memo(
+  ({
+    vizStyle,
+    showLabels,
+    showInfo,
+    showStyleMenu,
+    containerStyle,
+    styles,
+    onSelectStyle,
+    onToggleStyleMenu,
+    onToggleInfo,
+    onToggleLabels,
+    onEnterZenMode,
+    isLandscape = false,
+  }) => {
+    const isCompact = Boolean(isLandscape && showInfo);
+    const iconSpacingStyle = isCompact
+      ? styles.dockIconCompact
+      : styles.dockIcon;
 
-  return (
-    <View
-      style={[styles.floatingDockContainer, containerStyle]}
-      pointerEvents="box-none"
-    >
-      {showStyleMenu && (
-        <View
-          style={[
-            styles.styleMenu,
-            isLandscape && styles.styleMenuLandscape,
-            isCompact && styles.styleMenuCompact,
-          ]}
-        >
-          <View style={styles.styleMenuHeader}>
-            <Ionicons
-              name="sparkles-outline"
-              size={12}
-              color={COLORS.textMuted}
-              allowFontScaling={false}
-            />
-            <Text allowFontScaling={false} style={styles.styleMenuTitle}>
-              Render Style
-            </Text>
-          </View>
-          {STYLES_LIST.map(({ id: style, label, icon, color, accentBg }) => {
-            const isActive = vizStyle === style;
-            return (
-              <TouchableOpacity
-                key={style}
-                style={[
-                  styles.styleMenuItem,
-                  isActive && [
-                    styles.styleMenuItemActive,
-                    {
-                      backgroundColor: accentBg,
-                      borderColor: addOpacity(color, 0.35),
-                    },
-                  ],
-                ]}
-                onPress={() => onSelectStyle(style)}
-                activeOpacity={0.7}
-                accessibilityRole="button"
-                accessibilityLabel={`${label} style`}
-                accessibilityState={{ selected: isActive }}
-              >
-                <View style={styles.styleMenuItemLeft}>
-                  <View
-                    style={[
-                      styles.styleMenuIconBadge,
-                      { backgroundColor: accentBg },
-                    ]}
-                  >
+    return (
+      <View
+        style={[styles.floatingDockContainer, containerStyle]}
+        pointerEvents="box-none"
+      >
+        {showStyleMenu && (
+          <View
+            style={[
+              styles.styleMenu,
+              isLandscape && styles.styleMenuLandscape,
+              isCompact && styles.styleMenuCompact,
+            ]}
+          >
+            <View style={styles.styleMenuHeader}>
+              <Ionicons
+                name="sparkles-outline"
+                size={12}
+                color={COLORS.textMuted}
+                allowFontScaling={false}
+              />
+              <Text allowFontScaling={false} style={styles.styleMenuTitle}>
+                Render Style
+              </Text>
+            </View>
+            {STYLES_LIST.map(({ id: style, label, icon, color, accentBg }) => {
+              const isActive = vizStyle === style;
+              return (
+                <TouchableOpacity
+                  key={style}
+                  style={[
+                    styles.styleMenuItem,
+                    isActive && [
+                      styles.styleMenuItemActive,
+                      {
+                        backgroundColor: accentBg,
+                        borderColor: addOpacity(color, 0.35),
+                      },
+                    ],
+                  ]}
+                  onPress={() => onSelectStyle(style)}
+                  activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${label} style`}
+                  accessibilityState={{ selected: isActive }}
+                >
+                  <View style={styles.styleMenuItemLeft}>
+                    <View
+                      style={[
+                        styles.styleMenuIconBadge,
+                        { backgroundColor: accentBg },
+                      ]}
+                    >
+                      <Ionicons
+                        name={icon}
+                        size={14}
+                        color={color}
+                        allowFontScaling={false}
+                      />
+                    </View>
+                    <Text
+                      allowFontScaling={false}
+                      style={[
+                        styles.styleMenuItemText,
+                        isActive && [
+                          styles.styleMenuItemTextActive,
+                          { color: COLORS.textPrimary },
+                        ],
+                      ]}
+                    >
+                      {label}
+                    </Text>
+                  </View>
+                  {isActive && (
                     <Ionicons
-                      name={icon}
-                      size={14}
+                      name="checkmark-circle"
+                      size={17}
                       color={color}
                       allowFontScaling={false}
                     />
-                  </View>
-                  <Text
-                    allowFontScaling={false}
-                    style={[
-                      styles.styleMenuItemText,
-                      isActive && [
-                        styles.styleMenuItemTextActive,
-                        { color: COLORS.textPrimary },
-                      ],
-                    ]}
-                  >
-                    {label}
-                  </Text>
-                </View>
-                {isActive && (
-                  <Ionicons
-                    name="checkmark-circle"
-                    size={17}
-                    color={color}
-                    allowFontScaling={false}
-                  />
-                )}
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      )}
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        )}
 
-      <View style={[styles.dock, isCompact && styles.dockCompact]}>
-        <View
-          style={[styles.dockScroll, isCompact && styles.dockScrollCompact]}
-        >
-          <TouchableOpacity
-            style={[styles.dockChip, isCompact && styles.dockChipCompact]}
-            onPress={onEnterZenMode}
-            activeOpacity={0.7}
-            accessibilityRole="button"
-            accessibilityLabel="Enter Zen full screen mode"
+        <View style={[styles.dock, isCompact && styles.dockCompact]}>
+          <View
+            style={[styles.dockScroll, isCompact && styles.dockScrollCompact]}
           >
-            <Ionicons
-              allowFontScaling={false}
-              name="expand-outline"
-              size={isCompact ? 16 : styles.infoIcon.fontSize}
-              color={COLORS.textSecondary}
-              style={{ marginRight: isCompact ? 3 : 4 }}
-            />
-            <Text
-              allowFontScaling={false}
-              style={[
-                styles.dockChipText,
-                isCompact && styles.dockChipTextCompact,
-              ]}
+            <TouchableOpacity
+              style={[styles.dockChip, isCompact && styles.dockChipCompact]}
+              onPress={onEnterZenMode}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Enter Zen full screen mode"
             >
-              Zen
-            </Text>
-          </TouchableOpacity>
+              <Ionicons
+                allowFontScaling={false}
+                name="expand-outline"
+                size={isCompact ? 16 : styles.infoIcon.fontSize}
+                color={COLORS.textSecondary}
+                style={iconSpacingStyle}
+              />
+              <Text
+                allowFontScaling={false}
+                style={[
+                  styles.dockChipText,
+                  isCompact && styles.dockChipTextCompact,
+                ]}
+              >
+                Zen
+              </Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[
-              styles.dockChip,
-              isCompact && styles.dockChipCompact,
-              showInfo && styles.dockChipActive,
-            ]}
-            onPress={onToggleInfo}
-            activeOpacity={0.7}
-            accessibilityRole="button"
-            accessibilityLabel="Toggle molecule information"
-            accessibilityState={{ selected: showInfo }}
-          >
-            <Ionicons
-              allowFontScaling={false}
-              name={
-                showInfo ? "information-circle" : "information-circle-outline"
-              }
-              size={isCompact ? 16 : styles.infoIcon.fontSize}
-              color={showInfo ? COLORS.primary : COLORS.textSecondary}
-              style={{ marginRight: isCompact ? 3 : 4 }}
-            />
-            <Text
-              allowFontScaling={false}
+            <TouchableOpacity
               style={[
-                styles.dockChipText,
-                isCompact && styles.dockChipTextCompact,
-                showInfo && styles.dockChipTextActive,
+                styles.dockChip,
+                isCompact && styles.dockChipCompact,
+                showInfo && styles.dockChipActive,
               ]}
+              onPress={onToggleInfo}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Toggle molecule information"
+              accessibilityState={{ selected: showInfo }}
             >
-              Info
-            </Text>
-          </TouchableOpacity>
+              <Ionicons
+                allowFontScaling={false}
+                name={
+                  showInfo ? "information-circle" : "information-circle-outline"
+                }
+                size={isCompact ? 16 : styles.infoIcon.fontSize}
+                color={showInfo ? COLORS.primary : COLORS.textSecondary}
+                style={iconSpacingStyle}
+              />
+              <Text
+                allowFontScaling={false}
+                style={[
+                  styles.dockChipText,
+                  isCompact && styles.dockChipTextCompact,
+                  showInfo && styles.dockChipTextActive,
+                ]}
+              >
+                Info
+              </Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[
-              styles.dockChip,
-              isCompact && styles.dockChipCompact,
-              showLabels && styles.dockChipActive,
-            ]}
-            onPress={onToggleLabels}
-            activeOpacity={0.7}
-            accessibilityRole="button"
-            accessibilityLabel="Toggle atom labels"
-            accessibilityState={{ selected: showLabels }}
-          >
-            <Ionicons
-              allowFontScaling={false}
-              name={showLabels ? "text" : "text-outline"}
-              size={isCompact ? 16 : styles.infoIcon.fontSize}
-              color={showLabels ? COLORS.primary : COLORS.textSecondary}
-              style={{ marginRight: isCompact ? 3 : 4 }}
-            />
-            <Text
-              allowFontScaling={false}
+            <TouchableOpacity
               style={[
-                styles.dockChipText,
-                isCompact && styles.dockChipTextCompact,
-                showLabels && styles.dockChipTextActive,
+                styles.dockChip,
+                isCompact && styles.dockChipCompact,
+                showLabels && styles.dockChipActive,
               ]}
+              onPress={onToggleLabels}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Toggle atom labels"
+              accessibilityState={{ selected: showLabels }}
             >
-              Labels
-            </Text>
-          </TouchableOpacity>
+              <Ionicons
+                allowFontScaling={false}
+                name={showLabels ? "text" : "text-outline"}
+                size={isCompact ? 16 : styles.infoIcon.fontSize}
+                color={showLabels ? COLORS.primary : COLORS.textSecondary}
+                style={iconSpacingStyle}
+              />
+              <Text
+                allowFontScaling={false}
+                style={[
+                  styles.dockChipText,
+                  isCompact && styles.dockChipTextCompact,
+                  showLabels && styles.dockChipTextActive,
+                ]}
+              >
+                Labels
+              </Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[
-              styles.dockChip,
-              isCompact && styles.dockChipCompact,
-              showStyleMenu && styles.dockChipActive,
-            ]}
-            onPress={onToggleStyleMenu}
-            activeOpacity={0.7}
-            accessibilityRole="button"
-            accessibilityLabel="Toggle rendering styles menu"
-            accessibilityState={{ expanded: showStyleMenu }}
-          >
-            <Ionicons
-              allowFontScaling={false}
-              name={showStyleMenu ? "cube" : "cube-outline"}
-              size={isCompact ? 16 : styles.infoIcon.fontSize}
-              color={showStyleMenu ? COLORS.primary : COLORS.textSecondary}
-              style={{ marginRight: isCompact ? 3 : 4 }}
-            />
-            <Text
-              allowFontScaling={false}
+            <TouchableOpacity
               style={[
-                styles.dockChipText,
-                isCompact && styles.dockChipTextCompact,
-                showStyleMenu && styles.dockChipTextActive,
+                styles.dockChip,
+                isCompact && styles.dockChipCompact,
+                showStyleMenu && styles.dockChipActive,
               ]}
+              onPress={onToggleStyleMenu}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Toggle rendering styles menu"
+              accessibilityState={{ expanded: showStyleMenu }}
             >
-              Style
-            </Text>
-          </TouchableOpacity>
+              <Ionicons
+                allowFontScaling={false}
+                name={showStyleMenu ? "cube" : "cube-outline"}
+                size={isCompact ? 16 : styles.infoIcon.fontSize}
+                color={showStyleMenu ? COLORS.primary : COLORS.textSecondary}
+                style={iconSpacingStyle}
+              />
+              <Text
+                allowFontScaling={false}
+                style={[
+                  styles.dockChipText,
+                  isCompact && styles.dockChipTextCompact,
+                  showStyleMenu && styles.dockChipTextActive,
+                ]}
+              >
+                Style
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
-    </View>
-  );
-};
+    );
+  },
+);
+
+FloatingDock.displayName = "FloatingDock";
