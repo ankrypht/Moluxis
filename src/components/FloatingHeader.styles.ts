@@ -158,6 +158,9 @@ export const getFloatingHeaderStyles = ({
       borderColor: COLORS.border,
       overflow: "hidden",
     },
+    suggestionsList: {
+      maxHeight: scaleSize(200),
+    },
     controlsRow: {
       flexDirection: "row",
       justifyContent: "space-between",

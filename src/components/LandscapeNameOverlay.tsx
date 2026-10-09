@@ -7,15 +7,15 @@ export interface LandscapeNameOverlayProps {
   styles: OverlaysStyles;
 }
 
-export const LandscapeNameOverlay: React.FC<LandscapeNameOverlayProps> = ({
-  name,
-  styles,
-}) => {
-  return (
-    <View style={styles.landscapeNameOverlay} pointerEvents="none">
-      <Text allowFontScaling={false} style={styles.landscapeNameText}>
-        {name.toUpperCase()}
-      </Text>
-    </View>
-  );
-};
+export const LandscapeNameOverlay: React.FC<LandscapeNameOverlayProps> =
+  React.memo(({ name, styles }) => {
+    return (
+      <View style={styles.landscapeNameOverlay} pointerEvents="none">
+        <Text allowFontScaling={false} style={styles.landscapeNameText}>
+          {name.toUpperCase()}
+        </Text>
+      </View>
+    );
+  });
+
+LandscapeNameOverlay.displayName = "LandscapeNameOverlay";

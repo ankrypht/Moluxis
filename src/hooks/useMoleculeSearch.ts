@@ -27,6 +27,22 @@ export const clearMoleculeCache = () => {
 
 export const getMoleculeCacheSize = () => moleculeCache.size;
 
+const cacheMoleculeInRam = (term: string, molecule: MoleculeInfo) => {
+  while (moleculeCache.size >= MAX_MOLECULE_CACHE_SIZE) {
+    const oldestKey = moleculeCache.keys().next().value;
+    if (oldestKey) moleculeCache.delete(oldestKey);
+    else break;
+  }
+  moleculeCache.set(term, molecule);
+  if (molecule.cid) {
+    if (moleculeCache.size >= MAX_MOLECULE_CACHE_SIZE) {
+      const oldestKey = moleculeCache.keys().next().value;
+      if (oldestKey) moleculeCache.delete(oldestKey);
+    }
+    moleculeCache.set(molecule.cid, molecule);
+  }
+};
+
 export const useMoleculeSearch = () => {
   const {
     searchText,
@@ -127,14 +143,7 @@ export const useMoleculeSearch = () => {
 
       if (diskCached) {
         // Promote to Tier 1 RAM Cache
-        if (moleculeCache.size >= MAX_MOLECULE_CACHE_SIZE) {
-          const oldestKey = moleculeCache.keys().next().value;
-          if (oldestKey) moleculeCache.delete(oldestKey);
-        }
-        moleculeCache.set(normalizedTerm, diskCached);
-        if (diskCached.cid) {
-          moleculeCache.set(diskCached.cid, diskCached);
-        }
+        cacheMoleculeInRam(normalizedTerm, diskCached);
 
         setIsLoading(false);
         setMoleculeData(diskCached);
@@ -154,17 +163,8 @@ export const useMoleculeSearch = () => {
           return;
         }
 
-        // Evict oldest entry in RAM if capacity reached
-        if (moleculeCache.size >= MAX_MOLECULE_CACHE_SIZE) {
-          const oldestKey = moleculeCache.keys().next().value;
-          if (oldestKey) moleculeCache.delete(oldestKey);
-        }
-
         // Store in Tier 1 RAM cache
-        moleculeCache.set(normalizedTerm, result);
-        if (result.cid) {
-          moleculeCache.set(result.cid, result);
-        }
+        cacheMoleculeInRam(normalizedTerm, result);
 
         // Store in Tier 2 Disk cache in background
         saveCachedMolecule(result).catch(() => {});

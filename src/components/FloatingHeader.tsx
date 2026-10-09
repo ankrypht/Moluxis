@@ -341,7 +341,7 @@ export const FloatingHeader: React.FC<FloatingHeaderProps> = React.memo(
                   keyExtractor={(item, index) => `${item}-${index}`}
                   renderItem={renderSuggestionItem}
                   keyboardShouldPersistTaps="handled"
-                  style={{ maxHeight: 200 }}
+                  style={styles.suggestionsList}
                 />
               </View>
             )}

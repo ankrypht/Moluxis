@@ -12,6 +12,7 @@ import {
   useWindowDimensions,
   ViewStyle,
   Platform,
+  AppState,
 } from "react-native";
 import {
   useSafeAreaInsets,
@@ -145,9 +146,10 @@ function MoleculeExplorer() {
     moleculeData?.name && isBookmarked(moleculeData.name),
   );
 
+  const { top, bottom, left, right } = insets;
   const styles = useMemo(
-    () => getStyles(width, height, insets),
-    [width, height, insets],
+    () => getStyles(width, height, { top, bottom, left, right }),
+    [width, height, top, bottom, left, right],
   );
 
   const dynamicViewerContainerStyle = useMemo<ViewStyle>(
@@ -182,9 +184,15 @@ function MoleculeExplorer() {
   }
 
   useEffect(() => {
-    // Hide navigation bar on Android only
+    // Hide navigation bar on Android only and re-apply on app resume
     if (Platform.OS === "android") {
       NavigationBar.setHidden(true);
+      const subscription = AppState.addEventListener("change", (state) => {
+        if (state === "active") {
+          NavigationBar.setHidden(true);
+        }
+      });
+      return () => subscription.remove();
     }
   }, []);
 
@@ -203,15 +211,6 @@ function MoleculeExplorer() {
   );
 
   const handleSelectSuggestion = useCallback(
-    (item: string) => {
-      searchInputRef.current?.blur();
-      Keyboard.dismiss();
-      selectSuggestion(item);
-    },
-    [selectSuggestion],
-  );
-
-  const handleSelectFeaturedMolecule = useCallback(
     (item: string) => {
       searchInputRef.current?.blur();
       Keyboard.dismiss();
@@ -356,7 +355,7 @@ function MoleculeExplorer() {
         isInteracting={isInteracting}
         containerStyle={dynamicViewerContainerStyle}
         styles={styles}
-        onSelectMolecule={handleSelectFeaturedMolecule}
+        onSelectMolecule={handleSelectSuggestion}
         topOffset={headerHeight}
         history={history}
         bookmarks={bookmarks}
@@ -441,7 +440,7 @@ function MoleculeExplorer() {
       <HistoryBookmarksModal
         visible={showHistoryModal}
         onClose={handleCloseHistoryModal}
-        onSelectCompound={handleSelectFeaturedMolecule}
+        onSelectCompound={handleSelectSuggestion}
         history={history}
         bookmarks={bookmarks}
         onToggleBookmark={toggleBookmark}

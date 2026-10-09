@@ -8,35 +8,39 @@ interface PropertyRowProps {
   value: string | undefined;
 }
 
-export const PropertyRow: React.FC<PropertyRowProps> = ({ label, value }) => {
-  const { width, height } = useWindowDimensions();
+export const PropertyRow: React.FC<PropertyRowProps> = React.memo(
+  ({ label, value }) => {
+    const { width, height } = useWindowDimensions();
 
-  if (!value || value === "N/A") return null;
+    if (!value || value === "N/A") return null;
 
-  const responsiveFontSize = getResponsiveSize(14, width, height);
+    const responsiveFontSize = getResponsiveSize(14, width, height);
 
-  return (
-    <View
-      style={[
-        styles.propertyRow,
-        { paddingVertical: getResponsiveSize(8, width, height) },
-      ]}
-    >
-      <Text
-        allowFontScaling={false}
-        style={[styles.propertyLabel, { fontSize: responsiveFontSize }]}
+    return (
+      <View
+        style={[
+          styles.propertyRow,
+          { paddingVertical: getResponsiveSize(8, width, height) },
+        ]}
       >
-        {label}
-      </Text>
-      <Text
-        allowFontScaling={false}
-        style={[styles.propertyValue, { fontSize: responsiveFontSize }]}
-      >
-        {value}
-      </Text>
-    </View>
-  );
-};
+        <Text
+          allowFontScaling={false}
+          style={[styles.propertyLabel, { fontSize: responsiveFontSize }]}
+        >
+          {label}
+        </Text>
+        <Text
+          allowFontScaling={false}
+          style={[styles.propertyValue, { fontSize: responsiveFontSize }]}
+        >
+          {value}
+        </Text>
+      </View>
+    );
+  },
+);
+
+PropertyRow.displayName = "PropertyRow";
 
 const styles = StyleSheet.create({
   propertyRow: {
