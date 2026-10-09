@@ -1,5 +1,5 @@
 import { renderHook, act } from "@testing-library/react-native";
-import { useAutocomplete } from "../useAutocomplete";
+import { useAutocomplete, clearSuggestionCache } from "../useAutocomplete";
 import { fetchAutocomplete } from "../../services/pubchem/api";
 
 // Mock the API service
@@ -11,6 +11,7 @@ describe("useAutocomplete", () => {
   beforeEach(() => {
     jest.useFakeTimers();
     jest.clearAllMocks();
+    clearSuggestionCache();
   });
 
   afterEach(() => {

@@ -47,6 +47,7 @@ docs/
 CHANGELOG.md
 LICENSE
 README.md
+assets/screenshots/
 
 # Tests
 **/__tests__/**

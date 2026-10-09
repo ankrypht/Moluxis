@@ -240,20 +240,14 @@ export async function toggleBookmark(
       );
       return { bookmarks: updated, isBookmarked: false };
     } else {
-      const existing = current.find(
-        (entry) => entry.name.trim().toLowerCase() === normalizedName,
-      );
       const mergedItem: SavedCompoundItem = {
         name: item.name.trim(),
-        formula: item.formula || existing?.formula,
-        cid: item.cid || existing?.cid,
-        molecularWeight: item.molecularWeight || existing?.molecularWeight,
+        formula: item.formula,
+        cid: item.cid,
+        molecularWeight: item.molecularWeight,
         timestamp: item.timestamp ?? Date.now(),
       };
-      const filtered = current.filter(
-        (entry) => entry.name.trim().toLowerCase() !== normalizedName,
-      );
-      const updated = [mergedItem, ...filtered].slice(0, MAX_BOOKMARKS_ITEMS);
+      const updated = [mergedItem, ...current].slice(0, MAX_BOOKMARKS_ITEMS);
       await AsyncStorage.setItem(
         BOOKMARKS_STORAGE_KEY,
         JSON.stringify(updated),

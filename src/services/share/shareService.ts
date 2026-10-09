@@ -124,7 +124,9 @@ export async function shareSnapshotImage(
     const filename = `moluxis_${safeName || "compound"}_snapshot.png`;
     const baseDir =
       FileSystem.cacheDirectory || FileSystem.documentDirectory || "";
-    const fileUri = `${baseDir}${filename}`;
+    const normalizedDir =
+      baseDir && !baseDir.endsWith("/") ? `${baseDir}/` : baseDir;
+    const fileUri = `${normalizedDir}${filename}`;
 
     await FileSystem.writeAsStringAsync(fileUri, base64Data, {
       encoding: FileSystem.EncodingType.Base64,

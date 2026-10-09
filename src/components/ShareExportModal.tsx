@@ -82,20 +82,15 @@ export const ShareExportModal: React.FC<ShareExportModalProps> = React.memo(
             overshootClamping: true,
           }),
         ]).start();
-
-        // Auto-request snapshot if not yet captured
-        if (!snapshotUri && !isCapturingSnapshot) {
-          onRefreshSnapshot();
-        }
       }
-    }, [
-      visible,
-      slideAnim,
-      fadeAnim,
-      snapshotUri,
-      isCapturingSnapshot,
-      onRefreshSnapshot,
-    ]);
+    }, [visible, slideAnim, fadeAnim]);
+
+    // Auto-request snapshot if not yet captured when modal is visible
+    useEffect(() => {
+      if (visible && !snapshotUri && !isCapturingSnapshot) {
+        onRefreshSnapshot();
+      }
+    }, [visible, snapshotUri, isCapturingSnapshot, onRefreshSnapshot]);
 
     // If user tapped share snapshot while it was capturing, share once ready
     useEffect(() => {

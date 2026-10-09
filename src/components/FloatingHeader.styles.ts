@@ -143,7 +143,7 @@ export const getFloatingHeaderStyles = ({
     },
     suggestionsContainer: {
       position: "absolute",
-      top: "145%", // just below the header island
+      top: "140%", // just below the header island
       left: 0,
       right: 0,
       backgroundColor: COLORS.surface,
