@@ -6,11 +6,11 @@ import {
   FlatList,
   Animated,
   useAnimatedValue,
-  Alert,
   Pressable,
   useWindowDimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { Alert } from "./CustomAlert";
 import { SavedCompoundItem } from "../types";
 import { COLORS } from "../constants/colors";
 import { HistoryBookmarksModalStyles } from "./HistoryBookmarksModal.styles";

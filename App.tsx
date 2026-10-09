@@ -36,6 +36,7 @@ import { LandscapeNameOverlay } from "./src/components/LandscapeNameOverlay";
 import { ExitFullScreenButton } from "./src/components/ExitFullScreenButton";
 import { HistoryBookmarksModal } from "./src/components/HistoryBookmarksModal";
 import { ShareExportModal } from "./src/components/ShareExportModal";
+import { CustomAlertModal } from "./src/components/CustomAlert";
 
 export default function App() {
   return (
@@ -459,6 +460,13 @@ function MoleculeExplorer() {
         styles={styles}
         isLandscape={isLandscape}
         height={height}
+      />
+
+      {/* THEMED CUSTOM ALERT POPUP */}
+      <CustomAlertModal
+        styles={styles}
+        isLandscape={isLandscape}
+        insets={insets}
       />
     </View>
   );

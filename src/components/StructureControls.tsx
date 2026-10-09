@@ -1,6 +1,7 @@
 import React from "react";
-import { View, Text, Switch, TouchableOpacity, Alert } from "react-native";
+import { View, Text, Switch, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { Alert } from "./CustomAlert";
 import { MoleculeInfo } from "../types";
 import { COLORS, addOpacity } from "../constants/colors";
 import { StructureControlsStyles } from "./StructureControls.styles";

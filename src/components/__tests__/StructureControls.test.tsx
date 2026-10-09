@@ -1,5 +1,5 @@
 import React from "react";
-import { Alert } from "react-native";
+import { Alert } from "../CustomAlert";
 import { render, fireEvent } from "@testing-library/react-native";
 import { StructureControls } from "../StructureControls";
 import { getStructureControlsStyles } from "../StructureControls.styles";

@@ -1,6 +1,6 @@
 import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
-import { Alert } from "react-native";
+import { Alert } from "../CustomAlert";
 import { HistoryBookmarksModal } from "../HistoryBookmarksModal";
 import { getHistoryBookmarksModalStyles } from "../HistoryBookmarksModal.styles";
 import { getScaleMetrics } from "../../utils/scaling";

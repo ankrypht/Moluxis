@@ -1,0 +1,140 @@
+import { StyleSheet } from "react-native";
+import { COLORS, addOpacity } from "../constants/colors";
+import { ScaleMetrics } from "../utils/scaling";
+
+export const getCustomAlertStyles = ({
+  isLandscape,
+  scaleSize,
+}: ScaleMetrics) =>
+  StyleSheet.create({
+    alertContainer: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: 9999,
+      justifyContent: "center",
+      alignItems: "center",
+      paddingHorizontal: scaleSize(24),
+    },
+    alertBackdrop: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: addOpacity(COLORS.background, 0.78),
+    },
+    alertCard: {
+      backgroundColor: COLORS.surface,
+      borderRadius: scaleSize(24),
+      borderWidth: 1,
+      borderColor: addOpacity(COLORS.border, 0.75),
+      paddingHorizontal: scaleSize(22),
+      paddingTop: scaleSize(24),
+      paddingBottom: scaleSize(20),
+      width: "100%",
+      maxWidth: isLandscape ? scaleSize(380) : scaleSize(330),
+      alignItems: "center",
+      shadowColor: COLORS.shadow,
+      shadowOffset: { width: 0, height: 16 },
+      shadowOpacity: 0.7,
+      shadowRadius: 32,
+      elevation: 30,
+      zIndex: 10000,
+    },
+    alertIconBadge: {
+      width: scaleSize(54),
+      height: scaleSize(54),
+      borderRadius: scaleSize(27),
+      justifyContent: "center",
+      alignItems: "center",
+      marginBottom: scaleSize(16),
+      borderWidth: 1.5,
+    },
+    alertTitle: {
+      fontSize: scaleSize(17.5),
+      fontWeight: "700",
+      color: COLORS.textPrimary,
+      textAlign: "center",
+      letterSpacing: -0.3,
+      marginBottom: scaleSize(8),
+    },
+    alertMessage: {
+      fontSize: scaleSize(14),
+      fontWeight: "400",
+      color: COLORS.textSecondary,
+      textAlign: "center",
+      lineHeight: scaleSize(20),
+      marginBottom: scaleSize(22),
+      paddingHorizontal: scaleSize(4),
+    },
+    alertButtonRow: {
+      flexDirection: "row",
+      gap: scaleSize(10),
+      width: "100%",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    alertButtonColumn: {
+      flexDirection: "column",
+      gap: scaleSize(9),
+      width: "100%",
+    },
+    alertButton: {
+      flex: 1,
+      height: scaleSize(46),
+      borderRadius: scaleSize(14),
+      justifyContent: "center",
+      alignItems: "center",
+      paddingHorizontal: scaleSize(12),
+    },
+    alertButtonFullWidth: {
+      width: "100%",
+      height: scaleSize(46),
+      borderRadius: scaleSize(14),
+      justifyContent: "center",
+      alignItems: "center",
+      paddingHorizontal: scaleSize(12),
+    },
+    alertButtonPrimary: {
+      backgroundColor: COLORS.primary,
+      shadowColor: COLORS.primary,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.35,
+      shadowRadius: 6,
+      elevation: 4,
+    },
+    alertButtonSecondary: {
+      backgroundColor: COLORS.surfaceElevated,
+      borderWidth: 1,
+      borderColor: addOpacity(COLORS.border, 0.7),
+    },
+    alertButtonDestructive: {
+      backgroundColor: COLORS.danger,
+      shadowColor: COLORS.danger,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.35,
+      shadowRadius: 6,
+      elevation: 4,
+    },
+    alertButtonText: {
+      fontSize: scaleSize(14.5),
+      fontWeight: "600",
+      textAlign: "center",
+    },
+    alertButtonTextPrimary: {
+      color: COLORS.textOnPrimary,
+      fontWeight: "700",
+    },
+    alertButtonTextSecondary: {
+      color: COLORS.textSecondary,
+    },
+    alertButtonTextDestructive: {
+      color: "#FFFFFF",
+      fontWeight: "700",
+    },
+  });
+
+export type CustomAlertStyles = ReturnType<typeof getCustomAlertStyles>;

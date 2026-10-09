@@ -10,6 +10,7 @@ import { getOverlaysStyles } from "./src/components/Overlays.styles";
 import { getFeaturedMoleculesStyles } from "./src/components/FeaturedMolecules.styles";
 import { getHistoryBookmarksModalStyles } from "./src/components/HistoryBookmarksModal.styles";
 import { getShareExportModalStyles } from "./src/components/ShareExportModal.styles";
+import { getCustomAlertStyles } from "./src/components/CustomAlert.styles";
 
 export const getStyles = (width: number, height: number, insets: Insets) => {
   const metrics = getScaleMetrics(width, height, insets);
@@ -32,6 +33,7 @@ export const getStyles = (width: number, height: number, insets: Insets) => {
     ...getFeaturedMoleculesStyles(metrics),
     ...getHistoryBookmarksModalStyles(metrics),
     ...getShareExportModalStyles(metrics),
+    ...getCustomAlertStyles(metrics),
   };
 };
 

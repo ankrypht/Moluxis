@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Alert, Keyboard } from "react-native";
+import { Keyboard } from "react-native";
+import { Alert } from "../components/CustomAlert";
 import { MoleculeInfo } from "../types";
 import { useAutocomplete } from "./useAutocomplete";
 import { fetchMoleculeData } from "../services/pubchem/searchHelper";

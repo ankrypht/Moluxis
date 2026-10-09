@@ -1,5 +1,6 @@
 import { renderHook, act } from "@testing-library/react-native";
-import { Alert, Keyboard } from "react-native";
+import { Keyboard } from "react-native";
+import { Alert } from "../../components/CustomAlert";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useMoleculeSearch, clearMoleculeCache } from "../useMoleculeSearch";
 import { PubChemThrottledError } from "../../services/pubchem/circuitBreaker";
