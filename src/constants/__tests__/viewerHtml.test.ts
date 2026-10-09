@@ -59,6 +59,12 @@ describe("VIEWER_HTML", () => {
     expect(VIEWER_HTML).toContain("startAnimation()");
   });
 
+  it("should handle CAPTURE_SNAPSHOT messages and post SNAPSHOT_RESULT", () => {
+    expect(VIEWER_HTML).toContain("message.type === 'CAPTURE_SNAPSHOT'");
+    expect(VIEWER_HTML).toContain("viewer.pngURI()");
+    expect(VIEWER_HTML).toContain("type: 'SNAPSHOT_RESULT'");
+  });
+
   it("should have dark theme styles", () => {
     expect(VIEWER_HTML).toContain(`background-color: ${COLORS.background}`);
   });

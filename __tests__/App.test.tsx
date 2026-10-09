@@ -32,10 +32,31 @@ jest.mock("@react-native-async-storage/async-storage", () => ({
 jest.mock("react-native-webview", () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { View } = require("react-native");
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const React = require("react");
+  const MockWebView = React.forwardRef((props: any, ref: any) => {
+    React.useImperativeHandle(ref, () => ({
+      postMessage: jest.fn(),
+      reload: jest.fn(),
+    }));
+    return <View testID="molecule-webview" {...props} />;
+  });
+  MockWebView.displayName = "MockWebView";
   return {
-    WebView: View,
+    WebView: MockWebView,
   };
 });
+
+jest.mock("../src/services/share/shareService", () => ({
+  getCompoundPubChemUrl: jest.fn((cid) =>
+    cid ? `https://pubchem.ncbi.nlm.nih.gov/compound/${cid}` : null,
+  ),
+  shareCompoundDetails: jest.fn().mockResolvedValue(true),
+  sharePubChemLink: jest.fn().mockResolvedValue(true),
+  shareNameAndFormula: jest.fn().mockResolvedValue(true),
+  copyToClipboard: jest.fn().mockResolvedValue(true),
+  shareSnapshotImage: jest.fn().mockResolvedValue(true),
+}));
 
 const mockSearchMolecule = jest.fn();
 const mockSelectSuggestion = jest.fn();
@@ -408,5 +429,111 @@ describe("Recent Searches & Favorites", () => {
 
     // Info sheet is opened (e.g. Formula is displayed)
     expect(getByText("Formula")).toBeTruthy();
+  });
+});
+
+describe("Export & Share Feature", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.spyOn(Keyboard, "dismiss").mockImplementation(() => {});
+    mockMoleculeData = {
+      name: "Caffeine",
+      formula: "C8H10N4O2",
+      molecularWeight: "194.19",
+      cid: "2519",
+      sdf2d: "sdf2d-data",
+      sdf3d: "sdf3d-data",
+      properties: {},
+      safety: {},
+    };
+  });
+
+  it("opens Share modal from Floating Header and closes it cleanly", async () => {
+    const { getByTestId, queryByTestId, getAllByText } = render(<App />);
+
+    // Bottom dock should no longer have share chip
+    expect(queryByTestId("dock-share-chip")).toBeNull();
+
+    const headerShareBtn = getByTestId("header-share-button");
+    await act(async () => {
+      fireEvent.press(headerShareBtn);
+    });
+
+    expect(getByTestId("share-preview-card")).toBeTruthy();
+    expect(getAllByText("CAFFEINE").length).toBeGreaterThan(0);
+    expect(getByTestId("share-card-snapshot")).toBeTruthy();
+    expect(getByTestId("share-card-details")).toBeTruthy();
+
+    const closeBtn = getByTestId("close-share-modal");
+    await act(async () => {
+      fireEvent.press(closeBtn);
+    });
+
+    expect(queryByTestId("share-preview-card")).toBeNull();
+  });
+
+  it("opens Share modal from header share button", async () => {
+    const { getByTestId } = render(<App />);
+
+    const headerShareBtn = getByTestId("header-share-button");
+    await act(async () => {
+      fireEvent.press(headerShareBtn);
+    });
+
+    expect(getByTestId("share-preview-card")).toBeTruthy();
+  });
+
+  it("opens Share modal from info sheet share button", async () => {
+    const { getByTestId, getByText } = render(<App />);
+
+    // Open info sheet first
+    const infoChip = getByText("Info");
+    await act(async () => {
+      fireEvent.press(infoChip);
+    });
+
+    const sheetShareBtn = getByTestId("sheet-share-button");
+    await act(async () => {
+      fireEvent.press(sheetShareBtn);
+    });
+
+    expect(getByTestId("share-preview-card")).toBeTruthy();
+  });
+
+  it("automatically initiates snapshot capturing when share is opened from header without clicking reload", async () => {
+    const { getByTestId, getByText } = render(<App />);
+
+    // Signal webview is ready
+    const webview = getByTestId("molecule-webview");
+    act(() => {
+      webview.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: "WEBVIEW_READY" }),
+        },
+      });
+    });
+
+    const headerShareBtn = getByTestId("header-share-button");
+    await act(async () => {
+      fireEvent.press(headerShareBtn);
+    });
+
+    // Share modal is opened and shows capturing state automatically
+    expect(getByTestId("share-preview-card")).toBeTruthy();
+    expect(getByText("Capturing...")).toBeTruthy();
+
+    // When snapshot arrives from 3Dmol viewer, it automatically displays
+    act(() => {
+      webview.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: "SNAPSHOT_RESULT",
+            dataUri: "data:image/png;base64,auto-captured-snap",
+          }),
+        },
+      });
+    });
+
+    expect(getByTestId("snapshot-preview-image")).toBeTruthy();
   });
 });

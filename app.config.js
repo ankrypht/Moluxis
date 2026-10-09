@@ -38,6 +38,7 @@ export default {
   owner: "ankushsarkar",
   plugins: [
     "expo-font",
+    "expo-sharing",
     [
       "expo-build-properties",
       {

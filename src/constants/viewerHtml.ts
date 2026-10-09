@@ -240,6 +240,34 @@ export const VIEWER_HTML = `
           if (isAnimating && !isUserDragging) {
             startAnimation();
           }
+        } else if (message.type === 'CAPTURE_SNAPSHOT') {
+          try {
+            if (viewer) {
+              viewer.render();
+              var dataUri = viewer.pngURI();
+              if (window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === 'function') {
+                window.ReactNativeWebView.postMessage(JSON.stringify({
+                  type: 'SNAPSHOT_RESULT',
+                  dataUri: dataUri
+                }));
+              }
+            } else {
+              if (window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === 'function') {
+                window.ReactNativeWebView.postMessage(JSON.stringify({
+                  type: 'SNAPSHOT_ERROR',
+                  error: 'Viewer not initialized'
+                }));
+              }
+            }
+          } catch (captureErr) {
+            console.error('Snapshot capture error:', captureErr);
+            if (window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === 'function') {
+              window.ReactNativeWebView.postMessage(JSON.stringify({
+                type: 'SNAPSHOT_ERROR',
+                error: String(captureErr)
+              }));
+            }
+          }
         }
       } catch (err) {
         console.error('Message listener error:', err);

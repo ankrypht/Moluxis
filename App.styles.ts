@@ -9,6 +9,7 @@ import { getMoleculeInfoSheetStyles } from "./src/components/MoleculeInfoSheet.s
 import { getOverlaysStyles } from "./src/components/Overlays.styles";
 import { getFeaturedMoleculesStyles } from "./src/components/FeaturedMolecules.styles";
 import { getHistoryBookmarksModalStyles } from "./src/components/HistoryBookmarksModal.styles";
+import { getShareExportModalStyles } from "./src/components/ShareExportModal.styles";
 
 export const getStyles = (width: number, height: number, insets: Insets) => {
   const metrics = getScaleMetrics(width, height, insets);
@@ -30,6 +31,7 @@ export const getStyles = (width: number, height: number, insets: Insets) => {
     ...getOverlaysStyles(metrics),
     ...getFeaturedMoleculesStyles(metrics),
     ...getHistoryBookmarksModalStyles(metrics),
+    ...getShareExportModalStyles(metrics),
   };
 };
 

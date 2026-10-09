@@ -25,13 +25,17 @@ import { useMoleculeSearch } from "./src/hooks/useMoleculeSearch";
 import { useCompoundHistoryAndBookmarks } from "./src/hooks/useCompoundHistoryAndBookmarks";
 import { getStyles } from "./App.styles";
 
-import { MoleculeViewer } from "./src/components/MoleculeViewer";
+import {
+  MoleculeViewer,
+  MoleculeViewerRef,
+} from "./src/components/MoleculeViewer";
 import { FloatingHeader } from "./src/components/FloatingHeader";
 import { FloatingDock } from "./src/components/FloatingDock";
 import { MoleculeInfoSheet } from "./src/components/MoleculeInfoSheet";
 import { LandscapeNameOverlay } from "./src/components/LandscapeNameOverlay";
 import { ExitFullScreenButton } from "./src/components/ExitFullScreenButton";
 import { HistoryBookmarksModal } from "./src/components/HistoryBookmarksModal";
+import { ShareExportModal } from "./src/components/ShareExportModal";
 
 export default function App() {
   return (
@@ -72,6 +76,7 @@ function MoleculeExplorer() {
 
   // Visualization State
   const searchInputRef = useRef<TextInput>(null);
+  const moleculeViewerRef = useRef<MoleculeViewerRef>(null);
   const [vizStyle, setVizStyle] = useState<VisualizationType>("ballStick");
   const [showLabels, setShowLabels] = useState(false);
   const [isAnimated, setIsAnimated] = useState(true);
@@ -85,6 +90,9 @@ function MoleculeExplorer() {
   const [historyModalTab, setHistoryModalTab] = useState<
     "history" | "bookmarks"
   >("history");
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [snapshotUri, setSnapshotUri] = useState<string | null>(null);
+  const [isCapturingSnapshot, setIsCapturingSnapshot] = useState(false);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
   useEffect(() => {
@@ -101,7 +109,7 @@ function MoleculeExplorer() {
   }, []);
 
   const isInteracting = Boolean(
-    isKeyboardVisible || showHistoryModal || showSuggestions,
+    isKeyboardVisible || showHistoryModal || showSuggestions || showShareModal,
   );
 
   // Automatically record inspected compounds in search history
@@ -154,6 +162,8 @@ function MoleculeExplorer() {
 
   if (moleculeData !== prevMoleculeData) {
     setPrevMoleculeData(moleculeData);
+    setSnapshotUri(null);
+    setIsCapturingSnapshot(false);
     if (moleculeData) {
       if (moleculeData.sdf3d || moleculeData.useCif) {
         setStructureFormat("3d");
@@ -209,6 +219,7 @@ function MoleculeExplorer() {
     setShowInfo(false);
     setShowStyleMenu(false);
     setShowHistoryModal(false);
+    setShowShareModal(false);
     clearMolecule();
   }, [clearMolecule]);
 
@@ -264,11 +275,58 @@ function MoleculeExplorer() {
     setShowStyleMenu(false);
   }, []);
 
+  const snapshotTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (snapshotTimeoutRef.current) {
+        clearTimeout(snapshotTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleCaptureSnapshot = useCallback(() => {
+    if (snapshotTimeoutRef.current) {
+      clearTimeout(snapshotTimeoutRef.current);
+    }
+    setIsCapturingSnapshot(true);
+    setSnapshotUri(null);
+    moleculeViewerRef.current?.captureSnapshot();
+
+    snapshotTimeoutRef.current = setTimeout(() => {
+      setIsCapturingSnapshot(false);
+    }, 4000);
+  }, []);
+
+  const handleSnapshotCaptured = useCallback((uri: string | null) => {
+    if (snapshotTimeoutRef.current) {
+      clearTimeout(snapshotTimeoutRef.current);
+      snapshotTimeoutRef.current = null;
+    }
+    setSnapshotUri(uri);
+    setIsCapturingSnapshot(false);
+  }, []);
+
+  const handleOpenShareModal = useCallback(() => {
+    searchInputRef.current?.blur();
+    Keyboard.dismiss();
+    setShowShareModal(true);
+    setShowInfo(false);
+    setShowStyleMenu(false);
+    setShowHistoryModal(false);
+    handleCaptureSnapshot();
+  }, [handleCaptureSnapshot]);
+
+  const handleCloseShareModal = useCallback(() => {
+    setShowShareModal(false);
+  }, []);
+
   const handleEnterZenMode = useCallback(() => {
     setShowControls(false);
     setShowInfo(false);
     setShowStyleMenu(false);
     setShowHistoryModal(false);
+    setShowShareModal(false);
   }, []);
 
   const handleExitZenMode = useCallback(() => {
@@ -281,6 +339,7 @@ function MoleculeExplorer() {
 
       {/* FULL SCREEN VIEWER */}
       <MoleculeViewer
+        ref={moleculeViewerRef}
         moleculeData={moleculeData}
         isLoading={isLoading}
         structureFormat={structureFormat}
@@ -295,6 +354,7 @@ function MoleculeExplorer() {
         history={history}
         bookmarks={bookmarks}
         onOpenHistory={handleOpenHistoryModal}
+        onSnapshotCaptured={handleSnapshotCaptured}
       />
 
       {/* FLOATING HEADER (Island) */}
@@ -323,6 +383,7 @@ function MoleculeExplorer() {
           isBookmarked={isCurrentBookmarked}
           onToggleBookmark={handleToggleCurrentBookmark}
           onOpenHistory={() => handleOpenHistoryModal("history")}
+          onOpenShare={handleOpenShareModal}
         />
       )}
 
@@ -355,6 +416,7 @@ function MoleculeExplorer() {
           insets={insets}
           styles={styles}
           onClose={handleCloseInfo}
+          onOpenShare={handleOpenShareModal}
         />
       )}
 
@@ -382,6 +444,19 @@ function MoleculeExplorer() {
         onClearBookmarks={clearBookmarks}
         isBookmarked={isBookmarked}
         initialTab={historyModalTab}
+        styles={styles}
+        isLandscape={isLandscape}
+        height={height}
+      />
+
+      {/* SHARE & EXPORT MODAL */}
+      <ShareExportModal
+        visible={showShareModal}
+        onClose={handleCloseShareModal}
+        moleculeData={moleculeData}
+        snapshotUri={snapshotUri}
+        isCapturingSnapshot={isCapturingSnapshot}
+        onRefreshSnapshot={handleCaptureSnapshot}
         styles={styles}
         isLandscape={isLandscape}
         height={height}

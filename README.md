@@ -70,6 +70,13 @@
 - **Multi-Tier Offline Cache:** High-speed RAM cache backed by persistent disk storage with LRU eviction and pinned bookmark protection.
 - **One-Tap Bookmarking:** Save active compounds directly from the viewer header.
 
+### 📤 Export & Share
+
+- **3D Render Snapshots:** Instantly capture high-resolution snapshot images of the current 3D view at any orientation, zoom, and render style.
+- **Compound Details Export:** Share compound summaries including name, chemical formula, molecular weight, and direct PubChem links via native share sheets.
+- **Direct PubChem Link & Formula Sharing:** One-tap sharing of chemical identifiers and web links to colleagues and messaging apps.
+- **Automated View Capture:** Automatically captures the latest 3D canvas render on share modal open with zero manual reload clicks.
+
 ### 🛡️ High Reliability & Smart Networking
 
 - **Adaptive Rate Limiting:** Request queue with dynamic pacing and concurrency control respecting PubChem's `X-Throttling-Control` headers.
@@ -88,6 +95,7 @@
 - **Language:** TypeScript
 - **3D Engine:** [3Dmol.js](https://3Dmol.csb.pitt.edu/) embedded via `react-native-webview`
 - **Sensory & Haptics:** [Expo Haptics](https://docs.expo.dev/versions/latest/sdk/haptics/)
+- **Sharing & File Export:** [Expo Sharing](https://docs.expo.dev/versions/latest/sdk/sharing/) & [Expo FileSystem](https://docs.expo.dev/versions/latest/sdk/filesystem/) with native platform share dialog fallback
 - **Data & Storage:** [PubChem PUG REST API](https://pubchem.ncbi.nlm.nih.gov/docs/pug-rest), [Crystallography Open Database (COD)](https://www.crystallography.net/), and [AsyncStorage](https://react-native-async-storage.github.io/async-storage/)
 - **Architecture:** Multi-tier caching (RAM + Disk), rate-limiting request queue, and circuit breaker resilience
 - **Testing:** Jest & `@testing-library/react-native`

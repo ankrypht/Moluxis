@@ -72,6 +72,22 @@ export const getMoleculeInfoSheetStyles = ({
       borderColor: addOpacity(COLORS.danger, 0.35),
       zIndex: 20,
     },
+    sheetHeaderActions: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: scaleSize(10),
+      zIndex: 20,
+    },
+    sheetShareButton: {
+      width: scaleSize(38),
+      height: scaleSize(38),
+      borderRadius: scaleSize(19),
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: addOpacity(COLORS.primary, 0.14),
+      borderWidth: 1,
+      borderColor: addOpacity(COLORS.primary, 0.35),
+    },
     infoScroll: {
       paddingHorizontal: scaleSize(24),
       paddingTop: scaleSize(16),

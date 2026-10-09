@@ -43,6 +43,7 @@ export interface FloatingHeaderProps {
   isBookmarked?: boolean;
   onToggleBookmark?: () => void;
   onOpenHistory?: () => void;
+  onOpenShare?: () => void;
 }
 
 export const FloatingHeader: React.FC<FloatingHeaderProps> = React.memo(
@@ -70,6 +71,7 @@ export const FloatingHeader: React.FC<FloatingHeaderProps> = React.memo(
     isBookmarked,
     onToggleBookmark,
     onOpenHistory,
+    onOpenShare,
   }) => {
     const renderSuggestionItem = useCallback(
       ({ item }: { item: string }) => (
@@ -139,6 +141,26 @@ export const FloatingHeader: React.FC<FloatingHeaderProps> = React.memo(
                         color={
                           isBookmarked ? COLORS.warning : COLORS.textSecondary
                         }
+                      />
+                    </TouchableOpacity>
+                  )}
+
+                  {moleculeData && onOpenShare && (
+                    <TouchableOpacity
+                      testID="header-share-button"
+                      accessibilityRole="button"
+                      accessibilityLabel={`Share ${moleculeData.name}`}
+                      style={styles.headerIconButton}
+                      onPress={() => {
+                        triggerImpactLight();
+                        onOpenShare();
+                      }}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                      <Ionicons
+                        name="share-social-outline"
+                        size={20}
+                        color={COLORS.textSecondary}
                       />
                     </TouchableOpacity>
                   )}
@@ -260,6 +282,29 @@ export const FloatingHeader: React.FC<FloatingHeaderProps> = React.memo(
                     name={isBookmarked ? "bookmark" : "bookmark-outline"}
                     size={20}
                     color={isBookmarked ? COLORS.warning : COLORS.textSecondary}
+                  />
+                </TouchableOpacity>
+              )}
+
+              {isLandscape && moleculeData && onOpenShare && (
+                <TouchableOpacity
+                  testID="header-share-button-landscape"
+                  accessibilityRole="button"
+                  accessibilityLabel={`Share ${moleculeData.name}`}
+                  style={[
+                    styles.headerIconButton,
+                    styles.headerIconButtonLandscape,
+                  ]}
+                  onPress={() => {
+                    triggerImpactLight();
+                    onOpenShare();
+                  }}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Ionicons
+                    name="share-social-outline"
+                    size={20}
+                    color={COLORS.textSecondary}
                   />
                 </TouchableOpacity>
               )}

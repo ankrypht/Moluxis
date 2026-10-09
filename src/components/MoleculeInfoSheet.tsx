@@ -30,6 +30,7 @@ export interface MoleculeInfoSheetProps {
   insets: Insets;
   styles: MoleculeInfoSheetStyles;
   onClose: () => void;
+  onOpenShare?: () => void;
 }
 
 export const MoleculeInfoSheet: React.FC<MoleculeInfoSheetProps> = ({
@@ -41,6 +42,7 @@ export const MoleculeInfoSheet: React.FC<MoleculeInfoSheetProps> = ({
   insets,
   styles,
   onClose,
+  onOpenShare,
 }) => {
   const sheetHeight = isLandscape ? width * 0.45 : height * 0.7;
   const slideAnim = useAnimatedValue(showInfo ? 0 : sheetHeight);
@@ -103,35 +105,58 @@ export const MoleculeInfoSheet: React.FC<MoleculeInfoSheetProps> = ({
         <Text allowFontScaling={false} style={styles.moleculeName}>
           {moleculeData.name.toUpperCase()}
         </Text>
-        <Pressable
-          style={({ pressed }) => [
-            styles.closeButtonInline,
-            pressed && {
-              opacity: 0.7,
-              backgroundColor: addOpacity(COLORS.danger, 0.25),
-            },
-          ]}
-          hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
-          pressRetentionOffset={{
-            top: 20,
-            bottom: 20,
-            left: 20,
-            right: 20,
-          }}
-          onPress={() => {
-            triggerImpactLight();
-            onClose();
-          }}
-          accessibilityRole="button"
-          accessibilityLabel="Close info panel"
-        >
-          <Ionicons
-            name="close"
-            size={22}
-            color={COLORS.danger}
-            allowFontScaling={false}
-          />
-        </Pressable>
+        <View style={styles.sheetHeaderActions}>
+          {onOpenShare && (
+            <TouchableOpacity
+              testID="sheet-share-button"
+              style={styles.sheetShareButton}
+              onPress={() => {
+                triggerImpactLight();
+                onOpenShare();
+              }}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              accessibilityRole="button"
+              accessibilityLabel={`Share ${moleculeData.name}`}
+            >
+              <Ionicons
+                name="share-social-outline"
+                size={20}
+                color={COLORS.primary}
+                allowFontScaling={false}
+              />
+            </TouchableOpacity>
+          )}
+
+          <Pressable
+            style={({ pressed }) => [
+              styles.closeButtonInline,
+              pressed && {
+                opacity: 0.7,
+                backgroundColor: addOpacity(COLORS.danger, 0.25),
+              },
+            ]}
+            hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
+            pressRetentionOffset={{
+              top: 20,
+              bottom: 20,
+              left: 20,
+              right: 20,
+            }}
+            onPress={() => {
+              triggerImpactLight();
+              onClose();
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Close info panel"
+          >
+            <Ionicons
+              name="close"
+              size={22}
+              color={COLORS.danger}
+              allowFontScaling={false}
+            />
+          </Pressable>
+        </View>
       </View>
 
       <ScrollView
@@ -381,6 +406,40 @@ export const MoleculeInfoSheet: React.FC<MoleculeInfoSheetProps> = ({
               color={COLORS.blue}
             />
           </TouchableOpacity>
+
+          {onOpenShare && (
+            <TouchableOpacity
+              testID="sheet-share-link-button"
+              style={[
+                styles.linkButton,
+                {
+                  borderColor: addOpacity(COLORS.primary, 0.35),
+                  backgroundColor: addOpacity(COLORS.primary, 0.12),
+                  marginTop: 10,
+                },
+              ]}
+              onPress={() => {
+                triggerSelectionHaptic();
+                onOpenShare();
+              }}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Share compound details or snapshot"
+            >
+              <Text
+                allowFontScaling={false}
+                style={[styles.linkButtonText, { color: COLORS.primary }]}
+              >
+                Share & Export Compound
+              </Text>
+              <Ionicons
+                allowFontScaling={false}
+                name="share-social-outline"
+                size={styles.linkIcon.fontSize}
+                color={COLORS.primary}
+              />
+            </TouchableOpacity>
+          )}
 
           {moleculeData.codId && (
             <>

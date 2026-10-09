@@ -280,4 +280,114 @@ describe("MoleculeViewer", () => {
       JSON.stringify({ type: "RESUME_ANIMATION" }),
     );
   });
+
+  it("captures snapshot via ref and triggers onSnapshotCaptured when SNAPSHOT_RESULT is received", () => {
+    const onSnapshotCaptured = jest.fn();
+    const viewerRef = React.createRef<any>();
+
+    const { getByTestId } = render(
+      <MoleculeViewer
+        ref={viewerRef}
+        moleculeData={sampleMolecule}
+        isLoading={false}
+        structureFormat="3d"
+        vizStyle="ballStick"
+        showLabels={false}
+        isAnimated={true}
+        styles={mockStyles}
+        onSnapshotCaptured={onSnapshotCaptured}
+      />,
+    );
+
+    const webview = getByTestId("molecule-webview");
+
+    act(() => {
+      webview.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: "WEBVIEW_READY" }),
+        },
+      });
+    });
+
+    mockPostMessage.mockClear();
+
+    act(() => {
+      viewerRef.current?.captureSnapshot();
+    });
+
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({ type: "CAPTURE_SNAPSHOT" }),
+    );
+
+    act(() => {
+      webview.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: "SNAPSHOT_RESULT",
+            dataUri: "data:image/png;base64,sample-base64",
+          }),
+        },
+      });
+    });
+
+    expect(onSnapshotCaptured).toHaveBeenCalledWith(
+      "data:image/png;base64,sample-base64",
+    );
+  });
+
+  it("calls onSnapshotCaptured with null when SNAPSHOT_ERROR is received", () => {
+    const onSnapshotCaptured = jest.fn();
+    const { getByTestId } = render(
+      <MoleculeViewer
+        moleculeData={sampleMolecule}
+        isLoading={false}
+        structureFormat="3d"
+        vizStyle="ballStick"
+        showLabels={false}
+        isAnimated={true}
+        styles={mockStyles}
+        onSnapshotCaptured={onSnapshotCaptured}
+      />,
+    );
+
+    const webview = getByTestId("molecule-webview");
+
+    act(() => {
+      webview.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: "SNAPSHOT_ERROR",
+            error: "Viewer not initialized",
+          }),
+        },
+      });
+    });
+
+    expect(onSnapshotCaptured).toHaveBeenCalledWith(null);
+  });
+
+  it("calls onSnapshotCaptured with null if captureSnapshot is called before webview is ready", () => {
+    const onSnapshotCaptured = jest.fn();
+    const viewerRef = React.createRef<any>();
+
+    render(
+      <MoleculeViewer
+        ref={viewerRef}
+        moleculeData={sampleMolecule}
+        isLoading={false}
+        structureFormat="3d"
+        vizStyle="ballStick"
+        showLabels={false}
+        isAnimated={true}
+        styles={mockStyles}
+        onSnapshotCaptured={onSnapshotCaptured}
+      />,
+    );
+
+    act(() => {
+      viewerRef.current?.captureSnapshot();
+    });
+
+    expect(onSnapshotCaptured).toHaveBeenCalledWith(null);
+  });
 });
