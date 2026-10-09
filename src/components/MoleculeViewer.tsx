@@ -44,6 +44,7 @@ export interface MoleculeViewerProps {
   vizStyle: VisualizationType;
   showLabels: boolean;
   isAnimated: boolean;
+  isInteracting?: boolean;
   containerStyle?: StyleProp<ViewStyle>;
   styles: MoleculeViewerStyles & FeaturedMoleculesStyles;
   onSelectMolecule?: (query: string) => void;
@@ -63,6 +64,7 @@ export const MoleculeViewer: React.FC<MoleculeViewerProps> = React.memo(
     vizStyle,
     showLabels,
     isAnimated,
+    isInteracting = false,
     containerStyle,
     styles,
     onSelectMolecule,
@@ -76,6 +78,7 @@ export const MoleculeViewer: React.FC<MoleculeViewerProps> = React.memo(
     const webViewRef = useRef<WebView>(null);
     const isWebViewReadyRef = useRef(false);
     const isAnimatedRef = useRef(isAnimated);
+    const isInteractingRef = useRef(isInteracting);
     const pendingStructureRef = useRef<string | null>(null);
     const lastLoadedSignatureRef = useRef<string | null>(null);
     const fallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -84,6 +87,10 @@ export const MoleculeViewer: React.FC<MoleculeViewerProps> = React.memo(
     useEffect(() => {
       isAnimatedRef.current = isAnimated;
     }, [isAnimated]);
+
+    useEffect(() => {
+      isInteractingRef.current = isInteracting;
+    }, [isInteracting]);
 
     const postToWebView = useCallback((message: string) => {
       if (
@@ -108,7 +115,7 @@ export const MoleculeViewer: React.FC<MoleculeViewerProps> = React.memo(
         "change",
         (nextAppState: AppStateStatus) => {
           if (nextAppState === "active") {
-            if (isAnimatedRef.current) {
+            if (isAnimatedRef.current && !isInteractingRef.current) {
               postToWebView(JSON.stringify({ type: "RESUME_ANIMATION" }));
             }
           } else {
@@ -122,6 +129,20 @@ export const MoleculeViewer: React.FC<MoleculeViewerProps> = React.memo(
         postToWebView(JSON.stringify({ type: "PAUSE_ANIMATION" }));
       };
     }, [postToWebView]);
+
+    // Pause WebGL rendering while user is interacting with UI overlays (modals, sheets, inputs)
+    useEffect(() => {
+      if (!isViewerReady) return;
+      if (isInteracting) {
+        postToWebView(JSON.stringify({ type: "PAUSE_ANIMATION" }));
+      } else if (
+        isAnimatedRef.current &&
+        AppState.currentState !== "background" &&
+        AppState.currentState !== "inactive"
+      ) {
+        postToWebView(JSON.stringify({ type: "RESUME_ANIMATION" }));
+      }
+    }, [isInteracting, isViewerReady, postToWebView]);
 
     // Reset readiness and loaded signature when WebView is unmounted (e.g., returning to showcase)
     useEffect(() => {
@@ -168,13 +189,14 @@ export const MoleculeViewer: React.FC<MoleculeViewerProps> = React.memo(
             ? "cif"
             : "sdf";
 
+      const shouldAnimate = isAnimated && !isInteractingRef.current;
       const message = JSON.stringify({
         type: "LOAD_STRUCTURE",
         data: structureData,
         format: structureFormatType,
         style: vizStyle,
         labels: showLabels,
-        animate: isAnimated,
+        animate: shouldAnimate,
       });
 
       if (isWebViewReadyRef.current) {
@@ -257,11 +279,12 @@ export const MoleculeViewer: React.FC<MoleculeViewerProps> = React.memo(
 
       if (moleculeData && isWebViewReadyRef.current) {
         const timer = setTimeout(() => {
+          const shouldAnimate = isAnimated && !isInteractingRef.current;
           const message = JSON.stringify({
             type: "UPDATE_SETTINGS",
             style: vizStyle,
             labels: showLabels,
-            animate: isAnimated,
+            animate: shouldAnimate,
           });
           postToWebView(message);
         }, UPDATE_DELAY_MS);
@@ -303,6 +326,7 @@ export const MoleculeViewer: React.FC<MoleculeViewerProps> = React.memo(
                     ? "cif"
                     : "sdf";
 
+              const shouldAnimate = isAnimated && !isInteractingRef.current;
               const message =
                 pendingStructureRef.current ||
                 JSON.stringify({
@@ -311,7 +335,7 @@ export const MoleculeViewer: React.FC<MoleculeViewerProps> = React.memo(
                   format: structureFormatType,
                   style: vizStyle,
                   labels: showLabels,
-                  animate: isAnimated,
+                  animate: shouldAnimate,
                 });
               lastLoadedSignatureRef.current = currentSignature;
               pendingStructureRef.current = null;

@@ -85,6 +85,24 @@ function MoleculeExplorer() {
   const [historyModalTab, setHistoryModalTab] = useState<
     "history" | "bookmarks"
   >("history");
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener("keyboardDidShow", () => {
+      setIsKeyboardVisible(true);
+    });
+    const hideSub = Keyboard.addListener("keyboardDidHide", () => {
+      setIsKeyboardVisible(false);
+    });
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
+  const isInteracting = Boolean(
+    isKeyboardVisible || showHistoryModal || showSuggestions,
+  );
 
   // Automatically record inspected compounds in search history
   const lastRecordedNameRef = useRef<string | null>(null);
@@ -269,6 +287,7 @@ function MoleculeExplorer() {
         vizStyle={vizStyle}
         showLabels={showLabels}
         isAnimated={isAnimated}
+        isInteracting={isInteracting}
         containerStyle={dynamicViewerContainerStyle}
         styles={styles}
         onSelectMolecule={handleSelectFeaturedMolecule}

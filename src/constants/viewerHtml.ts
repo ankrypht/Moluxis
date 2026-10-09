@@ -21,14 +21,76 @@ export const VIEWER_HTML = `
     let currentStyle = 'ballStick';
     let showLabels = false;
     let isAnimating = false;
-    let animationId = null;
     let pendingLoad = null;
+
+    let animationFrameId = null;
+    let lastFrameTime = 0;
+    const TARGET_FPS = 30;
+    const FRAME_INTERVAL = 1000 / TARGET_FPS;
+    const ROTATION_SPEED_DEG_PER_SEC = 35;
+    let isUserDragging = false;
 
     function notifyReady() {
       if (window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === 'function') {
         window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'WEBVIEW_READY' }));
       } else {
         setTimeout(notifyReady, 50);
+      }
+    }
+
+    function animationLoop(timestamp) {
+      if (!isAnimating || isUserDragging || !viewer || !currentModel) {
+        animationFrameId = null;
+        return;
+      }
+
+      if (!lastFrameTime) {
+        lastFrameTime = timestamp;
+      }
+
+      const elapsed = timestamp - lastFrameTime;
+
+      if (elapsed >= FRAME_INTERVAL) {
+        const safeElapsed = Math.min(elapsed, 100);
+        const deltaAngle = (ROTATION_SPEED_DEG_PER_SEC * safeElapsed) / 1000;
+        try {
+          viewer.rotate(deltaAngle, 'vy');
+        } catch (e) {
+          console.error('Rotation error:', e);
+        }
+        lastFrameTime = timestamp - (elapsed % FRAME_INTERVAL);
+      }
+
+      animationFrameId = window.requestAnimationFrame(animationLoop);
+    }
+
+    function startAnimation() {
+      if (viewer && typeof viewer.spin === 'function') {
+        viewer.spin(false);
+      }
+      if (!isAnimating || isUserDragging || !viewer || !currentModel) return;
+      if (animationFrameId !== null) return;
+      lastFrameTime = 0;
+      animationFrameId = window.requestAnimationFrame(animationLoop);
+    }
+
+    function stopAnimation() {
+      if (animationFrameId !== null) {
+        window.cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+      }
+      lastFrameTime = 0;
+      if (viewer && typeof viewer.spin === 'function') {
+        viewer.spin(false);
+      }
+    }
+
+    function toggleAnimation(status) {
+      isAnimating = !!status;
+      if (isAnimating) {
+        startAnimation();
+      } else {
+        stopAnimation();
       }
     }
 
@@ -42,19 +104,24 @@ export const VIEWER_HTML = `
         }
         
         if (!viewer) {
-          // Set 3D Viewer background to match app dark theme
-          let config = { backgroundColor: '${COLORS.background}' };
+          // Set 3D Viewer background to match app dark theme.
+          // Explicitly set antialias: false to prevent 3Dmol from creating extra offscreen
+          // FBOs and running post-processing screenaa shaders, eliminating PowerVR GPU stalls.
+          let config = { 
+            backgroundColor: '${COLORS.background}',
+            antialias: false
+          };
           viewer = $3Dmol.createViewer(element, config);
           
           let canvas = element.querySelector('canvas');
           if (canvas) {
             canvas.addEventListener('webglcontextlost', function(e) {
               e.preventDefault();
-              if (viewer) viewer.spin(false);
+              stopAnimation();
             }, false);
             canvas.addEventListener('webglcontextrestored', function() {
-              if (viewer && isAnimating && !isUserDragging) {
-                viewer.spin("y", 1.5);
+              if (isAnimating && !isUserDragging) {
+                startAnimation();
               }
             }, false);
           }
@@ -70,17 +137,6 @@ export const VIEWER_HTML = `
         }
       } catch (e) {
         console.error('Init error:', e);
-      }
-    }
-
-    function toggleAnimation(status) {
-      isAnimating = !!status;
-      if (viewer) {
-        if (isAnimating) {
-          viewer.spin("y", 1.5); // Native smooth spinning
-        } else {
-          viewer.spin(false);
-        }
       }
     }
 
@@ -143,6 +199,7 @@ export const VIEWER_HTML = `
       }
       
       try {
+        stopAnimation();
         viewer.clear();
         
         // If it's a CIF file, assemble the unit cell first
@@ -178,10 +235,10 @@ export const VIEWER_HTML = `
         } else if (message.type === 'UPDATE_SETTINGS') {
           window.updateSettings(message.style, message.labels, message.animate);
         } else if (message.type === 'PAUSE_ANIMATION') {
-          if (viewer) viewer.spin(false);
+          stopAnimation();
         } else if (message.type === 'RESUME_ANIMATION') {
-          if (viewer && isAnimating && !isUserDragging) {
-            viewer.spin("y", 1.5);
+          if (isAnimating && !isUserDragging) {
+            startAnimation();
           }
         }
       } catch (err) {
@@ -192,43 +249,40 @@ export const VIEWER_HTML = `
     window.addEventListener('message', messageHandler);
     document.addEventListener('message', messageHandler);
 
-    let isUserDragging = false;
     document.addEventListener('touchstart', function(e) {
        isUserDragging = true;
-       if (viewer && isAnimating) {
-         viewer.spin(false);
-       }
+       stopAnimation();
     }, { passive: true });
 
     document.addEventListener('touchend', function(e) {
        isUserDragging = false;
-       if (viewer && isAnimating) {
-         viewer.spin("y", 1.5);
+       if (isAnimating) {
+         startAnimation();
        }
     }, { passive: true });
 
     document.addEventListener('touchcancel', function(e) {
        isUserDragging = false;
-       if (viewer && isAnimating) {
-         viewer.spin("y", 1.5);
+       if (isAnimating) {
+         startAnimation();
        }
     }, { passive: true });
 
     document.addEventListener('visibilitychange', function() {
       if (document.hidden) {
-        if (viewer) viewer.spin(false);
+        stopAnimation();
       } else if (isAnimating && !isUserDragging) {
-        if (viewer) viewer.spin("y", 1.5);
+        startAnimation();
       }
     });
 
     window.addEventListener('blur', function() {
-      if (viewer) viewer.spin(false);
+      stopAnimation();
     });
 
     window.addEventListener('focus', function() {
       if (isAnimating && !isUserDragging) {
-        if (viewer) viewer.spin("y", 1.5);
+        startAnimation();
       }
     });
 

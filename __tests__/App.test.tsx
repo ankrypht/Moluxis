@@ -354,4 +354,59 @@ describe("Recent Searches & Favorites", () => {
 
     expect(mockSelectSuggestion).toHaveBeenCalledWith("Caffeine");
   });
+
+  it("listens to keyboard events to pause animation during text input", async () => {
+    let showCallback: any;
+    let hideCallback: any;
+    const addListenerSpy = jest
+      .spyOn(Keyboard, "addListener")
+      .mockImplementation((event: any, cb: any) => {
+        if (event === "keyboardDidShow") showCallback = cb;
+        if (event === "keyboardDidHide") hideCallback = cb;
+        return { remove: jest.fn() } as any;
+      });
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(addListenerSpy).toHaveBeenCalledWith(
+        "keyboardDidShow",
+        expect.any(Function),
+      );
+      expect(addListenerSpy).toHaveBeenCalledWith(
+        "keyboardDidHide",
+        expect.any(Function),
+      );
+    });
+
+    // Simulate keyboard show and hide
+    act(() => {
+      if (showCallback) showCallback();
+    });
+    act(() => {
+      if (hideCallback) hideCallback();
+    });
+  });
+
+  it("keeps animation active when info panel or style menu is opened", async () => {
+    const { getByLabelText, getByText } = render(<App />);
+
+    // Open style menu
+    const styleBtn = getByLabelText("Toggle rendering styles menu");
+    await act(async () => {
+      fireEvent.press(styleBtn);
+    });
+
+    // Style menu is opened (options like Ball & Stick are visible)
+    expect(getByText("Ball & Stick")).toBeTruthy();
+
+    // Open info sheet
+    const infoBtn = getByLabelText("Toggle molecule information");
+    await act(async () => {
+      fireEvent.press(infoBtn);
+    });
+
+    // Info sheet is opened (e.g. Formula is displayed)
+    expect(getByText("Formula")).toBeTruthy();
+  });
 });

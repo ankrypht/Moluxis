@@ -215,4 +215,69 @@ describe("MoleculeViewer", () => {
       expect.stringContaining('"style":"stick"'),
     );
   });
+
+  it("pauses animation when isInteracting becomes true and resumes when isInteracting becomes false", () => {
+    const { getByTestId, rerender } = render(
+      <MoleculeViewer
+        moleculeData={sampleMolecule}
+        isLoading={false}
+        structureFormat="3d"
+        vizStyle="ballStick"
+        showLabels={false}
+        isAnimated={true}
+        isInteracting={false}
+        styles={mockStyles}
+      />,
+    );
+
+    const webview = getByTestId("molecule-webview");
+
+    act(() => {
+      webview.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: "WEBVIEW_READY" }),
+        },
+      });
+    });
+
+    mockPostMessage.mockClear();
+
+    // User starts interacting with search/modals/sheets
+    rerender(
+      <MoleculeViewer
+        moleculeData={sampleMolecule}
+        isLoading={false}
+        structureFormat="3d"
+        vizStyle="ballStick"
+        showLabels={false}
+        isAnimated={true}
+        isInteracting={true}
+        styles={mockStyles}
+      />,
+    );
+
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({ type: "PAUSE_ANIMATION" }),
+    );
+
+    mockPostMessage.mockClear();
+
+    // User finishes interacting
+    rerender(
+      <MoleculeViewer
+        moleculeData={sampleMolecule}
+        isLoading={false}
+        structureFormat="3d"
+        vizStyle="ballStick"
+        showLabels={false}
+        isAnimated={true}
+        isInteracting={false}
+        styles={mockStyles}
+      />,
+    );
+
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({ type: "RESUME_ANIMATION" }),
+    );
+  });
 });
