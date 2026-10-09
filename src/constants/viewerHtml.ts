@@ -22,37 +22,52 @@ export const VIEWER_HTML = `
     let showLabels = false;
     let isAnimating = false;
     let animationId = null;
+    let pendingLoad = null;
+
+    function notifyReady() {
+      if (window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === 'function') {
+        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'WEBVIEW_READY' }));
+      } else {
+        setTimeout(notifyReady, 50);
+      }
+    }
 
     function init() {
       try {
         let element = document.getElementById('container');
         if (!element) return;
         
-        // Set 3D Viewer background to match app dark theme
-        let config = { backgroundColor: '${COLORS.background}' };
-        
         if (typeof $3Dmol === 'undefined') {
-           console.error('3Dmol is not defined');
            return;
         }
         
-        viewer = $3Dmol.createViewer(element, config);
-        
-        let canvas = element.querySelector('canvas');
-        if (canvas) {
-          canvas.addEventListener('webglcontextlost', function(e) {
-            e.preventDefault();
-            if (viewer) viewer.spin(false);
-          }, false);
-          canvas.addEventListener('webglcontextrestored', function() {
-            if (viewer && isAnimating && !isUserDragging) {
-              viewer.spin("y", 1.5);
-            }
-          }, false);
+        if (!viewer) {
+          // Set 3D Viewer background to match app dark theme
+          let config = { backgroundColor: '${COLORS.background}' };
+          viewer = $3Dmol.createViewer(element, config);
+          
+          let canvas = element.querySelector('canvas');
+          if (canvas) {
+            canvas.addEventListener('webglcontextlost', function(e) {
+              e.preventDefault();
+              if (viewer) viewer.spin(false);
+            }, false);
+            canvas.addEventListener('webglcontextrestored', function() {
+              if (viewer && isAnimating && !isUserDragging) {
+                viewer.spin("y", 1.5);
+              }
+            }, false);
+          }
         }
         
         // Notify React Native that we are ready
-        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'WEBVIEW_READY' }));
+        notifyReady();
+
+        if (pendingLoad) {
+          let pending = pendingLoad;
+          pendingLoad = null;
+          window.loadStructure(pending.structureData, pending.format, pending.style, pending.labels, pending.animateStatus);
+        }
       } catch (e) {
         console.error('Init error:', e);
       }
@@ -121,8 +136,11 @@ export const VIEWER_HTML = `
       if (style) currentStyle = style;
       if (labels !== undefined) showLabels = labels;
       
-      if (!viewer) init();
-      if (!viewer) return;
+      if (!viewer) {
+        pendingLoad = { structureData: structureData, format: format, style: style, labels: labels, animateStatus: animateStatus };
+        init();
+        return;
+      }
       
       try {
         viewer.clear();
@@ -222,8 +240,15 @@ export const VIEWER_HTML = `
       }
     }, 100);
 
-    // Timeout after 5 seconds
-    setTimeout(() => clearInterval(check3Dmol), 5000);
+    window.addEventListener('load', function() {
+      if (typeof $3Dmol !== 'undefined') {
+        clearInterval(check3Dmol);
+        init();
+      }
+    });
+
+    // Timeout after 30 seconds
+    setTimeout(() => clearInterval(check3Dmol), 30000);
   </script>
 </body>
 </html>

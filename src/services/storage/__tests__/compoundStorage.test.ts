@@ -33,6 +33,7 @@ describe("compoundStorage", () => {
   beforeEach(async () => {
     jest.clearAllMocks();
     mockStorageMap.clear();
+    jest.spyOn(console, "warn").mockImplementation(() => {});
   });
 
   describe("Recent History", () => {

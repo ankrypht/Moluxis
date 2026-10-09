@@ -1,4 +1,10 @@
-import React, { useRef, useEffect, useCallback, useMemo } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useMemo,
+} from "react";
 import {
   View,
   Text,
@@ -73,6 +79,7 @@ export const MoleculeViewer: React.FC<MoleculeViewerProps> = React.memo(
     const pendingStructureRef = useRef<string | null>(null);
     const lastLoadedSignatureRef = useRef<string | null>(null);
     const fallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const [isViewerReady, setIsViewerReady] = useState(false);
 
     useEffect(() => {
       isAnimatedRef.current = isAnimated;
@@ -122,6 +129,7 @@ export const MoleculeViewer: React.FC<MoleculeViewerProps> = React.memo(
         isWebViewReadyRef.current = false;
         lastLoadedSignatureRef.current = null;
         pendingStructureRef.current = null;
+        setIsViewerReady(false);
         if (fallbackTimerRef.current) {
           clearTimeout(fallbackTimerRef.current);
           fallbackTimerRef.current = null;
@@ -139,7 +147,10 @@ export const MoleculeViewer: React.FC<MoleculeViewerProps> = React.memo(
       if (!moleculeData || !currentSignature) return;
 
       // Avoid redundant LOAD_STRUCTURE if this exact structure has already been rendered in this ready WebView
-      if (lastLoadedSignatureRef.current === currentSignature) {
+      if (
+        isWebViewReadyRef.current &&
+        lastLoadedSignatureRef.current === currentSignature
+      ) {
         return;
       }
 
@@ -178,19 +189,16 @@ export const MoleculeViewer: React.FC<MoleculeViewerProps> = React.memo(
         // WebView is mounting or initializing. Queue the structure to be loaded upon WEBVIEW_READY.
         pendingStructureRef.current = message;
 
-        // Fallback safety timeout in case the message bridge dropped WEBVIEW_READY
+        // Post speculatively in case the WebView message listener is already active
+        postToWebView(message);
+
+        // Fallback retry: resend pending message in case WEBVIEW_READY message was dropped
         if (fallbackTimerRef.current) {
           clearTimeout(fallbackTimerRef.current);
         }
         fallbackTimerRef.current = setTimeout(() => {
-          if (
-            lastLoadedSignatureRef.current !== currentSignature &&
-            pendingStructureRef.current
-          ) {
-            isWebViewReadyRef.current = true;
-            lastLoadedSignatureRef.current = currentSignature;
+          if (pendingStructureRef.current) {
             postToWebView(pendingStructureRef.current);
-            pendingStructureRef.current = null;
           }
         }, 1500);
       }
@@ -274,41 +282,40 @@ export const MoleculeViewer: React.FC<MoleculeViewerProps> = React.memo(
           const data = JSON.parse(event.nativeEvent.data);
           if (isWebViewReadyMessage(data)) {
             isWebViewReadyRef.current = true;
+            setIsViewerReady(true);
             if (fallbackTimerRef.current) {
               clearTimeout(fallbackTimerRef.current);
               fallbackTimerRef.current = null;
             }
 
             if (moleculeData && currentSignature) {
-              if (lastLoadedSignatureRef.current !== currentSignature) {
-                const useCif = moleculeData.useCif;
-                const structureData =
-                  structureFormat === "2d"
-                    ? moleculeData.sdf2d || moleculeData.sdf3d
-                    : useCif
-                      ? moleculeData.cif
-                      : moleculeData.sdf3d;
-                const structureFormatType =
-                  structureFormat === "2d" && moleculeData.sdf2d
-                    ? "sdf"
-                    : useCif
-                      ? "cif"
-                      : "sdf";
+              const useCif = moleculeData.useCif;
+              const structureData =
+                structureFormat === "2d"
+                  ? moleculeData.sdf2d || moleculeData.sdf3d
+                  : useCif
+                    ? moleculeData.cif
+                    : moleculeData.sdf3d;
+              const structureFormatType =
+                structureFormat === "2d" && moleculeData.sdf2d
+                  ? "sdf"
+                  : useCif
+                    ? "cif"
+                    : "sdf";
 
-                const message =
-                  pendingStructureRef.current ||
-                  JSON.stringify({
-                    type: "LOAD_STRUCTURE",
-                    data: structureData,
-                    format: structureFormatType,
-                    style: vizStyle,
-                    labels: showLabels,
-                    animate: isAnimated,
-                  });
-                lastLoadedSignatureRef.current = currentSignature;
-                pendingStructureRef.current = null;
-                postToWebView(message);
-              }
+              const message =
+                pendingStructureRef.current ||
+                JSON.stringify({
+                  type: "LOAD_STRUCTURE",
+                  data: structureData,
+                  format: structureFormatType,
+                  style: vizStyle,
+                  labels: showLabels,
+                  animate: isAnimated,
+                });
+              lastLoadedSignatureRef.current = currentSignature;
+              pendingStructureRef.current = null;
+              postToWebView(message);
             }
           }
         } catch {
@@ -339,19 +346,21 @@ export const MoleculeViewer: React.FC<MoleculeViewerProps> = React.memo(
             androidLayerType="none"
             onLoadStart={() => {
               isWebViewReadyRef.current = false;
+              setIsViewerReady(false);
             }}
             onRenderProcessGone={(syntheticEvent) => {
               const { didCrash } = syntheticEvent.nativeEvent;
               console.warn("WebView render process gone, didCrash:", didCrash);
               isWebViewReadyRef.current = false;
+              setIsViewerReady(false);
               lastLoadedSignatureRef.current = null;
               webViewRef.current?.reload();
             }}
             onMessage={onWebViewMessage}
           />
         )}
-        {isLoading && !moleculeData && (
-          <View style={styles.loadingOverlay}>
+        {((isLoading && !moleculeData) || (moleculeData && !isViewerReady)) && (
+          <View style={styles.loadingOverlay} pointerEvents="none">
             <ActivityIndicator size="large" color={COLORS.primary} />
             <Text allowFontScaling={false} style={styles.loadingText}>
               Generating 3D Structure...
