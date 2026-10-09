@@ -430,6 +430,23 @@ describe("Recent Searches & Favorites", () => {
     // Info sheet is opened (e.g. Formula is displayed)
     expect(getByText("Formula")).toBeTruthy();
   });
+
+  it("initializes with 3D spin animation off by default and allows toggling", async () => {
+    const { getByLabelText } = render(<App />);
+
+    const animSwitch = getByLabelText("Toggle rotation animation");
+    expect(animSwitch.props.accessibilityState).toMatchObject({
+      checked: false,
+    });
+
+    await act(async () => {
+      fireEvent(animSwitch, "valueChange", true);
+    });
+
+    expect(animSwitch.props.accessibilityState).toMatchObject({
+      checked: true,
+    });
+  });
 });
 
 describe("Export & Share Feature", () => {

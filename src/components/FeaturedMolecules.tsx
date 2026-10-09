@@ -235,7 +235,7 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
 
             <View style={styles.cardFooter}>
               <Text allowFontScaling={false} style={styles.cardFooterAction}>
-                Spin 3D
+                View 3D
               </Text>
               <Ionicons
                 name="arrow-forward-circle-outline"
@@ -425,8 +425,7 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
               Featured Molecules
             </Text>
             <Text allowFontScaling={false} style={styles.heroSubtitle}>
-              Tap any compound below to load and interact with its 3D spinning
-              structure.
+              Tap any compound below to load and interact with its 3D structure.
             </Text>
           </View>
 

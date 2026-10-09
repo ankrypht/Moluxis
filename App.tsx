@@ -79,7 +79,7 @@ function MoleculeExplorer() {
   const moleculeViewerRef = useRef<MoleculeViewerRef>(null);
   const [vizStyle, setVizStyle] = useState<VisualizationType>("ballStick");
   const [showLabels, setShowLabels] = useState(false);
-  const [isAnimated, setIsAnimated] = useState(true);
+  const [isAnimated, setIsAnimated] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [structureFormat, setStructureFormat] = useState<"3d" | "2d">("3d");
@@ -207,7 +207,6 @@ function MoleculeExplorer() {
     (item: string) => {
       searchInputRef.current?.blur();
       Keyboard.dismiss();
-      setIsAnimated(true);
       selectSuggestion(item);
     },
     [selectSuggestion],
