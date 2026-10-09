@@ -29,7 +29,6 @@ function isWebViewReadyMessage(data: unknown): data is WebViewReadyMessage {
   );
 }
 
-const LOAD_DELAY_MS = 500;
 const UPDATE_DELAY_MS = 150;
 
 export interface MoleculeViewerProps {
@@ -71,6 +70,9 @@ export const MoleculeViewer: React.FC<MoleculeViewerProps> = React.memo(
     const webViewRef = useRef<WebView>(null);
     const isWebViewReadyRef = useRef(false);
     const isAnimatedRef = useRef(isAnimated);
+    const pendingStructureRef = useRef<string | null>(null);
+    const lastLoadedSignatureRef = useRef<string | null>(null);
+    const fallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
       isAnimatedRef.current = isAnimated;
@@ -114,52 +116,138 @@ export const MoleculeViewer: React.FC<MoleculeViewerProps> = React.memo(
       };
     }, [postToWebView]);
 
+    // Reset readiness and loaded signature when WebView is unmounted (e.g., returning to showcase)
     useEffect(() => {
-      if (moleculeData) {
-        const useCif = moleculeData.useCif;
-        const message = JSON.stringify({
-          type: "LOAD_STRUCTURE",
-          data:
-            structureFormat === "2d"
-              ? moleculeData.sdf2d
-              : useCif
-                ? moleculeData.cif
-                : moleculeData.sdf3d,
-          format: structureFormat === "2d" ? "sdf" : useCif ? "cif" : "sdf",
-          style: vizStyle,
-          labels: showLabels,
-          animate: isAnimated,
-        });
-
-        if (isWebViewReadyRef.current) {
-          postToWebView(message);
-          return;
+      if (!moleculeData && !isLoading) {
+        isWebViewReadyRef.current = false;
+        lastLoadedSignatureRef.current = null;
+        pendingStructureRef.current = null;
+        if (fallbackTimerRef.current) {
+          clearTimeout(fallbackTimerRef.current);
+          fallbackTimerRef.current = null;
         }
-
-        const timer = setTimeout(() => {
-          postToWebView(message);
-        }, LOAD_DELAY_MS);
-        return () => clearTimeout(timer);
       }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [moleculeData, structureFormat, postToWebView]);
+    }, [moleculeData, isLoading]);
 
-    // Track previous moleculeData to avoid redundant UPDATE_SETTINGS calls during LOAD_STRUCTURE
-    const prevMoleculeDataRef = useRef(moleculeData);
-    const isInitialMountRef = useRef(true);
+    const currentSignature = useMemo(() => {
+      if (!moleculeData) return null;
+      return `${moleculeData.cid || moleculeData.name}_${structureFormat}_${moleculeData.useCif ? "cif" : "sdf"}`;
+    }, [moleculeData, structureFormat]);
+
+    // Dispatch LOAD_STRUCTURE when moleculeData or structureFormat changes
+    useEffect(() => {
+      if (!moleculeData || !currentSignature) return;
+
+      // Avoid redundant LOAD_STRUCTURE if this exact structure has already been rendered in this ready WebView
+      if (lastLoadedSignatureRef.current === currentSignature) {
+        return;
+      }
+
+      const useCif = moleculeData.useCif;
+      const structureData =
+        structureFormat === "2d"
+          ? moleculeData.sdf2d || moleculeData.sdf3d
+          : useCif
+            ? moleculeData.cif
+            : moleculeData.sdf3d;
+      const structureFormatType =
+        structureFormat === "2d" && moleculeData.sdf2d
+          ? "sdf"
+          : useCif
+            ? "cif"
+            : "sdf";
+
+      const message = JSON.stringify({
+        type: "LOAD_STRUCTURE",
+        data: structureData,
+        format: structureFormatType,
+        style: vizStyle,
+        labels: showLabels,
+        animate: isAnimated,
+      });
+
+      if (isWebViewReadyRef.current) {
+        if (fallbackTimerRef.current) {
+          clearTimeout(fallbackTimerRef.current);
+          fallbackTimerRef.current = null;
+        }
+        lastLoadedSignatureRef.current = currentSignature;
+        pendingStructureRef.current = null;
+        postToWebView(message);
+      } else {
+        // WebView is mounting or initializing. Queue the structure to be loaded upon WEBVIEW_READY.
+        pendingStructureRef.current = message;
+
+        // Fallback safety timeout in case the message bridge dropped WEBVIEW_READY
+        if (fallbackTimerRef.current) {
+          clearTimeout(fallbackTimerRef.current);
+        }
+        fallbackTimerRef.current = setTimeout(() => {
+          if (
+            lastLoadedSignatureRef.current !== currentSignature &&
+            pendingStructureRef.current
+          ) {
+            isWebViewReadyRef.current = true;
+            lastLoadedSignatureRef.current = currentSignature;
+            postToWebView(pendingStructureRef.current);
+            pendingStructureRef.current = null;
+          }
+        }, 1500);
+      }
+
+      return () => {
+        if (fallbackTimerRef.current) {
+          clearTimeout(fallbackTimerRef.current);
+          fallbackTimerRef.current = null;
+        }
+      };
+    }, [
+      moleculeData,
+      currentSignature,
+      structureFormat,
+      vizStyle,
+      showLabels,
+      isAnimated,
+      postToWebView,
+    ]);
+
+    // Track settings changes to dispatch UPDATE_SETTINGS without re-clearing the model
+    const prevSettingsRef = useRef({
+      vizStyle,
+      showLabels,
+      isAnimated,
+      signature: currentSignature,
+    });
 
     useEffect(() => {
-      if (prevMoleculeDataRef.current !== moleculeData) {
-        prevMoleculeDataRef.current = moleculeData;
+      // If the structure itself changed, LOAD_STRUCTURE already applies style/labels/animate
+      if (prevSettingsRef.current.signature !== currentSignature) {
+        prevSettingsRef.current = {
+          vizStyle,
+          showLabels,
+          isAnimated,
+          signature: currentSignature,
+        };
         return;
       }
 
-      if (isInitialMountRef.current) {
-        isInitialMountRef.current = false;
+      // If settings have not changed, do nothing
+      if (
+        prevSettingsRef.current.vizStyle === vizStyle &&
+        prevSettingsRef.current.showLabels === showLabels &&
+        prevSettingsRef.current.isAnimated === isAnimated
+      ) {
         return;
       }
 
-      if (moleculeData) {
+      prevSettingsRef.current = {
+        vizStyle,
+        showLabels,
+        isAnimated,
+        signature: currentSignature,
+      };
+
+      if (moleculeData && isWebViewReadyRef.current) {
         const timer = setTimeout(() => {
           const message = JSON.stringify({
             type: "UPDATE_SETTINGS",
@@ -171,7 +259,14 @@ export const MoleculeViewer: React.FC<MoleculeViewerProps> = React.memo(
         }, UPDATE_DELAY_MS);
         return () => clearTimeout(timer);
       }
-    }, [moleculeData, vizStyle, showLabels, isAnimated, postToWebView]);
+    }, [
+      moleculeData,
+      currentSignature,
+      vizStyle,
+      showLabels,
+      isAnimated,
+      postToWebView,
+    ]);
 
     const onWebViewMessage = useCallback(
       (event: any) => {
@@ -179,23 +274,41 @@ export const MoleculeViewer: React.FC<MoleculeViewerProps> = React.memo(
           const data = JSON.parse(event.nativeEvent.data);
           if (isWebViewReadyMessage(data)) {
             isWebViewReadyRef.current = true;
-            if (moleculeData) {
-              const useCif = moleculeData.useCif;
-              const message = JSON.stringify({
-                type: "LOAD_STRUCTURE",
-                data:
+            if (fallbackTimerRef.current) {
+              clearTimeout(fallbackTimerRef.current);
+              fallbackTimerRef.current = null;
+            }
+
+            if (moleculeData && currentSignature) {
+              if (lastLoadedSignatureRef.current !== currentSignature) {
+                const useCif = moleculeData.useCif;
+                const structureData =
                   structureFormat === "2d"
-                    ? moleculeData.sdf2d
+                    ? moleculeData.sdf2d || moleculeData.sdf3d
                     : useCif
                       ? moleculeData.cif
-                      : moleculeData.sdf3d,
-                format:
-                  structureFormat === "2d" ? "sdf" : useCif ? "cif" : "sdf",
-                style: vizStyle,
-                labels: showLabels,
-                animate: isAnimated,
-              });
-              postToWebView(message);
+                      : moleculeData.sdf3d;
+                const structureFormatType =
+                  structureFormat === "2d" && moleculeData.sdf2d
+                    ? "sdf"
+                    : useCif
+                      ? "cif"
+                      : "sdf";
+
+                const message =
+                  pendingStructureRef.current ||
+                  JSON.stringify({
+                    type: "LOAD_STRUCTURE",
+                    data: structureData,
+                    format: structureFormatType,
+                    style: vizStyle,
+                    labels: showLabels,
+                    animate: isAnimated,
+                  });
+                lastLoadedSignatureRef.current = currentSignature;
+                pendingStructureRef.current = null;
+                postToWebView(message);
+              }
             }
           }
         } catch {
@@ -204,6 +317,7 @@ export const MoleculeViewer: React.FC<MoleculeViewerProps> = React.memo(
       },
       [
         moleculeData,
+        currentSignature,
         structureFormat,
         vizStyle,
         showLabels,
@@ -223,10 +337,14 @@ export const MoleculeViewer: React.FC<MoleculeViewerProps> = React.memo(
             scrollEnabled={false}
             overScrollMode="never"
             androidLayerType="none"
+            onLoadStart={() => {
+              isWebViewReadyRef.current = false;
+            }}
             onRenderProcessGone={(syntheticEvent) => {
               const { didCrash } = syntheticEvent.nativeEvent;
               console.warn("WebView render process gone, didCrash:", didCrash);
               isWebViewReadyRef.current = false;
+              lastLoadedSignatureRef.current = null;
               webViewRef.current?.reload();
             }}
             onMessage={onWebViewMessage}

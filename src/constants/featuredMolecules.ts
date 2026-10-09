@@ -147,14 +147,14 @@ export const FEATURED_MOLECULES: FeaturedMolecule[] = [
 
   // Crystals / Minerals
   {
-    id: "diamond",
-    name: "Diamond",
-    query: "Diamond",
+    id: "fluorite",
+    name: "Fluorite",
+    query: "Fluorite",
     category: "crystals",
-    formula: "C",
-    formattedFormula: "C",
-    tag: "Carbon Lattice",
-    iconName: "diamond-outline",
+    formula: "CaF2",
+    formattedFormula: formatSubscriptFormula("CaF2"),
+    tag: "Fluorspar / Halide",
+    iconName: "sparkles-outline",
     color: "#38BDF8",
     accentBg: "rgba(56, 189, 248, 0.15)",
   },

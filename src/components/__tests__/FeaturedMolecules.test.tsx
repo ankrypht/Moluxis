@@ -54,7 +54,7 @@ describe("FeaturedMolecules Component", () => {
 
     // Other categories are filtered out to prevent overwhelming the user
     expect(queryByText("Aspirin")).toBeNull();
-    expect(queryByText("Diamond")).toBeNull();
+    expect(queryByText("Fluorite")).toBeNull();
   });
 
   it("switches category when category tabs are pressed", async () => {
@@ -84,7 +84,7 @@ describe("FeaturedMolecules Component", () => {
     });
 
     expect(queryByText("Aspirin")).toBeNull();
-    expect(getByText("Diamond")).toBeTruthy();
+    expect(getByText("Fluorite")).toBeTruthy();
     expect(getByText("Sodium Chloride")).toBeTruthy();
     expect(getByText("Quartz")).toBeTruthy();
     expect(getByText("Calcite")).toBeTruthy();
@@ -171,7 +171,7 @@ describe("FeaturedMolecules Component", () => {
     );
 
     // Should remember crystals and render crystals compounds immediately
-    expect(getByText("Diamond")).toBeTruthy();
+    expect(getByText("Fluorite")).toBeTruthy();
     expect(getByText("Sodium Chloride")).toBeTruthy();
     expect(queryByText("Caffeine")).toBeNull();
     expect(queryByText("Aspirin")).toBeNull();

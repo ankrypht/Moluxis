@@ -3,11 +3,21 @@ import { Alert, Keyboard } from "react-native";
 import { MoleculeInfo } from "../types";
 import { useAutocomplete } from "./useAutocomplete";
 import { fetchMoleculeData } from "../services/pubchem/searchHelper";
+import { isAbortError } from "../services/pubchem/utils";
 import { useStoreReview } from "./useStoreReview";
+import {
+  getCachedMolecule,
+  saveCachedMolecule,
+} from "../services/storage/moleculeDiskCache";
+import { PubChemThrottledError } from "../services/pubchem/circuitBreaker";
+import {
+  BUNDLED_MOLECULES,
+  BUNDLED_MOLECULES_BY_CID,
+} from "../constants/bundledMoleculeData";
 
 const MAX_MOLECULE_CACHE_SIZE = 50;
 
-// Global cache for molecule data to persist across renders and hook instances
+// Tier 1: Global in-memory RAM cache for fast, synchronous retrieval
 const moleculeCache = new Map<string, MoleculeInfo>();
 
 export const clearMoleculeCache = () => {
@@ -31,6 +41,7 @@ export const useMoleculeSearch = () => {
   const [moleculeData, setMoleculeData] = useState<MoleculeInfo | null>(null);
   const { incrementSearchCountAndReview } = useStoreReview();
   const activeSearchIdRef = useRef(0);
+  const searchAbortControllerRef = useRef<AbortController | null>(null);
 
   // Keep searchTextRef updated for use in useCallback
   const searchTextRef = useRef(searchText);
@@ -38,56 +49,145 @@ export const useMoleculeSearch = () => {
     searchTextRef.current = searchText;
   }, [searchText]);
 
+  // Cancel any pending search on unmount
+  useEffect(() => {
+    return () => {
+      searchAbortControllerRef.current?.abort();
+    };
+  }, []);
+
   const searchMolecule = useCallback(
     async (queryName?: string) => {
       Keyboard.dismiss();
 
       // Use the ref to get the current search text without adding it to dependency array
       const term = queryName || searchTextRef.current;
-      if (!term.trim()) return;
+      const trimmedTerm = term.trim();
+      if (!trimmedTerm) return;
 
-      const normalizedTerm = term.trim().toLowerCase();
+      const normalizedTerm = trimmedTerm.toLowerCase();
       const currentSearchId = ++activeSearchIdRef.current;
+
+      // Abort any prior in-flight search
+      searchAbortControllerRef.current?.abort();
+      const controller = new AbortController();
+      searchAbortControllerRef.current = controller;
 
       clearSuggestions();
 
-      // Check cache first
-      if (moleculeCache.has(normalizedTerm)) {
-        const cached = moleculeCache.get(normalizedTerm)!;
+      // 1. Tier 1: Check In-Memory RAM Cache first by Name or CID (0ms synchronous)
+      const ramCached =
+        moleculeCache.get(normalizedTerm) || moleculeCache.get(trimmedTerm);
+      if (ramCached) {
         // Refresh LRU order
         moleculeCache.delete(normalizedTerm);
-        moleculeCache.set(normalizedTerm, cached);
+        moleculeCache.set(normalizedTerm, ramCached);
+        if (ramCached.cid) {
+          moleculeCache.set(ramCached.cid, ramCached);
+        }
 
         setIsLoading(false);
-        setMoleculeData(cached);
-        // Even if cached, count as a successful interaction
+        setMoleculeData(ramCached);
         incrementSearchCountAndReview();
         return;
       }
 
+      // 2. Check Pre-bundled Offline Dataset by Name or CID (0ms synchronous)
+      const bundled =
+        BUNDLED_MOLECULES[normalizedTerm] ||
+        BUNDLED_MOLECULES_BY_CID[trimmedTerm];
+
+      if (bundled) {
+        moleculeCache.set(normalizedTerm, bundled);
+        if (bundled.cid) {
+          moleculeCache.set(bundled.cid, bundled);
+        }
+
+        setIsLoading(false);
+        setMoleculeData(bundled);
+        incrementSearchCountAndReview();
+        return;
+      }
+
+      // Synchronously initiate loading state before any async storage/network gaps
       setIsLoading(true);
       setMoleculeData(null);
 
+      // 3. Tier 2: Check Persistent Disk Cache (AsyncStorage) by Name or CID
+      const diskCached =
+        (await getCachedMolecule(normalizedTerm)) ||
+        (await getCachedMolecule(trimmedTerm));
+      if (
+        currentSearchId !== activeSearchIdRef.current ||
+        controller.signal.aborted
+      ) {
+        return;
+      }
+
+      if (diskCached) {
+        // Promote to Tier 1 RAM Cache
+        if (moleculeCache.size >= MAX_MOLECULE_CACHE_SIZE) {
+          const oldestKey = moleculeCache.keys().next().value;
+          if (oldestKey) moleculeCache.delete(oldestKey);
+        }
+        moleculeCache.set(normalizedTerm, diskCached);
+        if (diskCached.cid) {
+          moleculeCache.set(diskCached.cid, diskCached);
+        }
+
+        setIsLoading(false);
+        setMoleculeData(diskCached);
+        incrementSearchCountAndReview();
+        return;
+      }
+
+      // 4. Fallback to Network (Rate-limited through RequestQueue)
       try {
-        const result = await fetchMoleculeData(term);
+        const result = await fetchMoleculeData(term, controller.signal);
 
         // Guard against race conditions: ignore if superseded by another search
-        if (currentSearchId !== activeSearchIdRef.current) return;
+        if (
+          currentSearchId !== activeSearchIdRef.current ||
+          controller.signal.aborted
+        ) {
+          return;
+        }
 
-        // Evict oldest entry if capacity reached
+        // Evict oldest entry in RAM if capacity reached
         if (moleculeCache.size >= MAX_MOLECULE_CACHE_SIZE) {
           const oldestKey = moleculeCache.keys().next().value;
           if (oldestKey) moleculeCache.delete(oldestKey);
         }
 
-        // Store in cache
+        // Store in Tier 1 RAM cache
         moleculeCache.set(normalizedTerm, result);
+        if (result.cid) {
+          moleculeCache.set(result.cid, result);
+        }
+
+        // Store in Tier 2 Disk cache in background
+        saveCachedMolecule(result).catch(() => {});
+
         setMoleculeData(result);
         // Successful search!
         incrementSearchCountAndReview();
       } catch (error) {
-        // Ignore errors from stale searches
-        if (currentSearchId !== activeSearchIdRef.current) return;
+        // Ignore errors from cancelled or stale searches
+        if (
+          currentSearchId !== activeSearchIdRef.current ||
+          controller.signal.aborted
+        ) {
+          return;
+        }
+        if (isAbortError(error, controller.signal)) return;
+
+        if (error instanceof PubChemThrottledError) {
+          Alert.alert(
+            "Chemical Server Busy",
+            "PubChem is currently receiving high traffic. Please wait a moment before trying again.",
+          );
+          return;
+        }
 
         const message = error instanceof Error ? error.message : String(error);
         console.error("Molecule search error:", message);
@@ -127,6 +227,8 @@ export const useMoleculeSearch = () => {
 
   const clearMolecule = useCallback(() => {
     activeSearchIdRef.current++;
+    searchAbortControllerRef.current?.abort();
+    searchAbortControllerRef.current = null;
     Keyboard.dismiss();
     setSearchText("");
     clearSuggestions();

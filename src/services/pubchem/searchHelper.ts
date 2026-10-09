@@ -11,9 +11,10 @@ import { isValidId } from "./utils";
 
 export const fetchMoleculeData = async (
   term: string,
+  signal?: AbortSignal,
 ): Promise<MoleculeInfo> => {
   // Get initial compound data by name
-  const searchJson = await fetchCompoundByName(term);
+  const searchJson = await fetchCompoundByName(term, signal);
   if (!searchJson.PC_Compounds || searchJson.PC_Compounds.length === 0) {
     throw new Error("Could not find a molecule with that name.");
   }
@@ -40,7 +41,7 @@ export const fetchMoleculeData = async (
     cifText,
     codId,
     useCif,
-  } = await fetchMoleculeDetails(cid);
+  } = await fetchMoleculeDetails(cid, signal);
 
   // Parse additional data
   const experimentalProps = parseExperimentalProperties(propsJson);

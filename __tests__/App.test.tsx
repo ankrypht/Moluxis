@@ -140,18 +140,18 @@ describe("Featured Molecules on First Launch", () => {
     expect(Keyboard.dismiss).toHaveBeenCalled();
     expect(mockSelectSuggestion).toHaveBeenCalledWith("Caffeine");
 
-    // Switch to crystals tab and tap diamond chip
+    // Switch to crystals tab and tap fluorite chip
     const crystalsTab = getByTestId("category-tab-crystals");
     await act(async () => {
       fireEvent.press(crystalsTab);
     });
 
-    const diamondChip = getByTestId("featured-chip-diamond");
+    const fluoriteChip = getByTestId("featured-chip-fluorite");
     await act(async () => {
-      fireEvent.press(diamondChip);
+      fireEvent.press(fluoriteChip);
     });
 
-    expect(mockSelectSuggestion).toHaveBeenCalledWith("Diamond");
+    expect(mockSelectSuggestion).toHaveBeenCalledWith("Fluorite");
   });
 
   it("returns to showcase when clear button in search input is pressed", async () => {

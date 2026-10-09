@@ -3,13 +3,14 @@ import {
   fetchCompoundByName,
   fetchMoleculeDetails,
 } from "../api";
+import { PubChemThrottledError } from "../circuitBreaker";
 
 const mockFetch = jest.fn();
 global.fetch = mockFetch as any;
 
 describe("fetchAutocomplete", () => {
   beforeEach(() => {
-    mockFetch.mockClear();
+    mockFetch.mockReset();
   });
 
   it("should return a unique list of compound names on success", async () => {
@@ -88,7 +89,7 @@ describe("fetchAutocomplete", () => {
 
 describe("fetchCompoundByName", () => {
   beforeEach(() => {
-    mockFetch.mockClear();
+    mockFetch.mockReset();
   });
 
   it("should fetch compound data by name on success", async () => {
@@ -106,6 +107,7 @@ describe("fetchCompoundByName", () => {
     expect(result).toEqual(mockData);
     expect(mockFetch).toHaveBeenCalledWith(
       "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/aspirin/JSON",
+      expect.objectContaining({ signal: undefined }),
     );
   });
 
@@ -138,7 +140,7 @@ describe("fetchCompoundByName", () => {
 
 describe("fetchMoleculeDetails", () => {
   beforeEach(() => {
-    mockFetch.mockClear();
+    mockFetch.mockReset();
     jest.spyOn(console, "error").mockImplementation(() => {});
   });
 
@@ -146,13 +148,11 @@ describe("fetchMoleculeDetails", () => {
     (console.error as jest.Mock).mockRestore();
   });
 
-  it("should fetch all molecule details on success", async () => {
+  it("should fetch all molecule details on success and skip Structures View when 3D SDF exists", async () => {
     const cid = 123;
     const mockJson = { some: "data" };
     const mockSdf = "sdf contents".padEnd(205, ".");
 
-    // fetchMoleculeDetails makes 7 initial calls
-    // propsUrl, ghsUrl, synonymsUrl, descUrl, structure3dUrl, structure2dUrl, structuresViewUrl
     mockFetch.mockResolvedValue({
       ok: true,
       json: async () => mockJson,
@@ -164,8 +164,8 @@ describe("fetchMoleculeDetails", () => {
     expect(result.propsJson).toEqual(mockJson);
     expect(result.ghsJson).toEqual(mockJson);
     expect(result.sdfText3d).toBe(mockSdf);
-    expect(result.sdfText2d).toBe(mockSdf);
-    expect(mockFetch).toHaveBeenCalledTimes(7);
+    expect(result.sdfText2d).toBe(mockSdf); // Both 3D and 2D available!
+    expect(mockFetch).toHaveBeenCalledTimes(6); // 6 calls, Structures View skipped
   });
 
   it("should handle partial fetch failures gracefully", async () => {
@@ -187,6 +187,7 @@ describe("fetchMoleculeDetails", () => {
     const cid = 123;
     const mock2dSdf = "2d sdf contents".padEnd(205, ".");
 
+    // Stage 1:
     // 1. props
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
     // 2. ghs
@@ -205,6 +206,8 @@ describe("fetchMoleculeDetails", () => {
       ok: true,
       text: async () => mock2dSdf,
     });
+
+    // Stage 2 (triggered because 3D failed):
     // 7. structuresView
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
 
@@ -237,12 +240,12 @@ describe("fetchMoleculeDetails", () => {
       },
     };
 
+    // Stage 1:
     // 1-4. basic info
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
-
     // 5. structure3d (fails)
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -253,12 +256,13 @@ describe("fetchMoleculeDetails", () => {
       ok: true,
       text: async () => "PUGREST.NotFound",
     });
+
+    // Stage 2:
     // 7. structuresView (returns COD ID)
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => structuresJson,
     });
-
     // 8. CIF fetch (triggered because codId found)
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -273,16 +277,15 @@ describe("fetchMoleculeDetails", () => {
     expect(result.useCif).toBe(true);
   });
 
-  it("should use fallback COD ID for known crystal CID (e.g. Diamond) when missing from structures section", async () => {
-    const diamondCid = 5462310;
-    const mockCif = "diamond cif contents";
+  it("should not use CIF if structures section has no COD ID", async () => {
+    const cid = 999999;
 
+    // Stage 1:
     // 1-4. basic info
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
-
     // 5. structure3d (fails)
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -293,82 +296,51 @@ describe("fetchMoleculeDetails", () => {
       ok: true,
       text: async () => "PUGREST.NotFound",
     });
+
+    // Stage 2:
     // 7. structuresView (empty, no COD ID in JSON)
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({}),
     });
 
-    // 8. CIF fetch (triggered by KNOWN_COD_IDS[5462310] = "9008564")
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      text: async () => mockCif,
-    });
+    const result = await fetchMoleculeDetails(cid);
 
-    const result = await fetchMoleculeDetails(diamondCid);
-
-    expect(result.codId).toBe("9008564");
-    expect(result.cifText).toBe(mockCif);
-    expect(result.useCif).toBe(true);
+    expect(result.codId).toBeNull();
+    expect(result.cifText).toBe("");
+    expect(result.useCif).toBe(false);
   });
 
-  it("should NOT use CIF if 3D SDF is already available", async () => {
+  it("should NOT use CIF or fetch Structures View if 3D SDF is already available", async () => {
     const cid = 123;
-    const codId = "1000001";
-    const mockCif = "cif contents";
     const mockSdf3d = "A".repeat(201); // Valid SDF
 
-    const structuresJson = {
-      Record: {
-        Section: [
-          {
-            TOCHeading: "Structures",
-            Section: [
-              {
-                Name: "COD Number",
-                Value: {
-                  StringWithMarkup: [{ String: codId }],
-                },
-              },
-            ],
-          },
-        ],
-      },
-    };
-
+    // Stage 1:
     // 1-4. basic info
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
-
     // 5. structure3d (succeeds)
     mockFetch.mockResolvedValueOnce({
       ok: true,
       text: async () => mockSdf3d,
     });
-    // 6. structure2d (fails)
+    const mockSdf2d = "2d sdf contents".padEnd(205, ".");
+    // 6. structure2d (succeeds)
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      text: async () => "PUGREST.NotFound",
-    });
-    // 7. structuresView (returns COD ID)
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => structuresJson,
-    });
-
-    // 8. CIF fetch
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      text: async () => mockCif,
+      text: async () => mockSdf2d,
     });
 
     const result = await fetchMoleculeDetails(cid);
 
     expect(result.sdfText3d).toBe(mockSdf3d);
-    expect(result.cifText).toBe(mockCif);
+    expect(result.sdfText2d).toBe(mockSdf2d);
+    expect(result.cifText).toBe("");
     expect(result.useCif).toBe(false);
+    // Structures View is completely bypassed!
+    expect(mockFetch).toHaveBeenCalledTimes(6);
   });
 
   it("should ignore SDF text if it is too short or contains PUGREST.NotFound", async () => {
@@ -384,5 +356,18 @@ describe("fetchMoleculeDetails", () => {
 
     expect(result.sdfText3d).toBe("");
     expect(result.sdfText2d).toBe("");
+  });
+
+  it("should re-throw PubChemThrottledError without swallowing it", async () => {
+    const cid = 123;
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 503,
+      headers: new Headers(),
+    });
+
+    await expect(fetchMoleculeDetails(cid)).rejects.toThrow(
+      PubChemThrottledError,
+    );
   });
 });

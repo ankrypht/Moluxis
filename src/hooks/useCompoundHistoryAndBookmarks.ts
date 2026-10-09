@@ -10,6 +10,7 @@ import {
   toggleBookmark,
   clearBookmarks,
 } from "../services/storage/compoundStorage";
+import { setMoleculePinned } from "../services/storage/moleculeDiskCache";
 
 export interface UseCompoundHistoryAndBookmarksReturn {
   history: SavedCompoundItem[];
@@ -128,6 +129,7 @@ export const useCompoundHistoryAndBookmarks =
         try {
           const result = await toggleBookmark(item);
           setBookmarks(result.bookmarks);
+          setMoleculePinned(item.name, result.isBookmarked).catch(() => {});
           return result.isBookmarked;
         } catch (error) {
           console.warn("Failed to toggle bookmark:", error);
@@ -142,6 +144,7 @@ export const useCompoundHistoryAndBookmarks =
       try {
         const updated = await removeBookmark(name);
         setBookmarks(updated);
+        setMoleculePinned(name, false).catch(() => {});
       } catch (error) {
         console.warn("Failed to remove bookmark:", error);
       }

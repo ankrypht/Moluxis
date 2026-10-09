@@ -1,6 +1,8 @@
 import { renderHook, act } from "@testing-library/react-native";
 import { Alert, Keyboard } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useMoleculeSearch, clearMoleculeCache } from "../useMoleculeSearch";
+import { PubChemThrottledError } from "../../services/pubchem/circuitBreaker";
 import {
   fetchMoleculeDetails,
   fetchCompoundByName,
@@ -11,12 +13,47 @@ import {
 jest.spyOn(Alert, "alert").mockImplementation(() => {});
 jest.spyOn(Keyboard, "dismiss").mockImplementation(() => {});
 
+jest.mock("@react-native-async-storage/async-storage", () => ({
+  getItem: jest.fn(async () => null),
+  setItem: jest.fn(async () => {}),
+  removeItem: jest.fn(async () => {}),
+  multiRemove: jest.fn(async () => {}),
+  clear: jest.fn(async () => {}),
+}));
+
 // Mock the API service
 jest.mock("../../services/pubchem/api", () => ({
   fetchAutocomplete: jest.fn(),
   fetchCompoundByName: jest.fn(),
   fetchMoleculeDetails: jest.fn(),
 }));
+
+// Mock bundled molecules dataset for test isolation
+jest.mock("../../constants/bundledMoleculeData", () => {
+  const caffeine = {
+    name: "Caffeine",
+    cid: "2519",
+    formula: "C8H10N4O2",
+    molecularWeight: "194.19 g/mol",
+    sdf3d: "caffeine 3d sdf",
+    sdf2d: "caffeine 2d sdf",
+    cif: "",
+    codId: null,
+    useCif: false,
+    synonyms: ["Caffeine"],
+    description: "A central nervous system stimulant.",
+    properties: {},
+    safety: {},
+  };
+  return {
+    BUNDLED_MOLECULES: {
+      caffeine,
+    },
+    BUNDLED_MOLECULES_BY_CID: {
+      "2519": caffeine,
+    },
+  };
+});
 
 // Mock useStoreReview
 const mockIncrementSearchCountAndReview = jest.fn();
@@ -297,6 +334,9 @@ describe("useMoleculeSearch", () => {
       act(() => {
         result.current.searchMolecule("slow_compound");
       });
+      await act(async () => {
+        await Promise.resolve();
+      });
 
       expect(result.current.isLoading).toBe(true);
 
@@ -324,6 +364,83 @@ describe("useMoleculeSearch", () => {
       expect(result.current.moleculeData?.name).toBe("aspirin");
     });
 
+    it("should serve molecule from disk cache and promote to RAM cache without calling API", async () => {
+      const diskMolecule = {
+        name: "disk_molecule",
+        cid: "555",
+        formula: "C2H6",
+        molecularWeight: "30.07 g/mol",
+        sdf3d: "disk sdf 3d",
+        sdf2d: "disk sdf 2d",
+        cif: "",
+        codId: null,
+        useCif: false,
+        synonyms: ["Ethane"],
+        description: "An alkane.",
+        properties: {},
+        safety: {},
+      };
+
+      (AsyncStorage.getItem as jest.Mock).mockImplementation(
+        async (key: string) => {
+          if (key.includes("index")) {
+            return JSON.stringify([
+              {
+                name: "disk_molecule",
+                normalizedName: "disk_molecule",
+                cid: "555",
+                lastAccessedAt: Date.now(),
+                isPinned: false,
+              },
+            ]);
+          }
+          if (key.includes("disk_molecule")) {
+            return JSON.stringify(diskMolecule);
+          }
+          return null;
+        },
+      );
+
+      const { result } = renderHook(() => useMoleculeSearch());
+
+      await act(async () => {
+        await result.current.searchMolecule("disk_molecule");
+      });
+
+      expect(fetchCompoundByName).not.toHaveBeenCalled();
+      expect(result.current.moleculeData?.name).toBe("disk_molecule");
+      expect(result.current.moleculeData?.sdf3d).toBe("disk sdf 3d");
+    });
+
+    it("should show specific throttling alert when PubChemThrottledError occurs", async () => {
+      (fetchCompoundByName as jest.Mock).mockRejectedValueOnce(
+        new PubChemThrottledError("Server overloaded", 30),
+      );
+
+      const { result } = renderHook(() => useMoleculeSearch());
+
+      await act(async () => {
+        await result.current.searchMolecule("throttled_compound");
+      });
+
+      expect(Alert.alert).toHaveBeenCalledWith(
+        "Chemical Server Busy",
+        "PubChem is currently receiving high traffic. Please wait a moment before trying again.",
+      );
+    });
+
+    it("should serve featured molecule from bundled dataset with zero network calls", async () => {
+      const { result } = renderHook(() => useMoleculeSearch());
+
+      await act(async () => {
+        await result.current.searchMolecule("Caffeine");
+      });
+
+      expect(fetchCompoundByName).not.toHaveBeenCalled();
+      expect(result.current.moleculeData?.name).toBe("Caffeine");
+      expect(result.current.moleculeData?.formula).toBe("C8H10N4O2");
+    });
+
     it("should clear search text, suggestions, and molecule data when clearMolecule is called", async () => {
       const { result } = renderHook(() => useMoleculeSearch());
 
@@ -339,6 +456,49 @@ describe("useMoleculeSearch", () => {
       expect(result.current.searchText).toBe("");
       expect(result.current.suggestions).toEqual([]);
       expect(result.current.moleculeData).toBeNull();
+    });
+
+    it("should serve featured molecule from bundled dataset when searched by CID", async () => {
+      const { result } = renderHook(() => useMoleculeSearch());
+
+      await act(async () => {
+        await result.current.searchMolecule("2519");
+      });
+
+      expect(fetchCompoundByName).not.toHaveBeenCalled();
+      expect(result.current.moleculeData?.name).toBe("Caffeine");
+      expect(result.current.moleculeData?.cid).toBe("2519");
+    });
+
+    it("should abort in-flight search when a new search is initiated", async () => {
+      let firstSignal: AbortSignal | undefined;
+      (fetchCompoundByName as jest.Mock).mockImplementation(
+        (_name: string, signal?: AbortSignal) => {
+          firstSignal = signal;
+          return new Promise(() => {}); // Pending promise
+        },
+      );
+
+      const { result } = renderHook(() => useMoleculeSearch());
+
+      act(() => {
+        result.current.searchMolecule("first_search");
+      });
+
+      // Allow getCachedMolecule microtask to resolve so fetchCompoundByName is called
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(firstSignal).toBeDefined();
+      expect(firstSignal?.aborted).toBe(false);
+
+      // Start second search immediately
+      act(() => {
+        result.current.searchMolecule("second_search");
+      });
+
+      expect(firstSignal?.aborted).toBe(true);
     });
   });
 });

@@ -60,13 +60,20 @@
 ### 🌟 Curated Molecule Showcase
 
 - **Home Exploration:** Discover iconic molecules across Biochemicals, Medicinal, and Crystals & Minerals.
+- **Instant Offline Showcase:** Pre-bundled datasets for all featured molecules load instantly (0ms) with zero network requests.
 - **One-Tap 3D View:** Tap any card to immediately load and inspect spinning 3D structures.
 
 ### ⏱️ Recent Searches & Bookmarks
 
 - **Jump Back In:** Quick-access carousel on the home screen to revisit recent searches and favorites.
-- **Offline History & Bookmarks:** On-device persistence with quick management and relative timestamps.
+- **Multi-Tier Offline Cache:** High-speed RAM cache backed by persistent disk storage with LRU eviction and pinned bookmark protection.
 - **One-Tap Bookmarking:** Save active compounds directly from the viewer header.
+
+### 🛡️ High Reliability & Smart Networking
+
+- **Adaptive Rate Limiting:** Request queue with dynamic pacing and concurrency control respecting PubChem's `X-Throttling-Control` headers.
+- **Circuit Breaker:** Automatic cooldown trip and queue draining on server throttling (429/503) to protect client IP addresses.
+- **Optimized Data Pipeline:** Staged waterfall queries bypass redundant structure views, and in-flight searches cancel cleanly via `AbortController`.
 
 ### 📊 Chemical Data & Safety
 
@@ -80,6 +87,7 @@
 - **Language:** TypeScript
 - **3D Engine:** [3Dmol.js](https://3Dmol.csb.pitt.edu/) embedded via `react-native-webview`
 - **Data & Storage:** [PubChem PUG REST API](https://pubchem.ncbi.nlm.nih.gov/docs/pug-rest), [Crystallography Open Database (COD)](https://www.crystallography.net/), and [AsyncStorage](https://react-native-async-storage.github.io/async-storage/)
+- **Architecture:** Multi-tier caching (RAM + Disk), rate-limiting request queue, and circuit breaker resilience
 - **Testing:** Jest & `@testing-library/react-native`
 
 ## 🤝 Contributing

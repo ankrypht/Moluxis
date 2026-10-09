@@ -5,6 +5,8 @@ import {
   PubChemInformationResponse,
 } from "../../types/pubchem";
 import { isAbortError, isValidId } from "./utils";
+import { queuedFetch } from "./requestQueue";
+import { PubChemThrottledError } from "./circuitBreaker";
 
 const BASE_URL = "https://pubchem.ncbi.nlm.nih.gov/rest";
 
@@ -21,7 +23,7 @@ export const fetchAutocomplete = async (
     const url = `${BASE_URL}/autocomplete/compound/${encodeURIComponent(
       text,
     )}/json?limit=6`;
-    const res = await fetch(url, { signal });
+    const res = await queuedFetch(url, { signal, skipCircuitBreaker: true });
     const json: PubChemAutocompleteResponse = await res.json();
     if (json.dictionary_terms && json.dictionary_terms.compound) {
       return [...new Set(json.dictionary_terms.compound)];
@@ -44,9 +46,10 @@ export const fetchAutocomplete = async (
  */
 export const fetchCompoundByName = async (
   name: string,
+  signal?: AbortSignal,
 ): Promise<PubChemCompoundResponse> => {
   const url = `${BASE_URL}/pug/compound/name/${encodeURIComponent(name)}/JSON`;
-  const res = await fetch(url);
+  const res = await queuedFetch(url, { signal });
   return res.json();
 };
 
@@ -76,12 +79,15 @@ const findCodId = (obj: any): string | null => {
 const fetchPugView = async (
   cid: number,
   heading: string,
+  signal?: AbortSignal,
 ): Promise<PubChemViewResponse | null> => {
   try {
     const url = `${BASE_URL}/pug_view/data/compound/${cid}/JSON?heading=${encodeURIComponent(heading)}`;
-    const res = await fetch(url);
+    const res = await queuedFetch(url, { signal });
     return res.ok ? await res.json() : null;
-  } catch {
+  } catch (error) {
+    if (error instanceof PubChemThrottledError) throw error;
+    if (isAbortError(error, signal)) throw error;
     return null;
   }
 };
@@ -92,12 +98,15 @@ const fetchPugView = async (
 const fetchPugInformation = async (
   cid: number,
   type: "synonyms" | "description",
+  signal?: AbortSignal,
 ): Promise<PubChemInformationResponse> => {
   try {
     const url = `${BASE_URL}/pug/compound/cid/${cid}/${type}/JSON`;
-    const res = await fetch(url);
+    const res = await queuedFetch(url, { signal });
     return res.ok ? await res.json() : {};
-  } catch {
+  } catch (error) {
+    if (error instanceof PubChemThrottledError) throw error;
+    if (isAbortError(error, signal)) throw error;
     return {};
   }
 };
@@ -105,12 +114,16 @@ const fetchPugInformation = async (
 /**
  * Fetches and validates SDF text (2D or 3D).
  */
-const fetchSdf = async (cid: number, is3d: boolean): Promise<string> => {
+export const fetchSdf = async (
+  cid: number,
+  is3d: boolean,
+  signal?: AbortSignal,
+): Promise<string> => {
   try {
     const url = is3d
       ? `${BASE_URL}/pug/compound/CID/${cid}/record/SDF/?record_type=3d&response_type=display`
       : `${BASE_URL}/pug/compound/CID/${cid}/record/SDF/?response_type=display`;
-    const res = await fetch(url);
+    const res = await queuedFetch(url, { signal });
     if (!res.ok) return "";
 
     const text = await res.text();
@@ -119,68 +132,71 @@ const fetchSdf = async (cid: number, is3d: boolean): Promise<string> => {
       return text;
     }
     return "";
-  } catch {
+  } catch (error) {
+    if (error instanceof PubChemThrottledError) throw error;
+    if (isAbortError(error, signal)) throw error;
     return "";
   }
 };
 
 /**
  * Fetches CIF data from the crystallography.net external source.
+ * Uses standard fetch with isolated error handling to avoid coupling to PubChem rate limits.
  */
-const fetchCifData = async (codId: string): Promise<string> => {
+const fetchCifData = async (
+  codId: string,
+  signal?: AbortSignal,
+): Promise<string> => {
   try {
     const url = `https://www.crystallography.net/cod/${codId}.cif`;
-    const res = await fetch(url);
+    const res = await fetch(url, { signal });
     if (res.ok) {
       return await res.text();
     }
     return "";
   } catch (error) {
+    if (isAbortError(error, signal)) throw error;
     console.error(`Failed to fetch CIF data for COD ID ${codId}:`, error);
     return "";
   }
 };
 
 /**
- * Fetches all additional molecule details, including inorganic CIF data if available.
+ * Fetches all additional molecule details using a staged waterfall strategy.
+ * All requests are routed through the rate-limiting RequestQueue with concurrency control.
  */
-export const fetchMoleculeDetails = async (cid: number) => {
-  const [
-    propsJson,
-    ghsJson,
-    synonymsJson,
-    descJson,
-    sdfText3d,
-    sdfText2d,
-    structuresJson,
-  ] = await Promise.all([
-    fetchPugView(cid, "Chemical and Physical Properties"),
-    fetchPugView(cid, "GHS Classification"),
-    fetchPugInformation(cid, "synonyms"),
-    fetchPugInformation(cid, "description"),
-    fetchSdf(cid, true),
-    fetchSdf(cid, false),
-    fetchPugView(cid, "Structures"),
-  ]);
+export const fetchMoleculeDetails = async (
+  cid: number,
+  signal?: AbortSignal,
+) => {
+  // Stage 1: Fetch primary attributes, 3D SDF, and 2D SDF (so user can switch between 3D and 2D)
+  const [propsJson, ghsJson, synonymsJson, descJson, sdfText3d, sdfText2d] =
+    await Promise.all([
+      fetchPugView(cid, "Chemical and Physical Properties", signal),
+      fetchPugView(cid, "GHS Classification", signal),
+      fetchPugInformation(cid, "synonyms", signal),
+      fetchPugInformation(cid, "description", signal),
+      fetchSdf(cid, true, signal),
+      fetchSdf(cid, false, signal),
+    ]);
 
-  // Priority 1: 3D SDF
   let useCif = false;
   let cifText = "";
+  let codId: string | null = null;
 
-  // Fallback COD IDs for crystals/minerals missing from PubChem Structures section
-  const KNOWN_COD_IDS: Record<number, string> = {
-    5462310: "9008564", // Diamond (Carbon crystal lattice)
-  };
+  // Stage 2: Fallback logic ONLY if 3D SDF is absent.
+  // If 3D SDF exists, fetching Structures PUG View (and external CIF) is completely skipped.
+  if (!sdfText3d) {
+    const structuresJson = await fetchPugView(cid, "Structures", signal);
 
-  // Priority 2: Crystal Structure (CIF) if 3D SDF is not available
-  const rawCodId = findCodId(structuresJson) || KNOWN_COD_IDS[cid] || null;
-  const codId = isValidId(rawCodId) ? rawCodId : null;
+    const rawCodId = findCodId(structuresJson);
+    codId = isValidId(rawCodId) ? rawCodId : null;
 
-  if (codId) {
-    cifText = await fetchCifData(codId);
-    // Only use CIF if we don't already have a 3D SDF
-    if (cifText && sdfText3d === "") {
-      useCif = true;
+    if (codId) {
+      cifText = await fetchCifData(codId, signal);
+      if (cifText) {
+        useCif = true;
+      }
     }
   }
 
