@@ -43,11 +43,12 @@
 ## 📱 Screenshots
 
 <div align="center">
-  <img src="./assets/screenshots/1.png" alt="Curated Showcase & Categories" width="19%" />
-  <img src="./assets/screenshots/2.png" alt="Interactive 3D Molecule Viewer" width="19%" />
-  <img src="./assets/screenshots/3.png" alt="Properties & Safety Data Sheet" width="19%" />
-  <img src="./assets/screenshots/4.png" alt="Share & Snapshot Export" width="19%" />
-  <img src="./assets/screenshots/5.png" alt="History & Offline Bookmarks" width="19%" />
+  <img src="./assets/screenshots/1.png" alt="Curated Showcase & Categories" width="240" />
+  <img src="./assets/screenshots/2.png" alt="Interactive 3D Molecule Viewer" width="240" />
+  <img src="./assets/screenshots/3.png" alt="Properties & Safety Data Sheet" width="240" />
+  <br />
+  <img src="./assets/screenshots/4.png" alt="Share & Snapshot Export" width="240" />
+  <img src="./assets/screenshots/5.png" alt="History & Offline Bookmarks" width="240" />
 </div>
 
 ---
