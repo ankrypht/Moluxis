@@ -19,6 +19,7 @@ import {
 } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { NavigationBar } from "expo-navigation-bar";
+import * as SplashScreen from "expo-splash-screen";
 
 import { VisualizationType } from "./src/types";
 import { useMoleculeSearch } from "./src/hooks/useMoleculeSearch";
@@ -38,7 +39,13 @@ import { HistoryBookmarksModal } from "./src/components/HistoryBookmarksModal";
 import { ShareExportModal } from "./src/components/ShareExportModal";
 import { CustomAlertModal } from "./src/components/CustomAlert";
 
+SplashScreen.preventAutoHideAsync().catch(() => {});
+
 export default function App() {
+  useEffect(() => {
+    SplashScreen.hideAsync().catch(() => {});
+  }, []);
+
   return (
     <SafeAreaProvider>
       <MoleculeExplorer />

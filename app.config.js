@@ -40,6 +40,19 @@ export default {
     "expo-font",
     "expo-sharing",
     [
+      "expo-splash-screen",
+      {
+        backgroundColor: "#000000",
+        image: "./assets/splash-icon.png",
+        dark: {
+          image: "./assets/splash-icon.png",
+          backgroundColor: "#000000",
+        },
+        imageWidth: 200,
+        resizeMode: "contain",
+      },
+    ],
+    [
       "expo-build-properties",
       {
         android: {

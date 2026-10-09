@@ -1,6 +1,7 @@
 import React from "react";
 import { render, fireEvent, waitFor, act } from "@testing-library/react-native";
 import { Keyboard } from "react-native";
+import * as SplashScreen from "expo-splash-screen";
 import App from "../App";
 import {
   resetShowcaseScrollOffset,
@@ -20,6 +21,13 @@ jest.mock("expo-navigation-bar", () => ({
   NavigationBar: {
     setHidden: jest.fn(),
   },
+}));
+
+jest.mock("expo-splash-screen", () => ({
+  preventAutoHideAsync: jest.fn().mockResolvedValue(true),
+  hideAsync: jest.fn().mockResolvedValue(true),
+  setOptions: jest.fn(),
+  hide: jest.fn(),
 }));
 
 jest.mock("@react-native-async-storage/async-storage", () => ({
@@ -552,5 +560,18 @@ describe("Export & Share Feature", () => {
     });
 
     expect(getByTestId("snapshot-preview-image")).toBeTruthy();
+  });
+});
+
+describe("App SplashScreen Lifecycle", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("hides native splash screen when App component mounts", async () => {
+    render(<App />);
+    await waitFor(() => {
+      expect(SplashScreen.hideAsync).toHaveBeenCalled();
+    });
   });
 });
