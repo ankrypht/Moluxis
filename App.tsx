@@ -174,6 +174,7 @@ function MoleculeExplorer() {
     setPrevMoleculeData(moleculeData);
     setSnapshotUri(null);
     setIsCapturingSnapshot(false);
+    setIsAnimated(false);
     if (moleculeData) {
       if (moleculeData.sdf3d || moleculeData.useCif) {
         setStructureFormat("3d");
@@ -205,6 +206,7 @@ function MoleculeExplorer() {
     (query?: string) => {
       searchInputRef.current?.blur();
       Keyboard.dismiss();
+      setIsAnimated(false);
       searchMolecule(query);
     },
     [searchMolecule],
@@ -214,6 +216,7 @@ function MoleculeExplorer() {
     (item: string) => {
       searchInputRef.current?.blur();
       Keyboard.dismiss();
+      setIsAnimated(false);
       selectSuggestion(item);
     },
     [selectSuggestion],
@@ -222,6 +225,7 @@ function MoleculeExplorer() {
   const handleClearToShowcase = useCallback(() => {
     searchInputRef.current?.blur();
     Keyboard.dismiss();
+    setIsAnimated(false);
     setShowInfo(false);
     setShowStyleMenu(false);
     setShowHistoryModal(false);

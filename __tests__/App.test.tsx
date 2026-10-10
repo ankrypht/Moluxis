@@ -455,6 +455,91 @@ describe("Recent Searches & Favorites", () => {
       checked: true,
     });
   });
+
+  it("resets animation to off by default when switching to another molecule", async () => {
+    mockMoleculeData = {
+      name: "Water",
+      formula: "H2O",
+      molecularWeight: "18.015",
+      cid: "962",
+      sdf2d: "sdf2d-data",
+      sdf3d: "sdf3d-data",
+      properties: {},
+      safety: {},
+    };
+
+    const { getByLabelText, rerender } = render(<App />);
+
+    const animSwitch = getByLabelText("Toggle rotation animation");
+    expect(animSwitch.props.accessibilityState).toMatchObject({
+      checked: false,
+    });
+
+    // Turn animation ON
+    await act(async () => {
+      fireEvent(animSwitch, "valueChange", true);
+    });
+
+    expect(animSwitch.props.accessibilityState).toMatchObject({
+      checked: true,
+    });
+
+    // Switch to another molecule (e.g. Caffeine)
+    mockMoleculeData = {
+      name: "Caffeine",
+      formula: "C8H10N4O2",
+      molecularWeight: "194.19",
+      cid: "2519",
+      sdf2d: "sdf2d-data",
+      sdf3d: "sdf3d-data",
+      properties: {},
+      safety: {},
+    };
+
+    await act(async () => {
+      rerender(<App />);
+    });
+
+    // Animation should be reset to off
+    const updatedAnimSwitch = getByLabelText("Toggle rotation animation");
+    expect(updatedAnimSwitch.props.accessibilityState).toMatchObject({
+      checked: false,
+    });
+  });
+
+  it("resets animation to off when a new search is initiated", async () => {
+    mockMoleculeData = {
+      name: "Water",
+      formula: "H2O",
+      molecularWeight: "18.015",
+      cid: "962",
+      sdf2d: "sdf2d-data",
+      sdf3d: "sdf3d-data",
+      properties: {},
+      safety: {},
+    };
+
+    const { getByLabelText, getByPlaceholderText } = render(<App />);
+
+    const animSwitch = getByLabelText("Toggle rotation animation");
+    // Turn animation ON
+    await act(async () => {
+      fireEvent(animSwitch, "valueChange", true);
+    });
+    expect(animSwitch.props.accessibilityState).toMatchObject({
+      checked: true,
+    });
+
+    // Trigger search
+    const input = getByPlaceholderText("Search by name or formula");
+    await act(async () => {
+      fireEvent(input, "submitEditing");
+    });
+
+    expect(animSwitch.props.accessibilityState).toMatchObject({
+      checked: false,
+    });
+  });
 });
 
 describe("Export & Share Feature", () => {
