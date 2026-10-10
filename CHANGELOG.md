@@ -1,5 +1,37 @@
 # Changelog
 
+## [2.1.0](https://github.com/ankrypht/Moluxis/compare/v2.0.4...v2.1.0) (2026-10-10)
+
+
+### Features
+
+* add compound export and share functionality with 3D snapshots ([32239ee](https://github.com/ankrypht/Moluxis/commit/32239ee263c28739a104c55668eaa1a2f58e826d))
+* implement multi-tier caching, PubChem rate limiting, and circuit breaker resilience ([df039b0](https://github.com/ankrypht/Moluxis/commit/df039b035fda3498950f939a289ccb3f42d61c57))
+* implement recent search history, offline bookmarks, and jump back in carousel ([e42e27c](https://github.com/ankrypht/Moluxis/commit/e42e27c6815565d1459b02e83d14d6f92d1c38f7))
+* implement themed custom alert popup replacing native Alert ([783acfd](https://github.com/ankrypht/Moluxis/commit/783acfd8cfaa6a7cf6032d432d1ea7f501ef083f))
+* integrate expo-haptics for tactile feedback across viewer and search interactions ([cf90080](https://github.com/ankrypht/Moluxis/commit/cf90080da7973dca6de60002f91a85f35d049dff))
+* introduce curated featured molecules showcase on launch ([5440bec](https://github.com/ankrypht/Moluxis/commit/5440bec9650c0a4b58d59dce95c528a1a4f63f39))
+* **showcase:** add category pill tabs with persistent category selection ([fc0ce3b](https://github.com/ankrypht/Moluxis/commit/fc0ce3bfc0e1696c51d15022e030c48c39ab7636))
+* **ui:** refine visual design accents, enhance control accessibility, and add test coverage ([9885abb](https://github.com/ankrypht/Moluxis/commit/9885abb8a27d77cab6b4e9cc4981d0ccf1b42ec7))
+
+
+### Bug Fixes
+
+* **cache:** resolve search race conditions, fix loading state on hits, and add LRU bounds ([52a4a37](https://github.com/ankrypht/Moluxis/commit/52a4a372925ee4b4e363b678d0a7441b64a48fe2))
+* configure expo-splash-screen plugin and manage splash lifecycle ([8ad7c16](https://github.com/ankrypht/Moluxis/commit/8ad7c1685cae3429b85c47fc407d58ffc67c0119))
+* enhance robustness, component memoization, device layouts, and key uniqueness ([3d58474](https://github.com/ankrypht/Moluxis/commit/3d5847490c7052fb197e4f479561c527a46331c9))
+* remove redundant useMemo to satisfy React Compiler memoization inference ([19e8971](https://github.com/ankrypht/Moluxis/commit/19e8971e9058fa31e5a07b07bb515d7ba559a911))
+* replace 3Dmol spin loop with throttled rAF and pause WebGL on input to eliminate ANRs ([21ea944](https://github.com/ankrypht/Moluxis/commit/21ea9440fc0ef783538a336778cbdaff172d76d2))
+* reset molecule rotation animation state when switching molecules or performing new searches ([76d42f2](https://github.com/ankrypht/Moluxis/commit/76d42f247ef7f104d9d0e3f08889e6c1c141ed12))
+* resolve blank viewer race condition on cold install and improve readiness handshake ([f0eff92](https://github.com/ankrypht/Moluxis/commit/f0eff9210737b16c1e32f8f5a519126bc11d88ad))
+* resolve snapshot lifecycle issues, file path normalization, and bookmark merging bugs ([55a83ed](https://github.com/ankrypht/Moluxis/commit/55a83ede3be40bb9b5c2c92580025da99ae17677))
+* **review:** optimize store review check and add play store URL fallback ([393c08c](https://github.com/ankrypht/Moluxis/commit/393c08cb17f5bfcf06aa191a1919e072dc32abf9))
+
+
+### Performance Improvements
+
+* optimize component memoization, cache bounds, responsive styles, and navigation bar persistence ([ff37960](https://github.com/ankrypht/Moluxis/commit/ff379607308b55f1ccf957f891a5258eb6ce6623))
+
 ## [2.0.4](https://github.com/ankrypht/Moluxis/compare/v2.0.3...v2.0.4) (2026-10-07)
 
 
