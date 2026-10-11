@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.1.1](https://github.com/ankrypht/Moluxis/compare/v2.1.0...v2.1.1) (2026-10-11)
+
+
+### Bug Fixes
+
+* prevent redundant WebView re-initialization and duplicate structure dispatches ([194ec47](https://github.com/ankrypht/Moluxis/commit/194ec473724c90de9ce2835b193b86fa6ce19859))
+
+
+### Performance Improvements
+
+* bundle 3Dmol.js locally for offline support and tighten WebView security ([4a68860](https://github.com/ankrypht/Moluxis/commit/4a6886060810ddbd975ab431bff5b86d64d5e923))
+
 ## [2.1.0](https://github.com/ankrypht/Moluxis/compare/v2.0.4...v2.1.0) (2026-10-10)
 
 
