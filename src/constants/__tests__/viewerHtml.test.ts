@@ -16,7 +16,15 @@ describe("VIEWER_HTML", () => {
     expect(VIEWER_HTML).toContain('http-equiv="Content-Security-Policy"');
     expect(VIEWER_HTML).toContain("default-src 'none'");
     expect(VIEWER_HTML).toContain("script-src 'unsafe-inline' 'unsafe-eval'");
+    expect(VIEWER_HTML).toContain("worker-src blob:");
+    expect(VIEWER_HTML).toContain("child-src blob:");
     expect(VIEWER_HTML).not.toContain("https://3Dmol.csb.pitt.edu");
+  });
+
+  it("should guard against duplicate readiness notifications and re-initialization", () => {
+    expect(VIEWER_HTML).toContain("let isReadyNotified = false");
+    expect(VIEWER_HTML).toContain("if (isReadyNotified) return");
+    expect(VIEWER_HTML).toContain("if (viewer) return");
   });
 
   it("should include the bundled 3Dmol.js script", () => {

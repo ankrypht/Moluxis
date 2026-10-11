@@ -125,6 +125,49 @@ describe("MoleculeViewer", () => {
     expect(queryByText("Generating 3D Structure...")).toBeNull();
   });
 
+  it("ignores duplicate WEBVIEW_READY messages and does not re-dispatch LOAD_STRUCTURE", async () => {
+    const { getByTestId } = render(
+      <MoleculeViewer
+        moleculeData={sampleMolecule}
+        isLoading={false}
+        structureFormat="3d"
+        vizStyle="ballStick"
+        showLabels={false}
+        isAnimated={true}
+        styles={mockStyles}
+      />,
+    );
+
+    const webview = getByTestId("molecule-webview");
+
+    // First WEBVIEW_READY message
+    act(() => {
+      webview.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: "WEBVIEW_READY" }),
+        },
+      });
+    });
+
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      expect.stringContaining('"type":"LOAD_STRUCTURE"'),
+    );
+
+    mockPostMessage.mockClear();
+
+    // Duplicate WEBVIEW_READY message (e.g. from interval or window load)
+    act(() => {
+      webview.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: "WEBVIEW_READY" }),
+        },
+      });
+    });
+
+    // Should NOT re-dispatch LOAD_STRUCTURE
+    expect(mockPostMessage).not.toHaveBeenCalled();
+  });
+
   it("safely dispatches structure upon WEBVIEW_READY even if 1500ms fallback retry timer fired beforehand", async () => {
     const { getByTestId, queryByText } = render(
       <MoleculeViewer

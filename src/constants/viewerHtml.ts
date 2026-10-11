@@ -5,7 +5,7 @@ export const VIEWER_HTML = `
 <!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval'; style-src 'unsafe-inline'; img-src 'self' data: blob:; connect-src *; worker-src blob:;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval'; style-src 'unsafe-inline'; img-src 'self' data: blob:; connect-src *; worker-src blob:; child-src blob:;">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     /* Dark Theme Background */
@@ -32,9 +32,12 @@ ${THREE_DMOL_SCRIPT}
     const FRAME_INTERVAL = 1000 / TARGET_FPS;
     const ROTATION_SPEED_DEG_PER_SEC = 35;
     let isUserDragging = false;
+    let isReadyNotified = false;
 
     function notifyReady() {
+      if (isReadyNotified) return;
       if (window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === 'function') {
+        isReadyNotified = true;
         window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'WEBVIEW_READY' }));
       } else {
         setTimeout(notifyReady, 50);
@@ -106,30 +109,30 @@ ${THREE_DMOL_SCRIPT}
            return;
         }
         
-        if (!viewer) {
-          // Set 3D Viewer background to match app dark theme.
-          // Explicitly set antialias: false to prevent 3Dmol from creating extra offscreen
-          // FBOs and running post-processing screenaa shaders, eliminating PowerVR GPU stalls.
-          let config = { 
-            backgroundColor: '${COLORS.background}',
-            antialias: false
-          };
-          viewer = $3Dmol.createViewer(element, config);
-          
-          let canvas = element.querySelector('canvas');
-          if (canvas) {
-            canvas.addEventListener('webglcontextlost', function(e) {
-              e.preventDefault();
-              stopAnimation();
-            }, false);
-            canvas.addEventListener('webglcontextrestored', function() {
-              if (isAnimating && !isUserDragging) {
-                startAnimation();
-              }
-            }, false);
-          }
-        }
+        if (viewer) return;
+
+        // Set 3D Viewer background to match app dark theme.
+        // Explicitly set antialias: false to prevent 3Dmol from creating extra offscreen
+        // FBOs and running post-processing screenaa shaders, eliminating PowerVR GPU stalls.
+        let config = { 
+          backgroundColor: '${COLORS.background}',
+          antialias: false
+        };
+        viewer = $3Dmol.createViewer(element, config);
         
+        let canvas = element.querySelector('canvas');
+        if (canvas) {
+          canvas.addEventListener('webglcontextlost', function(e) {
+            e.preventDefault();
+            stopAnimation();
+          }, false);
+          canvas.addEventListener('webglcontextrestored', function() {
+            if (isAnimating && !isUserDragging) {
+              startAnimation();
+            }
+          }, false);
+        }
+
         // Notify React Native that we are ready
         notifyReady();
 
@@ -320,25 +323,25 @@ ${THREE_DMOL_SCRIPT}
     // Initialize immediately if bundled 3Dmol is ready
     if (typeof $3Dmol !== 'undefined') {
       init();
+    } else {
+      // Ensure 3Dmol is loaded before initializing (fallback)
+      const check3Dmol = setInterval(() => {
+        if (typeof $3Dmol !== 'undefined') {
+          clearInterval(check3Dmol);
+          init();
+        }
+      }, 100);
+
+      window.addEventListener('load', function() {
+        if (typeof $3Dmol !== 'undefined') {
+          clearInterval(check3Dmol);
+          init();
+        }
+      });
+
+      // Timeout after 30 seconds
+      setTimeout(() => clearInterval(check3Dmol), 30000);
     }
-
-    // Ensure 3Dmol is loaded before initializing (fallback)
-    const check3Dmol = setInterval(() => {
-      if (typeof $3Dmol !== 'undefined') {
-        clearInterval(check3Dmol);
-        init();
-      }
-    }, 100);
-
-    window.addEventListener('load', function() {
-      if (typeof $3Dmol !== 'undefined') {
-        clearInterval(check3Dmol);
-        init();
-      }
-    });
-
-    // Timeout after 30 seconds
-    setTimeout(() => clearInterval(check3Dmol), 30000);
   </script>
 </body>
 </html>

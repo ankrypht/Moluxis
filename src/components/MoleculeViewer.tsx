@@ -351,7 +351,11 @@ export const MoleculeViewer = React.memo(
                 fallbackTimerRef.current = null;
               }
 
-              if (moleculeData && currentSignature) {
+              if (
+                moleculeData &&
+                currentSignature &&
+                lastLoadedSignatureRef.current !== currentSignature
+              ) {
                 const useCif = moleculeData.useCif;
                 const structureData =
                   structureFormat === "2d"
@@ -412,6 +416,7 @@ export const MoleculeViewer = React.memo(
               onLoadStart={() => {
                 isWebViewReadyRef.current = false;
                 setIsViewerReady(false);
+                lastLoadedSignatureRef.current = null;
               }}
               onRenderProcessGone={(syntheticEvent) => {
                 const { didCrash } = syntheticEvent.nativeEvent;
