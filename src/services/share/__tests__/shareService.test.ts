@@ -11,15 +11,6 @@ import {
 } from "../shareService";
 import { MoleculeInfo } from "../../../types";
 
-jest.mock("react-native", () => ({
-  Share: {
-    share: jest.fn().mockResolvedValue({ action: "sharedAction" }),
-  },
-  Platform: {
-    OS: "android",
-  },
-}));
-
 jest.mock("expo-file-system/legacy", () => ({
   cacheDirectory: "file:///mock-cache/",
   documentDirectory: "file:///mock-docs/",
@@ -53,6 +44,7 @@ const mockMolecule: MoleculeInfo = {
 describe("shareService", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(Share, "share").mockResolvedValue({ action: "sharedAction" });
   });
 
   describe("getCompoundPubChemUrl", () => {
