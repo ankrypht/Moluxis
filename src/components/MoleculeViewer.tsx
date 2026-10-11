@@ -132,7 +132,7 @@ export const MoleculeViewer = React.memo(
       const webViewSource = useMemo(
         () => ({
           html: VIEWER_HTML,
-          baseUrl: "https://3Dmol.csb.pitt.edu",
+          baseUrl: "about:blank",
         }),
         [],
       );
@@ -403,7 +403,7 @@ export const MoleculeViewer = React.memo(
           {(moleculeData || isLoading) && (
             <WebView
               ref={webViewRef}
-              originWhitelist={["https://3Dmol.csb.pitt.edu"]}
+              originWhitelist={["about:blank"]}
               source={webViewSource}
               style={styles.webview}
               scrollEnabled={false}

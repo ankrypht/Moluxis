@@ -16,6 +16,6 @@ module.exports = defineConfig([
     },
   },
   {
-    ignores: ["dist/*"],
+    ignores: ["dist/*", "src/constants/threeDmolScript.ts"],
   },
 ]);

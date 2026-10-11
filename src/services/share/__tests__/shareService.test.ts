@@ -106,11 +106,19 @@ describe("shareService", () => {
     });
 
     it("handles errors gracefully and returns false", async () => {
+      const consoleSpy = jest
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
       (Share.share as jest.Mock).mockRejectedValueOnce(
         new Error("Share error"),
       );
       const result = await shareCompoundDetails(mockMolecule);
       expect(result).toBe(false);
+      expect(consoleSpy).toHaveBeenCalledWith(
+        "Error sharing compound details:",
+        expect.any(Error),
+      );
+      consoleSpy.mockRestore();
     });
   });
 
@@ -178,8 +186,16 @@ describe("shareService", () => {
     });
 
     it("returns false if invalid dataUri is passed", async () => {
+      const consoleSpy = jest
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
       const result = await shareSnapshotImage("not-base64", "Caffeine");
       expect(result).toBe(false);
+      expect(consoleSpy).toHaveBeenCalledWith(
+        "Error sharing snapshot image:",
+        expect.any(Error),
+      );
+      consoleSpy.mockRestore();
     });
   });
 });

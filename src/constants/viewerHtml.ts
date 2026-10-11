@@ -1,17 +1,20 @@
 import { COLORS } from "./colors";
+import { THREE_DMOL_SCRIPT } from "./threeDmolScript";
 
 export const VIEWER_HTML = `
 <!DOCTYPE html>
 <html>
 <head>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' https://3Dmol.csb.pitt.edu; style-src 'unsafe-inline'; img-src 'self' data: blob: https://3Dmol.csb.pitt.edu; connect-src *; worker-src blob:;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval'; style-src 'unsafe-inline'; img-src 'self' data: blob:; connect-src *; worker-src blob:;">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <script src="https://3Dmol.csb.pitt.edu/build/3Dmol-min.js"></script>
   <style>
     /* Dark Theme Background */
     body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background-color: ${COLORS.background}; }
     #container { width: 100%; height: 100%; position: relative; }
   </style>
+  <script>
+${THREE_DMOL_SCRIPT}
+  </script>
 </head>
 <body>
   <div id="container"></div>
@@ -314,7 +317,12 @@ export const VIEWER_HTML = `
       }
     });
 
-    // Ensure 3Dmol is loaded before initializing
+    // Initialize immediately if bundled 3Dmol is ready
+    if (typeof $3Dmol !== 'undefined') {
+      init();
+    }
+
+    // Ensure 3Dmol is loaded before initializing (fallback)
     const check3Dmol = setInterval(() => {
       if (typeof $3Dmol !== 'undefined') {
         clearInterval(check3Dmol);

@@ -28,16 +28,20 @@ jest.mock("../../utils/haptics", () => ({
 
 describe("CustomAlert Component & Service", () => {
   beforeEach(() => {
+    jest.useFakeTimers();
     jest.clearAllMocks();
     act(() => {
       customAlertManager.dismiss();
+      jest.runAllTimers();
     });
   });
 
   afterEach(() => {
     act(() => {
       customAlertManager.dismiss();
+      jest.runAllTimers();
     });
+    jest.useRealTimers();
   });
 
   describe("resolveAlertTheme logic", () => {

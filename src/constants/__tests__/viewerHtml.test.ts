@@ -1,4 +1,5 @@
 import { VIEWER_HTML } from "../viewerHtml";
+import { THREE_DMOL_SCRIPT } from "../threeDmolScript";
 import { COLORS } from "../colors";
 
 describe("VIEWER_HTML", () => {
@@ -11,15 +12,15 @@ describe("VIEWER_HTML", () => {
     expect(VIEWER_HTML).toContain('<div id="container"></div>');
   });
 
-  it("should contain the correct Content-Security-Policy", () => {
+  it("should contain the correct Content-Security-Policy without external script origins", () => {
     expect(VIEWER_HTML).toContain('http-equiv="Content-Security-Policy"');
-    expect(VIEWER_HTML).toContain("https://3Dmol.csb.pitt.edu");
+    expect(VIEWER_HTML).toContain("default-src 'none'");
+    expect(VIEWER_HTML).toContain("script-src 'unsafe-inline' 'unsafe-eval'");
+    expect(VIEWER_HTML).not.toContain("https://3Dmol.csb.pitt.edu");
   });
 
-  it("should include the 3Dmol.js script", () => {
-    expect(VIEWER_HTML).toContain(
-      '<script src="https://3Dmol.csb.pitt.edu/build/3Dmol-min.js"></script>',
-    );
+  it("should include the bundled 3Dmol.js script", () => {
+    expect(VIEWER_HTML).toContain(THREE_DMOL_SCRIPT);
   });
 
   it("should contain key JavaScript functions and logic", () => {
