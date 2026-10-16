@@ -1,4 +1,4 @@
-# dependencies
+# Dependencies
 node_modules/
 
 # Expo
@@ -7,7 +7,7 @@ dist/
 web-build/
 expo-env.d.ts
 
-# Native
+# Native & Signing
 .kotlin/
 *.orig.*
 *.jks
@@ -16,28 +16,43 @@ expo-env.d.ts
 *.key
 *.mobileprovision
 
+# Generated native code
+/android
+
 # Metro
 .metro-health-check*
 
-# debug
+# Debug & Logs
 npm-debug.*
 yarn-debug.*
 yarn-error.*
+*.log
 
 # macOS
 .DS_Store
 *.pem
 
-# local env files
+# Local env files
 .env*.local
 
-# typescript
+# TypeScript
 *.tsbuildinfo
 
-# generated native folder
-/android
+# Testing & Coverage
+coverage/
 
+# Build outputs & binaries
+*.apk
+*.aab
+
+# IDE & Tooling
+.vscode/
+.idea/
+*.iml
+.agents/
+skills-lock.json
 .antigravitycli
+.gemini/
 
 # Google Play API credentials and reports
 *service-account*.json

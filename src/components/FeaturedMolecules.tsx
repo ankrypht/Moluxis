@@ -3,6 +3,7 @@ import {
   View,
   Text,
   ScrollView,
+  type ScrollViewInstance,
   TouchableOpacity,
   useWindowDimensions,
   NativeSyntheticEvent,
@@ -69,7 +70,7 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
   }) => {
     const { width, height } = useWindowDimensions();
     const isLandscape = width > height;
-    const scrollViewRef = useRef<ScrollView>(null);
+    const scrollViewRef = useRef<ScrollViewInstance>(null);
     const hasRestoredScrollRef = useRef(false);
 
     const [selectedCategory, setSelectedCategory] =

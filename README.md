@@ -12,8 +12,8 @@
     <a href="https://github.com/ankrypht/Moluxis/releases/latest"><img src="https://img.shields.io/github/v/release/ankrypht/Moluxis?style=flat&color=10b981&label=Release" alt="Latest Release" /></a>
     <a href="LICENSE"><img src="https://img.shields.io/github/license/ankrypht/Moluxis?style=flat&color=6366f1&label=License" alt="License" /></a>
     <a href="https://play.google.com/store/apps/details?id=com.ankushsarkar.moluxis"><img src="https://img.shields.io/badge/Platform-Android-3DDC84?style=flat&logo=android&logoColor=white" alt="Platform" /></a>
-    <a href="https://expo.dev"><img src="https://img.shields.io/badge/Expo-SDK%2057-000020?style=flat&logo=expo&logoColor=white" alt="Expo" /></a>
-    <a href="https://reactnative.dev"><img src="https://img.shields.io/badge/React%20Native-0.86-61DAFB?style=flat&logo=react&logoColor=black" alt="React Native" /></a>
+    <a href="https://expo.dev"><img src="https://img.shields.io/badge/Expo-SDK%2058-000020?style=flat&logo=expo&logoColor=white" alt="Expo" /></a>
+    <a href="https://reactnative.dev"><img src="https://img.shields.io/badge/React%20Native-0.88-61DAFB?style=flat&logo=react&logoColor=black" alt="React Native" /></a>
     <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-Strict-3178C6?style=flat&logo=typescript&logoColor=white" alt="TypeScript" /></a>
   </p>
 
@@ -92,6 +92,7 @@
   - Edge-to-edge Android layout with transparent system navigation bar integration.
 
 - **⚡ Engineered for Speed & Stability**
+  - **React Native New Architecture:** Fully leveraging Bridgeless mode and TurboModules in React Native 0.88 for low latency and high runtime responsiveness.
   - **Smooth 60 FPS WebGL Loop:** Throttled requestAnimationFrame engine with automatic WebGL activity pausing during text input or modal inspection to eliminate ANRs and save battery.
   - **Multi-Tier Caching:** High-speed in-memory LRU cache backed by persistent disk storage.
   - **Smart Rate Limiting:** PubChem request queue with concurrency pacing and an automatic circuit breaker against server throttling.
@@ -100,16 +101,17 @@
 
 ## 🛠️ Tech Stack
 
-| Layer                 | Technologies                                                                                                                                    |
-| :-------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Mobile Core**       | [React Native](https://reactnative.dev/) (0.86), [Expo](https://expo.dev/) (SDK 57), [TypeScript](https://www.typescriptlang.org/)              |
-| **3D Engine**         | [3Dmol.js](https://3Dmol.csb.pitt.edu/) via `react-native-webview`                                                                              |
-| **Data Sources**      | [PubChem PUG REST API](https://pubchem.ncbi.nlm.nih.gov/docs/pug-rest), [Crystallography Open Database (COD)](https://www.crystallography.net/) |
-| **Storage & Caching** | AsyncStorage, FileSystem, Multi-tier LRU Memory & Disk Cache                                                                                    |
-| **Sensory & Haptics** | [Expo Haptics](https://docs.expo.dev/versions/latest/sdk/haptics/)                                                                              |
-| **Export & Sharing**  | [Expo Sharing](https://docs.expo.dev/versions/latest/sdk/sharing/), [Expo FileSystem](https://docs.expo.dev/versions/latest/sdk/filesystem/)    |
-| **UI & Systems**      | Expo Navigation Bar, Expo System UI, Custom Glassmorphic Modal Alerts                                                                           |
-| **Testing & Quality** | Jest, `@testing-library/react-native`, ESLint, Prettier                                                                                         |
+| Layer                 | Technologies                                                                                                                                                           |
+| :-------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Mobile Core**       | [React Native](https://reactnative.dev/) (0.88), [Expo](https://expo.dev/) (SDK 58), [React](https://react.dev/) (19.3), [TypeScript](https://www.typescriptlang.org/) |
+| **Architecture**      | [React Native New Architecture](https://reactnative.dev/architecture/landing-page) (Bridgeless), Hermes Engine                                                         |
+| **3D Engine**         | [3Dmol.js](https://3Dmol.csb.pitt.edu/) via `react-native-webview` (v14)                                                                                               |
+| **Data Sources**      | [PubChem PUG REST API](https://pubchem.ncbi.nlm.nih.gov/docs/pug-rest), [Crystallography Open Database (COD)](https://www.crystallography.net/)                        |
+| **Storage & Caching** | AsyncStorage, FileSystem, Multi-tier LRU Memory & Disk Cache                                                                                                           |
+| **Sensory & Haptics** | [Expo Haptics](https://docs.expo.dev/versions/latest/sdk/haptics/)                                                                                                     |
+| **Export & Sharing**  | [Expo Sharing](https://docs.expo.dev/versions/latest/sdk/sharing/), [Expo FileSystem](https://docs.expo.dev/versions/latest/sdk/filesystem/)                           |
+| **UI & Systems**      | Expo Navigation Bar, Expo System UI, Custom Glassmorphic Modal Alerts                                                                                                  |
+| **Testing & Quality** | Jest, `@testing-library/react-native`, ESLint, Prettier                                                                                                                |
 
 ---
 
@@ -147,10 +149,11 @@
    npm run android
    ```
 
-5. **Run tests & linter:**
+5. **Run tests, linter, & diagnostics:**
    ```bash
    npm test
    npm run lint
+   npm run doctor
    ```
 
 ---

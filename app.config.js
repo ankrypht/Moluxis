@@ -14,7 +14,6 @@ export default {
   platforms: ["android"],
   icon: "./assets/icon.png",
   userInterfaceStyle: "dark",
-  newArchEnabled: true,
   splash: {
     image: "./assets/splash-icon.png",
     imageWidth: 200,
@@ -39,6 +38,7 @@ export default {
   plugins: [
     "expo-font",
     "expo-sharing",
+    "expo-status-bar",
     [
       "expo-splash-screen",
       {
@@ -56,7 +56,7 @@ export default {
       "expo-build-properties",
       {
         android: {
-          // R8 minifier: shrinks and obfuscates Java/Kotlin bytecode
+          // Required by expo-build-properties when enableShrinkResourcesInReleaseBuilds is true
           enableMinifyInReleaseBuilds: true,
           // Remove unused Android resources (drawables, layouts, strings, etc.)
           enableShrinkResourcesInReleaseBuilds: true,

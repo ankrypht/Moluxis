@@ -6,6 +6,15 @@ module.exports = defineConfig([
   expoConfig,
   eslintPluginPrettierRecommended,
   {
+    files: ["**/__tests__/**/*.{js,ts,tsx}", "jest.setup.js"],
+    languageOptions: {
+      globals: {
+        ...require("globals").jest,
+        ...require("globals").node,
+      },
+    },
+  },
+  {
     rules: {
       "prettier/prettier": [
         "error",

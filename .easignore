@@ -12,7 +12,7 @@ dist/
 web-build/
 expo-env.d.ts
 
-# Native
+# Native & Signing
 .kotlin/
 *.orig.*
 *.jks
@@ -21,13 +21,17 @@ expo-env.d.ts
 *.key
 *.mobileprovision
 
+# Generated native folder
+/android
+
 # Metro
 .metro-health-check*
 
-# Debug
+# Debug & Logs
 npm-debug.*
 yarn-debug.*
 yarn-error.*
+*.log
 
 # macOS
 .DS_Store
@@ -39,24 +43,31 @@ yarn-error.*
 # TypeScript
 *.tsbuildinfo
 
-# Generated native folder
-/android
+# Build outputs & binaries
+*.apk
+*.aab
 
-# Documentation
+# Documentation & Marketing assets
 docs/
 CHANGELOG.md
 LICENSE
 README.md
 assets/screenshots/
 
-# Tests
+# Tests & Test Configs
 **/__tests__/**
 **/__snapshots__/**
+jest.setup.js
+coverage/
 
-# VS Code
+# IDE & Tooling
 .vscode/
-
+.idea/
+*.iml
+.agents/
+skills-lock.json
 .antigravitycli
+.gemini/
 
 # Google Play API credentials and reports
 *service-account*.json
@@ -66,7 +77,7 @@ play-reports/
 # Maintenance scripts (not needed in production app bundle)
 scripts/
 
-# CI/CD and linter configs
+# CI/CD, Linters, and Formatters
 .github/
 eslint.config.js
 .prettierignore

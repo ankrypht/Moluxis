@@ -17,6 +17,7 @@ import {
   AppStateStatus,
 } from "react-native";
 import { WebView } from "react-native-webview";
+import type { WebViewRenderProcessGoneEvent } from "react-native-webview/lib/WebViewTypes";
 
 import { MoleculeInfo, VisualizationType, SavedCompoundItem } from "../types";
 import { VIEWER_HTML } from "../constants/viewerHtml";
@@ -24,6 +25,9 @@ import { COLORS } from "../constants/colors";
 import { MoleculeViewerStyles } from "./MoleculeViewer.styles";
 import { FeaturedMolecules } from "./FeaturedMolecules";
 import { FeaturedMoleculesStyles } from "./FeaturedMolecules.styles";
+
+// In react-native-webview 14.x typings with React 19, the default generic P=undefined causes props to resolve as never
+const WebViewComponent = WebView as unknown as React.ComponentType<any>;
 
 interface WebViewReadyMessage {
   type: "WEBVIEW_READY";
@@ -405,7 +409,7 @@ export const MoleculeViewer = React.memo(
       return (
         <View style={[styles.viewerContainer, containerStyle]}>
           {(moleculeData || isLoading) && (
-            <WebView
+            <WebViewComponent
               ref={webViewRef}
               originWhitelist={["about:blank"]}
               source={webViewSource}
@@ -418,7 +422,9 @@ export const MoleculeViewer = React.memo(
                 setIsViewerReady(false);
                 lastLoadedSignatureRef.current = null;
               }}
-              onRenderProcessGone={(syntheticEvent) => {
+              onRenderProcessGone={(
+                syntheticEvent: WebViewRenderProcessGoneEvent,
+              ) => {
                 const { didCrash } = syntheticEvent.nativeEvent;
                 console.warn(
                   "WebView render process gone, didCrash:",

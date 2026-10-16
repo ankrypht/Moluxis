@@ -44,7 +44,9 @@ const mockMolecule: MoleculeInfo = {
 describe("shareService", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.spyOn(Share, "share").mockResolvedValue({ action: "sharedAction" });
+    jest
+      .spyOn(Share, "share")
+      .mockResolvedValue({ action: "sharedAction", activityType: undefined });
   });
 
   describe("getCompoundPubChemUrl", () => {

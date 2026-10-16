@@ -7,7 +7,7 @@ import React, {
 } from "react";
 import {
   View,
-  TextInput,
+  type TextInputInstance,
   Keyboard,
   useWindowDimensions,
   ViewStyle,
@@ -84,7 +84,7 @@ function MoleculeExplorer() {
   } = useCompoundHistoryAndBookmarks();
 
   // Visualization State
-  const searchInputRef = useRef<TextInput>(null);
+  const searchInputRef = useRef<TextInputInstance>(null);
   const moleculeViewerRef = useRef<MoleculeViewerRef>(null);
   const [vizStyle, setVizStyle] = useState<VisualizationType>("ballStick");
   const [showLabels, setShowLabels] = useState(false);

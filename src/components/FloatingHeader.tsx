@@ -3,6 +3,7 @@ import {
   View,
   Text,
   TextInput,
+  type TextInputInstance,
   TouchableOpacity,
   ActivityIndicator,
   FlatList,
@@ -20,7 +21,7 @@ import { StructureControlsStyles } from "./StructureControls.styles";
 import { triggerImpactLight, triggerSelectionHaptic } from "../utils/haptics";
 
 export interface FloatingHeaderProps {
-  searchInputRef: React.RefObject<TextInput | null>;
+  searchInputRef: React.RefObject<TextInputInstance | null>;
   searchText: string;
   suggestions: string[];
   showSuggestions: boolean;
