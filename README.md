@@ -19,11 +19,10 @@
 
   <p>
     <a href="https://play.google.com/store/apps/details?id=com.ankushsarkar.moluxis">
-      <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="55" />
+      <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="70" />
     </a>
-    &nbsp;&nbsp;
     <a href="https://github.com/ankrypht/Moluxis/releases/latest">
-      <img src="https://raw.githubusercontent.com/Kunzisoft/Github-badge/main/get-it-on-github.png" alt="Get it on GitHub" height="55" />
+      <img src="https://raw.githubusercontent.com/Kunzisoft/Github-badge/main/get-it-on-github.png" alt="Get it on GitHub" height="70" />
     </a>
   </p>
 
