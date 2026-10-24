@@ -53,6 +53,7 @@ coverage/
 skills-lock.json
 .antigravitycli
 .gemini/
+brag-output/
 
 # Google Play API credentials and reports
 *service-account*.json

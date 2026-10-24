@@ -42,12 +42,12 @@
 ## 📱 Screenshots
 
 <div align="center">
-  <img src="./assets/screenshots/1.png" width="45%" />
-  <img src="./assets/screenshots/2.png" width="45%" />
-  <img src="./assets/screenshots/3.png" width="45%" />
-  <img src="./assets/screenshots/4.png" width="45%" />
-  <img src="./assets/screenshots/5.png" width="45%" />
-  <img src="./assets/screenshots/6.png" width="45%" />
+  <img src="./assets/mockups/1.png" width="45%" />
+  <img src="./assets/mockups/2.png" width="45%" />
+  <img src="./assets/mockups/3.png" width="45%" />
+  <img src="./assets/mockups/4.png" width="45%" />
+  <img src="./assets/mockups/5.png" width="45%" />
+  <img src="./assets/mockups/6.png" width="45%" />
 </div>
 
 ---
