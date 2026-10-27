@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.2.0](https://github.com/ankrypht/Moluxis/compare/v2.1.1...v2.2.0) (2026-10-27)
+
+
+### Features
+
+* add interactive atom picking and measurement calculator ([8f19e6c](https://github.com/ankrypht/Moluxis/commit/8f19e6c807374eb731350b99be083789acd8ba6b))
+
 ## [2.1.1](https://github.com/ankrypht/Moluxis/compare/v2.1.0...v2.1.1) (2026-10-11)
 
 
