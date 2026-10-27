@@ -66,3 +66,14 @@ export const triggerWarningHaptic = async (): Promise<void> => {
     // Silently ignore
   }
 };
+
+/**
+ * Triggers a distinct tactile impact when selecting or deselecting an atom in measurement mode.
+ */
+export const triggerMeasurementHaptic = async (): Promise<void> => {
+  try {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+  } catch {
+    // Silently ignore
+  }
+};

@@ -25,6 +25,11 @@ ${THREE_DMOL_SCRIPT}
     let showLabels = false;
     let isAnimating = false;
     let pendingLoad = null;
+    let isMeasurementMode = false;
+    let currentMeasurementMode = 'distance';
+    let measurementShapes = [];
+    let measurementLabels = [];
+    let elementLabels = [];
 
     let animationFrameId = null;
     let lastFrameTime = 0;
@@ -170,27 +175,226 @@ ${THREE_DMOL_SCRIPT}
 
         viewer.setStyle({}, styleObj);
         
-        viewer.removeAllLabels();
+        // Remove only element labels, preserving any active measurement labels
+        for (let i = 0; i < elementLabels.length; i++) {
+          try {
+            viewer.removeLabel(elementLabels[i]);
+          } catch (e) {}
+        }
+        elementLabels = [];
+
         if (showLabels) {
           let atoms = currentModel.selectedAtoms({});
           let maxLabels = Math.min(atoms.length, 300);
           for (let i = 0; i < maxLabels; i++) {
             let atom = atoms[i];
-            viewer.addLabel(atom.elem, {
+            let lbl = viewer.addLabel(atom.elem, {
               position: atom,
               backgroundColor: '${COLORS.surface}', 
-              backgroundOpacity: 0.8,
+              backgroundOpacity: 0.85,
               fontColor: '${COLORS.textPrimary}', 
-              fontSize: 12,
+              fontSize: 14,
+              inFront: true,
               borderThickness: 1,
               borderColor: '${COLORS.border}'
             });
+            if (lbl) elementLabels.push(lbl);
           }
         }
         
         viewer.render();
+        if (lastMeasurementCall && lastMeasurementCall.atoms && lastMeasurementCall.atoms.length) {
+          drawMeasurements(lastMeasurementCall.mode, lastMeasurementCall.atoms, lastMeasurementCall.label);
+        }
       } catch (e) {
         console.error('Apply style error:', e);
+      }
+    }
+
+    function setupAtomPicking() {
+      if (!viewer) return;
+      try {
+        viewer.setClickable({}, isMeasurementMode, function(atom) {
+          if (!isMeasurementMode || !atom) return;
+          if (window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === 'function') {
+            window.ReactNativeWebView.postMessage(JSON.stringify({
+              type: 'ATOM_PICKED',
+              atom: {
+                serial: atom.serial !== undefined ? atom.serial : (atom.index !== undefined ? atom.index + 1 : 1),
+                index: atom.index !== undefined ? atom.index : 0,
+                elem: atom.elem || 'C',
+                x: atom.x,
+                y: atom.y,
+                z: atom.z
+              }
+            }));
+          }
+        });
+      } catch (e) {
+        console.error('setupAtomPicking error:', e);
+      }
+    }
+
+    let lastMeasurementCall = null;
+
+    function getDynamicAtomMeshRadius(atom) {
+      var vdw = 1.7;
+      if (currentModel && atom && atom.index !== undefined) {
+        try {
+          var modelAtoms = currentModel.selectedAtoms({ index: atom.index });
+          if (modelAtoms && modelAtoms.length > 0 && modelAtoms[0].radius) {
+            vdw = modelAtoms[0].radius;
+          }
+        } catch(e) {}
+      }
+      if (!vdw || vdw === 1.7) {
+        var elem = (atom && atom.elem ? atom.elem.toUpperCase() : 'C');
+        var vdwMap = {
+          H: 1.2, HE: 1.4, LI: 1.82, BE: 1.53, B: 1.92,
+          C: 1.7, N: 1.55, O: 1.52, F: 1.47, NE: 1.54,
+          NA: 2.27, MG: 1.73, AL: 1.84, SI: 2.1, P: 1.8,
+          S: 1.8, CL: 1.75, AR: 1.88, K: 2.75, CA: 2.31,
+          BR: 1.85, I: 1.98
+        };
+        vdw = vdwMap[elem] || 1.7;
+      }
+
+      if (currentStyle === 'sphere') {
+        return (vdw * 0.8) + 0.12;
+      } else if (currentStyle === 'stick') {
+        return 0.32;
+      } else if (currentStyle === 'wireframe') {
+        return 0.22;
+      } else {
+        // ballStick: spheres are vdw * 0.25. Add slight clearance so the wireframe hugs the atom closely
+        return (vdw * 0.25) + 0.08;
+      }
+    }
+
+    function clearMeasurementVisuals(preserveState) {
+      if (!viewer) return;
+      try {
+        if (!preserveState) {
+          lastMeasurementCall = null;
+        }
+        for (let i = 0; i < measurementShapes.length; i++) {
+          try {
+            viewer.removeShape(measurementShapes[i]);
+          } catch (e) {}
+        }
+        measurementShapes = [];
+        for (let j = 0; j < measurementLabels.length; j++) {
+          try {
+            viewer.removeLabel(measurementLabels[j]);
+          } catch (e) {}
+        }
+        measurementLabels = [];
+        viewer.render();
+      } catch (e) {
+        console.error('clearMeasurementVisuals error:', e);
+      }
+    }
+
+    function drawMeasurements(mode, atoms, label) {
+      if (!viewer || !atoms || !atoms.length) return;
+      try {
+        clearMeasurementVisuals(true);
+        lastMeasurementCall = { mode: mode, atoms: atoms, label: label };
+
+        const atomColors = ['#06B6D4', '#10B981', '#F59E0B', '#F43F5E'];
+
+        for (let i = 0; i < atoms.length; i++) {
+          const atom = atoms[i];
+          const color = atomColors[i % atomColors.length];
+          const radius = getDynamicAtomMeshRadius(atom);
+          const sphere = viewer.addSphere({
+            center: { x: atom.x, y: atom.y, z: atom.z },
+            radius: radius,
+            color: color,
+            wireframe: true
+          });
+          if (sphere) measurementShapes.push(sphere);
+        }
+
+        if (atoms.length >= 2) {
+          for (let k = 0; k < atoms.length - 1; k++) {
+            const p1 = atoms[k];
+            const p2 = atoms[k + 1];
+            let strut = null;
+            try {
+              if (typeof viewer.addCylinder === 'function') {
+                strut = viewer.addCylinder({
+                  start: { x: p1.x, y: p1.y, z: p1.z },
+                  end: { x: p2.x, y: p2.y, z: p2.z },
+                  radius: 0.06,
+                  color: '#10B981',
+                  dashed: true
+                });
+              }
+            } catch(e) {}
+            if (!strut && typeof viewer.addLine === 'function') {
+              try {
+                strut = viewer.addLine({
+                  dashed: true,
+                  start: { x: p1.x, y: p1.y, z: p1.z },
+                  end: { x: p2.x, y: p2.y, z: p2.z },
+                  color: '#10B981'
+                });
+              } catch(e) {}
+            }
+            if (strut) measurementShapes.push(strut);
+          }
+        }
+
+        if (label && atoms.length >= 2) {
+          let labelPos = { x: 0, y: 0, z: 0 };
+          if (mode === 'angle' && atoms.length >= 3) {
+            const b = atoms[1];
+            const a = atoms[0];
+            const c = atoms[2];
+            const midX = (a.x + c.x) / 2;
+            const midY = (a.y + c.y) / 2;
+            const midZ = (a.z + c.z) / 2;
+            const dirX = midX - b.x;
+            const dirY = midY - b.y;
+            const dirZ = midZ - b.z;
+            const len = Math.sqrt(dirX * dirX + dirY * dirY + dirZ * dirZ);
+            if (len > 0.001) {
+              const offset = 0.55 / len;
+              labelPos = { x: b.x + dirX * offset, y: b.y + dirY * offset, z: b.z + dirZ * offset };
+            } else {
+              labelPos = { x: b.x, y: b.y + 0.5, z: b.z };
+            }
+          } else if (mode === 'dihedral' && atoms.length >= 4) {
+            labelPos = {
+              x: (atoms[1].x + atoms[2].x) / 2,
+              y: (atoms[1].y + atoms[2].y) / 2,
+              z: (atoms[1].z + atoms[2].z) / 2
+            };
+          } else {
+            labelPos = {
+              x: (atoms[0].x + atoms[1].x) / 2,
+              y: (atoms[0].y + atoms[1].y) / 2,
+              z: (atoms[0].z + atoms[1].z) / 2
+            };
+          }
+
+          const lbl = viewer.addLabel(label, {
+            position: labelPos,
+            fontSize: 16,
+            inFront: true,
+            fontColor: '#FFFFFF',
+            backgroundColor: '#18181B',
+            backgroundOpacity: 0.92,
+            borderColor: '#10B981',
+            borderThickness: 1
+          });
+          if (lbl) measurementLabels.push(lbl);
+        }
+
+        viewer.render();
+      } catch (e) {
+        console.error('drawMeasurements error:', e);
       }
     }
 
@@ -206,6 +410,8 @@ ${THREE_DMOL_SCRIPT}
       
       try {
         stopAnimation();
+        clearMeasurementVisuals();
+        elementLabels = [];
         viewer.clear();
         
         // If it's a CIF file, assemble the unit cell first
@@ -215,6 +421,7 @@ ${THREE_DMOL_SCRIPT}
         viewer.zoomTo();
         viewer.zoom(0.8); // Zoom out slightly to give padding
         applyStyle();
+        setupAtomPicking();
         if (animateStatus !== undefined) toggleAnimation(animateStatus);
       } catch (e) {
         console.error('Load structure error:', e);
@@ -246,6 +453,17 @@ ${THREE_DMOL_SCRIPT}
           if (isAnimating && !isUserDragging) {
             startAnimation();
           }
+        } else if (message.type === 'SET_MEASUREMENT_MODE') {
+          isMeasurementMode = !!message.active;
+          if (message.mode) currentMeasurementMode = message.mode;
+          setupAtomPicking();
+          if (!isMeasurementMode) {
+            clearMeasurementVisuals();
+          }
+        } else if (message.type === 'DRAW_MEASUREMENTS') {
+          drawMeasurements(message.mode || currentMeasurementMode, message.atoms, message.label);
+        } else if (message.type === 'CLEAR_MEASUREMENTS') {
+          clearMeasurementVisuals();
         } else if (message.type === 'CAPTURE_SNAPSHOT') {
           try {
             if (viewer) {

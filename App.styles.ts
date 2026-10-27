@@ -11,6 +11,7 @@ import { getFeaturedMoleculesStyles } from "./src/components/FeaturedMolecules.s
 import { getHistoryBookmarksModalStyles } from "./src/components/HistoryBookmarksModal.styles";
 import { getShareExportModalStyles } from "./src/components/ShareExportModal.styles";
 import { getCustomAlertStyles } from "./src/components/CustomAlert.styles";
+import { getMeasurementPanelStyles } from "./src/components/MeasurementPanel.styles";
 
 export const getStyles = (width: number, height: number, insets: Insets) => {
   const metrics = getScaleMetrics(width, height, insets);
@@ -34,6 +35,7 @@ export const getStyles = (width: number, height: number, insets: Insets) => {
     ...getHistoryBookmarksModalStyles(metrics),
     ...getShareExportModalStyles(metrics),
     ...getCustomAlertStyles(metrics),
+    ...getMeasurementPanelStyles(metrics),
   };
 };
 

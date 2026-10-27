@@ -433,4 +433,129 @@ describe("MoleculeViewer", () => {
 
     expect(onSnapshotCaptured).toHaveBeenCalledWith(null);
   });
+
+  it("calls onAtomPicked callback when ATOM_PICKED message is received from WebView", () => {
+    const onAtomPicked = jest.fn();
+    const { getByTestId } = render(
+      <MoleculeViewer
+        moleculeData={sampleMolecule}
+        isLoading={false}
+        structureFormat="3d"
+        vizStyle="ballStick"
+        showLabels={false}
+        isAnimated={true}
+        isMeasuring={true}
+        onAtomPicked={onAtomPicked}
+        styles={mockStyles}
+      />,
+    );
+
+    const webview = getByTestId("molecule-webview");
+
+    act(() => {
+      webview.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: "ATOM_PICKED",
+            atom: {
+              serial: 4,
+              index: 3,
+              elem: "N",
+              x: 1.2,
+              y: -0.5,
+              z: 2.1,
+            },
+          }),
+        },
+      });
+    });
+
+    expect(onAtomPicked).toHaveBeenCalledWith({
+      serial: 4,
+      index: 3,
+      elem: "N",
+      x: 1.2,
+      y: -0.5,
+      z: 2.1,
+    });
+  });
+
+  it("dispatches measurement commands via ref methods when webview is ready", () => {
+    const viewerRef = React.createRef<any>();
+    const { getByTestId } = render(
+      <MoleculeViewer
+        ref={viewerRef}
+        moleculeData={sampleMolecule}
+        isLoading={false}
+        structureFormat="3d"
+        vizStyle="ballStick"
+        showLabels={false}
+        isAnimated={true}
+        styles={mockStyles}
+      />,
+    );
+
+    const webview = getByTestId("molecule-webview");
+
+    // Signal webview ready
+    act(() => {
+      webview.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: "WEBVIEW_READY" }),
+        },
+      });
+    });
+
+    mockPostMessage.mockClear();
+
+    // Call drawMeasurements via ref
+    act(() => {
+      viewerRef.current?.drawMeasurements(
+        "distance",
+        [
+          { serial: 1, index: 0, elem: "C", x: 0, y: 0, z: 0 },
+          { serial: 2, index: 1, elem: "O", x: 1.4, y: 0, z: 0 },
+        ],
+        "1.400 Å",
+      );
+    });
+
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: "DRAW_MEASUREMENTS",
+        mode: "distance",
+        atoms: [
+          { serial: 1, index: 0, elem: "C", x: 0, y: 0, z: 0 },
+          { serial: 2, index: 1, elem: "O", x: 1.4, y: 0, z: 0 },
+        ],
+        label: "1.400 Å",
+      }),
+    );
+
+    mockPostMessage.mockClear();
+
+    // Call clearMeasurements via ref
+    act(() => {
+      viewerRef.current?.clearMeasurements();
+    });
+
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({ type: "CLEAR_MEASUREMENTS" }),
+    );
+
+    mockPostMessage.mockClear();
+
+    // Call setMeasurementMode via ref
+    act(() => {
+      viewerRef.current?.setMeasurementMode(true, "angle");
+    });
+
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: "SET_MEASUREMENT_MODE",
+        active: true,
+        mode: "angle",
+      }),
+    );
+  });
 });

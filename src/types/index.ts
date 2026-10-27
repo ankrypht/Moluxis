@@ -43,3 +43,22 @@ export interface SavedCompoundItem {
   molecularWeight?: string;
   timestamp: number;
 }
+
+export type MeasurementMode = "distance" | "angle" | "dihedral";
+
+export interface PickedAtom {
+  serial: number;
+  index: number;
+  elem: string;
+  x: number;
+  y: number;
+  z: number;
+}
+
+export interface MeasurementData {
+  mode: MeasurementMode;
+  value: number;
+  displayValue: string;
+  designation: string;
+  atoms: PickedAtom[];
+}

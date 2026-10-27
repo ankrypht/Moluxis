@@ -22,7 +22,20 @@ import { StatusBar } from "expo-status-bar";
 import { NavigationBar } from "expo-navigation-bar";
 import * as SplashScreen from "expo-splash-screen";
 
-import { VisualizationType } from "./src/types";
+import {
+  VisualizationType,
+  MeasurementMode,
+  PickedAtom,
+  MeasurementData,
+} from "./src/types";
+import {
+  calculateDistance,
+  calculateAngle,
+  calculateDihedral,
+  formatMeasurement,
+  getRequiredAtomCount,
+} from "./src/utils/geometry";
+import { triggerMeasurementHaptic } from "./src/utils/haptics";
 import { useMoleculeSearch } from "./src/hooks/useMoleculeSearch";
 import { useCompoundHistoryAndBookmarks } from "./src/hooks/useCompoundHistoryAndBookmarks";
 import { getStyles } from "./App.styles";
@@ -33,6 +46,7 @@ import {
 } from "./src/components/MoleculeViewer";
 import { FloatingHeader } from "./src/components/FloatingHeader";
 import { FloatingDock } from "./src/components/FloatingDock";
+import { MeasurementPanel } from "./src/components/MeasurementPanel";
 import { MoleculeInfoSheet } from "./src/components/MoleculeInfoSheet";
 import { LandscapeNameOverlay } from "./src/components/LandscapeNameOverlay";
 import { ExitFullScreenButton } from "./src/components/ExitFullScreenButton";
@@ -92,8 +106,12 @@ function MoleculeExplorer() {
   const [showInfo, setShowInfo] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [structureFormat, setStructureFormat] = useState<"3d" | "2d">("3d");
+  const [isMeasuring, setIsMeasuring] = useState(false);
+  const [measurementMode, setMeasurementMode] =
+    useState<MeasurementMode>("distance");
+  const [pickedAtoms, setPickedAtoms] = useState<PickedAtom[]>([]);
   const [prevMoleculeData, setPrevMoleculeData] = useState(moleculeData);
-  const [showStyleMenu, setShowStyleMenu] = useState(false);
+  const [showDisplayOptions, setShowDisplayOptions] = useState(false);
   const [headerHeight, setHeaderHeight] = useState(0);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [historyModalTab, setHistoryModalTab] = useState<
@@ -164,10 +182,16 @@ function MoleculeExplorer() {
   );
   const dynamicDockContainerStyle = useMemo<ViewStyle>(
     () => ({
-      right: isLandscape ? (showInfo ? "45%" : insets.right) : 0,
-      zIndex: showStyleMenu ? 150 : 50,
+      right: isLandscape
+        ? showInfo
+          ? "45%"
+          : showShareModal
+            ? "52%"
+            : insets.right
+        : 0,
+      zIndex: showDisplayOptions ? 150 : 50,
     }),
-    [isLandscape, showInfo, showStyleMenu, insets.right],
+    [isLandscape, showInfo, showShareModal, showDisplayOptions, insets.right],
   );
 
   if (moleculeData !== prevMoleculeData) {
@@ -175,6 +199,8 @@ function MoleculeExplorer() {
     setSnapshotUri(null);
     setIsCapturingSnapshot(false);
     setIsAnimated(false);
+    setIsMeasuring(false);
+    setPickedAtoms([]);
     if (moleculeData) {
       if (moleculeData.sdf3d || moleculeData.useCif) {
         setStructureFormat("3d");
@@ -198,9 +224,23 @@ function MoleculeExplorer() {
   }, []);
 
   const toggleAnimation = useCallback(
-    () => setIsAnimated((previousState) => !previousState),
+    () =>
+      setIsAnimated((previousState) => {
+        const next = !previousState;
+        if (next) {
+          setIsMeasuring(false);
+          setPickedAtoms([]);
+        }
+        return next;
+      }),
     [],
   );
+
+  const handleSelectFormat = useCallback((format: "2d" | "3d") => {
+    setStructureFormat(format);
+    setIsMeasuring(false);
+    setPickedAtoms([]);
+  }, []);
 
   const handleSearch = useCallback(
     (query?: string) => {
@@ -226,8 +266,10 @@ function MoleculeExplorer() {
     searchInputRef.current?.blur();
     Keyboard.dismiss();
     setIsAnimated(false);
+    setIsMeasuring(false);
+    setPickedAtoms([]);
     setShowInfo(false);
-    setShowStyleMenu(false);
+    setShowDisplayOptions(false);
     setShowHistoryModal(false);
     setShowShareModal(false);
     clearMolecule();
@@ -251,7 +293,7 @@ function MoleculeExplorer() {
       setHistoryModalTab(initialTab);
       setShowHistoryModal(true);
       setShowInfo(false);
-      setShowStyleMenu(false);
+      setShowDisplayOptions(false);
     },
     [],
   );
@@ -264,7 +306,9 @@ function MoleculeExplorer() {
     searchInputRef.current?.blur();
     Keyboard.dismiss();
     setShowInfo((prev) => !prev);
-    setShowStyleMenu(false);
+    setShowDisplayOptions(false);
+    setIsMeasuring(false);
+    setPickedAtoms([]);
   }, []);
 
   const handleCloseInfo = useCallback(() => {
@@ -273,16 +317,15 @@ function MoleculeExplorer() {
 
   const handleSelectStyle = useCallback((style: VisualizationType) => {
     setVizStyle(style);
-    setShowStyleMenu(false);
+    setShowDisplayOptions(false);
   }, []);
 
-  const handleToggleStyleMenu = useCallback(() => {
-    setShowStyleMenu((prev) => !prev);
+  const handleToggleDisplayOptions = useCallback(() => {
+    setShowDisplayOptions((prev) => !prev);
   }, []);
 
   const handleToggleLabels = useCallback(() => {
     setShowLabels((prev) => !prev);
-    setShowStyleMenu(false);
   }, []);
 
   const snapshotTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -322,7 +365,7 @@ function MoleculeExplorer() {
     Keyboard.dismiss();
     setShowShareModal(true);
     setShowInfo(false);
-    setShowStyleMenu(false);
+    setShowDisplayOptions(false);
     setShowHistoryModal(false);
     handleCaptureSnapshot();
   }, [handleCaptureSnapshot]);
@@ -334,14 +377,117 @@ function MoleculeExplorer() {
   const handleEnterZenMode = useCallback(() => {
     setShowControls(false);
     setShowInfo(false);
-    setShowStyleMenu(false);
+    setShowDisplayOptions(false);
     setShowHistoryModal(false);
     setShowShareModal(false);
+    setIsMeasuring(false);
+    setPickedAtoms([]);
   }, []);
 
   const handleExitZenMode = useCallback(() => {
     setShowControls(true);
   }, []);
+
+  const measurementData = useMemo<MeasurementData | null>(() => {
+    const count = getRequiredAtomCount(measurementMode);
+    if (pickedAtoms.length < count) return null;
+
+    let val = 0;
+    if (measurementMode === "distance" && pickedAtoms.length >= 2) {
+      val = calculateDistance(pickedAtoms[0], pickedAtoms[1]);
+    } else if (measurementMode === "angle" && pickedAtoms.length >= 3) {
+      val = calculateAngle(pickedAtoms[0], pickedAtoms[1], pickedAtoms[2]);
+    } else if (measurementMode === "dihedral" && pickedAtoms.length >= 4) {
+      val = calculateDihedral(
+        pickedAtoms[0],
+        pickedAtoms[1],
+        pickedAtoms[2],
+        pickedAtoms[3],
+      );
+    }
+
+    const formatted = formatMeasurement(val, measurementMode, pickedAtoms);
+    return {
+      mode: measurementMode,
+      value: val,
+      displayValue: formatted.displayValue,
+      designation: formatted.designation,
+      atoms: pickedAtoms,
+    };
+  }, [measurementMode, pickedAtoms]);
+
+  useEffect(() => {
+    if (!isMeasuring) {
+      moleculeViewerRef.current?.clearMeasurements();
+      return;
+    }
+
+    if (pickedAtoms.length > 0) {
+      moleculeViewerRef.current?.drawMeasurements(
+        measurementMode,
+        pickedAtoms,
+        measurementData ? measurementData.displayValue : undefined,
+      );
+    } else {
+      moleculeViewerRef.current?.clearMeasurements();
+    }
+  }, [isMeasuring, measurementMode, pickedAtoms, measurementData]);
+
+  const handleToggleMeasure = useCallback(() => {
+    setIsMeasuring((prev) => {
+      const next = !prev;
+      if (!next) {
+        setPickedAtoms([]);
+      }
+      return next;
+    });
+    setIsAnimated(false);
+    setShowDisplayOptions(false);
+    setShowInfo(false);
+  }, []);
+
+  const handleCloseMeasure = useCallback(() => {
+    setIsMeasuring(false);
+    setPickedAtoms([]);
+  }, []);
+
+  const handleSelectMeasurementMode = useCallback((mode: MeasurementMode) => {
+    setMeasurementMode(mode);
+    setPickedAtoms([]);
+  }, []);
+
+  const handleRemoveAtom = useCallback((index: number) => {
+    setPickedAtoms((prev) => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const handleClearMeasurements = useCallback(() => {
+    setPickedAtoms([]);
+  }, []);
+
+  const handleAtomPicked = useCallback(
+    (atom: PickedAtom) => {
+      if (!isMeasuring) return;
+      triggerMeasurementHaptic();
+
+      setPickedAtoms((prev) => {
+        const existingIndex = prev.findIndex(
+          (a) =>
+            (a.index !== undefined && a.index === atom.index) ||
+            (a.serial !== undefined && a.serial === atom.serial),
+        );
+        if (existingIndex !== -1) {
+          return prev.filter((_, i) => i !== existingIndex);
+        }
+
+        const maxCount = getRequiredAtomCount(measurementMode);
+        if (prev.length >= maxCount) {
+          return [atom];
+        }
+        return [...prev, atom];
+      });
+    },
+    [isMeasuring, measurementMode],
+  );
 
   return (
     <View style={styles.container}>
@@ -357,6 +503,9 @@ function MoleculeExplorer() {
         showLabels={showLabels}
         isAnimated={isAnimated}
         isInteracting={isInteracting}
+        isMeasuring={isMeasuring && !showDisplayOptions}
+        measurementMode={measurementMode}
+        onAtomPicked={handleAtomPicked}
         containerStyle={dynamicViewerContainerStyle}
         styles={styles}
         onSelectMolecule={handleSelectSuggestion}
@@ -387,7 +536,7 @@ function MoleculeExplorer() {
           onSearch={handleSearch}
           onSelectSuggestion={handleSelectSuggestion}
           onToggleAnimation={toggleAnimation}
-          onSelectFormat={setStructureFormat}
+          onSelectFormat={handleSelectFormat}
           onLayoutHeader={setHeaderHeight}
           onClear={handleClearToShowcase}
           isBookmarked={isCurrentBookmarked}
@@ -403,17 +552,41 @@ function MoleculeExplorer() {
           vizStyle={vizStyle}
           showLabels={showLabels}
           showInfo={showInfo}
-          showStyleMenu={showStyleMenu}
+          showDisplayOptions={showDisplayOptions}
+          isMeasuring={isMeasuring}
+          onToggleMeasure={handleToggleMeasure}
           containerStyle={dynamicDockContainerStyle}
           styles={styles}
           onSelectStyle={handleSelectStyle}
-          onToggleStyleMenu={handleToggleStyleMenu}
+          onToggleDisplayOptions={handleToggleDisplayOptions}
           onToggleInfo={handleToggleInfo}
           onToggleLabels={handleToggleLabels}
           onEnterZenMode={handleEnterZenMode}
           isLandscape={isLandscape}
+          isCompact={Boolean(isLandscape && (showInfo || showShareModal))}
         />
       )}
+
+      {/* INTERACTIVE ATOM PICKING & MEASUREMENT PANEL */}
+      {moleculeData &&
+        !isLoading &&
+        isMeasuring &&
+        showControls &&
+        !showDisplayOptions &&
+        !showShareModal &&
+        !showHistoryModal && (
+          <MeasurementPanel
+            mode={measurementMode}
+            pickedAtoms={pickedAtoms}
+            measurementData={measurementData}
+            onSelectMode={handleSelectMeasurementMode}
+            onRemoveAtom={handleRemoveAtom}
+            onClear={handleClearMeasurements}
+            onClose={handleCloseMeasure}
+            styles={styles}
+            isLandscape={isLandscape}
+          />
+        )}
 
       {/* ANIMATED BOTTOM SHEET / SIDE DRAWER (Info Panel) */}
       {moleculeData && !isLoading && (

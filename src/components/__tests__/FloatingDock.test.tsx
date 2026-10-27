@@ -40,10 +40,10 @@ describe("FloatingDock Component", () => {
     vizStyle: "ballStick" as const,
     showLabels: false,
     showInfo: false,
-    showStyleMenu: false,
+    showDisplayOptions: false,
     styles,
     onSelectStyle: jest.fn(),
-    onToggleStyleMenu: jest.fn(),
+    onToggleDisplayOptions: jest.fn(),
     onToggleInfo: jest.fn(),
     onToggleLabels: jest.fn(),
     onEnterZenMode: jest.fn(),
@@ -53,26 +53,26 @@ describe("FloatingDock Component", () => {
     jest.clearAllMocks();
   });
 
-  it("renders main dock chips and triggers callbacks and haptics on press", () => {
+  it("renders 4 main dock chips and triggers callbacks and haptics on press", () => {
     const onEnterZenMode = jest.fn();
     const onToggleInfo = jest.fn();
-    const onToggleLabels = jest.fn();
-    const onToggleStyleMenu = jest.fn();
+    const onToggleMeasure = jest.fn();
+    const onToggleDisplayOptions = jest.fn();
 
     const { getByLabelText } = render(
       <FloatingDock
         {...defaultProps}
         onEnterZenMode={onEnterZenMode}
         onToggleInfo={onToggleInfo}
-        onToggleLabels={onToggleLabels}
-        onToggleStyleMenu={onToggleStyleMenu}
+        onToggleMeasure={onToggleMeasure}
+        onToggleDisplayOptions={onToggleDisplayOptions}
       />,
     );
 
     const zenButton = getByLabelText("Enter Zen full screen mode");
     const infoButton = getByLabelText("Toggle molecule information");
-    const labelsButton = getByLabelText("Toggle atom labels");
-    const styleButton = getByLabelText("Toggle rendering styles menu");
+    const measureButton = getByLabelText("Toggle measurement mode");
+    const displayButton = getByLabelText("Toggle display and style options");
 
     fireEvent.press(zenButton);
     expect(onEnterZenMode).toHaveBeenCalledTimes(1);
@@ -82,12 +82,12 @@ describe("FloatingDock Component", () => {
     expect(onToggleInfo).toHaveBeenCalledTimes(1);
     expect(mockTriggerImpactLight).toHaveBeenCalledTimes(1);
 
-    fireEvent.press(labelsButton);
-    expect(onToggleLabels).toHaveBeenCalledTimes(1);
+    fireEvent.press(measureButton);
+    expect(onToggleMeasure).toHaveBeenCalledTimes(1);
     expect(mockTriggerSelectionHaptic).toHaveBeenCalledTimes(1);
 
-    fireEvent.press(styleButton);
-    expect(onToggleStyleMenu).toHaveBeenCalledTimes(1);
+    fireEvent.press(displayButton);
+    expect(onToggleDisplayOptions).toHaveBeenCalledTimes(1);
     expect(mockTriggerStylePressHaptic).toHaveBeenCalledTimes(1);
   });
 
@@ -96,32 +96,44 @@ describe("FloatingDock Component", () => {
       <FloatingDock
         {...defaultProps}
         showInfo={true}
-        showLabels={true}
-        showStyleMenu={true}
+        showDisplayOptions={true}
+        isMeasuring={true}
       />,
     );
 
     const infoButton = getByLabelText("Toggle molecule information");
-    const labelsButton = getByLabelText("Toggle atom labels");
-    const styleButton = getByLabelText("Toggle rendering styles menu");
+    const measureButton = getByLabelText("Toggle measurement mode");
+    const displayButton = getByLabelText("Toggle display and style options");
 
     expect(infoButton.props.accessibilityState).toEqual({ selected: true });
-    expect(labelsButton.props.accessibilityState).toEqual({ selected: true });
-    expect(styleButton.props.accessibilityState).toEqual({ expanded: true });
+    expect(measureButton.props.accessibilityState).toEqual({ selected: true });
+    expect(displayButton.props.accessibilityState).toEqual({ expanded: true });
   });
 
-  it("renders style menu when showStyleMenu is true and allows selection", () => {
+  it("renders display options menu when showDisplayOptions is true and allows label toggle and style selection", () => {
     const onSelectStyle = jest.fn();
+    const onToggleLabels = jest.fn();
 
     const { getByLabelText, getByText } = render(
       <FloatingDock
         {...defaultProps}
-        showStyleMenu={true}
+        showDisplayOptions={true}
+        showLabels={false}
         onSelectStyle={onSelectStyle}
+        onToggleLabels={onToggleLabels}
       />,
     );
 
+    expect(getByText("Display Options")).toBeTruthy();
     expect(getByText("Render Style")).toBeTruthy();
+
+    const labelsToggle = getByLabelText("Toggle atom labels");
+    expect(labelsToggle).toBeTruthy();
+    expect(labelsToggle.props.accessibilityState).toEqual({ selected: false });
+
+    fireEvent.press(labelsToggle);
+    expect(onToggleLabels).toHaveBeenCalledTimes(1);
+    expect(mockTriggerSelectionHaptic).toHaveBeenCalledTimes(1);
 
     const sticksOption = getByLabelText("Sticks style");
     expect(sticksOption).toBeTruthy();
@@ -130,6 +142,11 @@ describe("FloatingDock Component", () => {
     fireEvent.press(sticksOption);
     expect(onSelectStyle).toHaveBeenCalledWith("stick");
     expect(mockTriggerStylePressHaptic).toHaveBeenCalledTimes(1);
+
+    const backdrop = getByLabelText("Close display options");
+    expect(backdrop).toBeTruthy();
+    fireEvent.press(backdrop);
+    expect(defaultProps.onToggleDisplayOptions).toHaveBeenCalledTimes(1);
   });
 
   it("renders properly in compact landscape mode", () => {

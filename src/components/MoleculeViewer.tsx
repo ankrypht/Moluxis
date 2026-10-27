@@ -19,7 +19,13 @@ import {
 import { WebView } from "react-native-webview";
 import type { WebViewRenderProcessGoneEvent } from "react-native-webview/lib/WebViewTypes";
 
-import { MoleculeInfo, VisualizationType, SavedCompoundItem } from "../types";
+import {
+  MoleculeInfo,
+  VisualizationType,
+  SavedCompoundItem,
+  MeasurementMode,
+  PickedAtom,
+} from "../types";
 import { VIEWER_HTML } from "../constants/viewerHtml";
 import { COLORS } from "../constants/colors";
 import { MoleculeViewerStyles } from "./MoleculeViewer.styles";
@@ -45,6 +51,13 @@ const UPDATE_DELAY_MS = 150;
 
 export interface MoleculeViewerRef {
   captureSnapshot: () => void;
+  drawMeasurements: (
+    mode: MeasurementMode,
+    atoms: PickedAtom[],
+    label?: string,
+  ) => void;
+  clearMeasurements: () => void;
+  setMeasurementMode: (active: boolean, mode: MeasurementMode) => void;
 }
 
 export interface MoleculeViewerProps {
@@ -55,6 +68,9 @@ export interface MoleculeViewerProps {
   showLabels: boolean;
   isAnimated: boolean;
   isInteracting?: boolean;
+  isMeasuring?: boolean;
+  measurementMode?: MeasurementMode;
+  onAtomPicked?: (atom: PickedAtom) => void;
   containerStyle?: StyleProp<ViewStyle>;
   styles: MoleculeViewerStyles & FeaturedMoleculesStyles;
   onSelectMolecule?: (query: string) => void;
@@ -78,6 +94,9 @@ export const MoleculeViewer = React.memo(
         showLabels,
         isAnimated,
         isInteracting = false,
+        isMeasuring = false,
+        measurementMode = "distance",
+        onAtomPicked,
         containerStyle,
         styles,
         onSelectMolecule,
@@ -129,9 +148,54 @@ export const MoleculeViewer = React.memo(
               onSnapshotCaptured?.(null);
             }
           },
+          drawMeasurements: (
+            mode: MeasurementMode,
+            atoms: PickedAtom[],
+            label?: string,
+          ) => {
+            if (isWebViewReadyRef.current) {
+              postToWebView(
+                JSON.stringify({
+                  type: "DRAW_MEASUREMENTS",
+                  mode,
+                  atoms,
+                  label,
+                }),
+              );
+            }
+          },
+          clearMeasurements: () => {
+            if (isWebViewReadyRef.current) {
+              postToWebView(JSON.stringify({ type: "CLEAR_MEASUREMENTS" }));
+            }
+          },
+          setMeasurementMode: (active: boolean, mode: MeasurementMode) => {
+            if (isWebViewReadyRef.current) {
+              postToWebView(
+                JSON.stringify({
+                  type: "SET_MEASUREMENT_MODE",
+                  active,
+                  mode,
+                }),
+              );
+            }
+          },
         }),
         [postToWebView, onSnapshotCaptured],
       );
+
+      // Synchronize measurement mode with WebView when active state or mode changes
+      useEffect(() => {
+        if (isWebViewReadyRef.current) {
+          postToWebView(
+            JSON.stringify({
+              type: "SET_MEASUREMENT_MODE",
+              active: Boolean(isMeasuring),
+              mode: measurementMode,
+            }),
+          );
+        }
+      }, [isMeasuring, measurementMode, postToWebView]);
 
       const webViewSource = useMemo(
         () => ({
@@ -347,12 +411,26 @@ export const MoleculeViewer = React.memo(
               onSnapshotCaptured?.(null);
               return;
             }
+            if (data && data.type === "ATOM_PICKED" && data.atom) {
+              onAtomPicked?.(data.atom);
+              return;
+            }
             if (isWebViewReadyMessage(data)) {
               isWebViewReadyRef.current = true;
               setIsViewerReady(true);
               if (fallbackTimerRef.current) {
                 clearTimeout(fallbackTimerRef.current);
                 fallbackTimerRef.current = null;
+              }
+
+              if (isMeasuring) {
+                postToWebView(
+                  JSON.stringify({
+                    type: "SET_MEASUREMENT_MODE",
+                    active: true,
+                    mode: measurementMode,
+                  }),
+                );
               }
 
               if (
@@ -401,6 +479,9 @@ export const MoleculeViewer = React.memo(
           vizStyle,
           showLabels,
           isAnimated,
+          isMeasuring,
+          measurementMode,
+          onAtomPicked,
           postToWebView,
           onSnapshotCaptured,
         ],

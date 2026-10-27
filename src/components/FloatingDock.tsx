@@ -22,15 +22,18 @@ export interface FloatingDockProps {
   vizStyle: VisualizationType;
   showLabels: boolean;
   showInfo: boolean;
-  showStyleMenu: boolean;
+  showDisplayOptions: boolean;
   containerStyle?: StyleProp<ViewStyle>;
   styles: FloatingDockStyles;
   onSelectStyle: (style: VisualizationType) => void;
-  onToggleStyleMenu: () => void;
+  onToggleDisplayOptions: () => void;
   onToggleInfo: () => void;
   onToggleLabels: () => void;
   onEnterZenMode: () => void;
+  isMeasuring?: boolean;
+  onToggleMeasure?: () => void;
   isLandscape?: boolean;
+  isCompact?: boolean;
 }
 
 export interface StyleOption {
@@ -77,17 +80,20 @@ export const FloatingDock: React.FC<FloatingDockProps> = React.memo(
     vizStyle,
     showLabels,
     showInfo,
-    showStyleMenu,
+    showDisplayOptions,
     containerStyle,
     styles,
     onSelectStyle,
-    onToggleStyleMenu,
+    onToggleDisplayOptions,
     onToggleInfo,
     onToggleLabels,
     onEnterZenMode,
+    isMeasuring = false,
+    onToggleMeasure,
     isLandscape = false,
+    isCompact: isCompactProp,
   }) => {
-    const isCompact = Boolean(isLandscape && showInfo);
+    const isCompact = Boolean(isLandscape && (isCompactProp ?? showInfo));
     const iconSpacingStyle = isCompact
       ? styles.dockIconCompact
       : styles.dockIcon;
@@ -97,94 +103,199 @@ export const FloatingDock: React.FC<FloatingDockProps> = React.memo(
         style={[styles.floatingDockContainer, containerStyle]}
         pointerEvents="box-none"
       >
-        {showStyleMenu && (
+        {showDisplayOptions && (
+          <TouchableOpacity
+            style={styles.dockBackdrop}
+            activeOpacity={1}
+            onPress={onToggleDisplayOptions}
+            accessibilityRole="button"
+            accessibilityLabel="Close display options"
+          />
+        )}
+
+        {showDisplayOptions && (
           <View
             style={[
-              styles.styleMenu,
-              isLandscape && styles.styleMenuLandscape,
-              isCompact && styles.styleMenuCompact,
+              styles.displayOptionsMenu,
+              isLandscape && styles.displayOptionsMenuLandscape,
+              isCompact && styles.displayOptionsMenuCompact,
             ]}
+            onStartShouldSetResponder={() => true}
           >
-            <View style={styles.styleMenuHeader}>
+            {/* Display Options Header */}
+            <View style={styles.displayOptionsHeader}>
               <Ionicons
-                name="sparkles-outline"
+                name="options-outline"
                 size={12}
                 color={COLORS.textMuted}
                 allowFontScaling={false}
               />
-              <Text allowFontScaling={false} style={styles.styleMenuTitle}>
+              <Text allowFontScaling={false} style={styles.displayOptionsTitle}>
+                Display Options
+              </Text>
+            </View>
+
+            {/* Atom Labels Toggle Row */}
+            <TouchableOpacity
+              style={[
+                styles.displayOptionsItem,
+                showLabels && styles.displayOptionsItemActive,
+              ]}
+              onPress={() => {
+                triggerSelectionHaptic();
+                onToggleLabels();
+              }}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Toggle atom labels"
+              accessibilityState={{ selected: showLabels }}
+            >
+              <View style={styles.displayOptionsItemLeft}>
+                <View
+                  style={[
+                    styles.displayOptionsIconBadge,
+                    {
+                      backgroundColor: showLabels
+                        ? addOpacity(COLORS.primary, 0.15)
+                        : addOpacity(COLORS.surfaceElevated, 0.8),
+                    },
+                  ]}
+                >
+                  <Ionicons
+                    name="text-outline"
+                    size={14}
+                    color={showLabels ? COLORS.primary : COLORS.textSecondary}
+                    allowFontScaling={false}
+                  />
+                </View>
+                <Text
+                  allowFontScaling={false}
+                  style={[
+                    styles.displayOptionsItemText,
+                    showLabels && [
+                      styles.displayOptionsItemTextActive,
+                      { color: COLORS.textPrimary },
+                    ],
+                  ]}
+                >
+                  Atom Labels
+                </Text>
+              </View>
+              <View
+                style={[
+                  styles.displayToggleBadge,
+                  showLabels && styles.displayToggleBadgeActive,
+                ]}
+              >
+                <Text
+                  allowFontScaling={false}
+                  style={[
+                    styles.displayToggleBadgeText,
+                    showLabels && styles.displayToggleBadgeTextActive,
+                  ]}
+                >
+                  {showLabels ? "ON" : "OFF"}
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            {/* Divider */}
+            <View style={styles.displayOptionsDivider} />
+
+            {/* Render Style Section Subheader */}
+            <View style={styles.displayOptionsSubHeader}>
+              <Ionicons
+                name="sparkles-outline"
+                size={11}
+                color={COLORS.textMuted}
+                allowFontScaling={false}
+              />
+              <Text
+                allowFontScaling={false}
+                style={styles.displayOptionsSubTitle}
+              >
                 Render Style
               </Text>
             </View>
-            {STYLES_LIST.map(({ id: style, label, icon, color, accentBg }) => {
-              const isActive = vizStyle === style;
-              return (
-                <TouchableOpacity
-                  key={style}
-                  style={[
-                    styles.styleMenuItem,
-                    isActive && [
-                      styles.styleMenuItemActive,
-                      {
-                        backgroundColor: accentBg,
-                        borderColor: addOpacity(color, 0.35),
-                      },
-                    ],
-                  ]}
-                  onPress={() => {
-                    triggerStylePressHaptic();
-                    onSelectStyle(style);
-                  }}
-                  activeOpacity={0.7}
-                  accessibilityRole="button"
-                  accessibilityLabel={`${label} style`}
-                  accessibilityState={{ selected: isActive }}
-                >
-                  <View style={styles.styleMenuItemLeft}>
-                    <View
+
+            {/* Render Styles List (in 2-column grid when isLandscape) */}
+            <View
+              style={
+                isLandscape ? styles.displayOptionsGridLandscape : undefined
+              }
+            >
+              {STYLES_LIST.map(
+                ({ id: style, label, icon, color, accentBg }) => {
+                  const isActive = vizStyle === style;
+                  return (
+                    <TouchableOpacity
+                      key={style}
                       style={[
-                        styles.styleMenuIconBadge,
-                        { backgroundColor: accentBg },
-                      ]}
-                    >
-                      <Ionicons
-                        name={icon}
-                        size={14}
-                        color={color}
-                        allowFontScaling={false}
-                      />
-                    </View>
-                    <Text
-                      allowFontScaling={false}
-                      style={[
-                        styles.styleMenuItemText,
+                        styles.displayOptionsItem,
+                        isLandscape && styles.displayOptionsItemLandscape,
                         isActive && [
-                          styles.styleMenuItemTextActive,
-                          { color: COLORS.textPrimary },
+                          styles.displayOptionsItemActive,
+                          {
+                            backgroundColor: accentBg,
+                            borderColor: addOpacity(color, 0.35),
+                          },
                         ],
                       ]}
+                      onPress={() => {
+                        triggerStylePressHaptic();
+                        onSelectStyle(style);
+                      }}
+                      activeOpacity={0.7}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${label} style`}
+                      accessibilityState={{ selected: isActive }}
                     >
-                      {label}
-                    </Text>
-                  </View>
-                  {isActive && (
-                    <Ionicons
-                      name="checkmark-circle"
-                      size={17}
-                      color={color}
-                      allowFontScaling={false}
-                    />
-                  )}
-                </TouchableOpacity>
-              );
-            })}
+                      <View style={styles.displayOptionsItemLeft}>
+                        <View
+                          style={[
+                            styles.displayOptionsIconBadge,
+                            { backgroundColor: accentBg },
+                          ]}
+                        >
+                          <Ionicons
+                            name={icon}
+                            size={14}
+                            color={color}
+                            allowFontScaling={false}
+                          />
+                        </View>
+                        <Text
+                          allowFontScaling={false}
+                          style={[
+                            styles.displayOptionsItemText,
+                            isActive && [
+                              styles.displayOptionsItemTextActive,
+                              { color: COLORS.textPrimary },
+                            ],
+                          ]}
+                        >
+                          {label}
+                        </Text>
+                      </View>
+                      {isActive && (
+                        <Ionicons
+                          name="checkmark-circle"
+                          size={17}
+                          color={color}
+                          allowFontScaling={false}
+                        />
+                      )}
+                    </TouchableOpacity>
+                  );
+                },
+              )}
+            </View>
           </View>
         )}
 
         <View style={[styles.dock, isCompact && styles.dockCompact]}>
-          <View
-            style={[styles.dockScroll, isCompact && styles.dockScrollCompact]}
-          >
+          <View style={[styles.dockRow, isCompact && styles.dockRowCompact]}>
+            {/* 1. Zen Mode */}
             <TouchableOpacity
               style={[styles.dockChip, isCompact && styles.dockChipCompact]}
               onPress={() => {
@@ -192,13 +303,14 @@ export const FloatingDock: React.FC<FloatingDockProps> = React.memo(
                 onEnterZenMode();
               }}
               activeOpacity={0.7}
+              hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
               accessibilityRole="button"
               accessibilityLabel="Enter Zen full screen mode"
             >
               <Ionicons
                 allowFontScaling={false}
                 name="expand-outline"
-                size={isCompact ? 16 : styles.infoIcon.fontSize}
+                size={isCompact ? 15 : styles.infoIcon.fontSize}
                 color={COLORS.textSecondary}
                 style={iconSpacingStyle}
               />
@@ -213,6 +325,7 @@ export const FloatingDock: React.FC<FloatingDockProps> = React.memo(
               </Text>
             </TouchableOpacity>
 
+            {/* 2. Info */}
             <TouchableOpacity
               style={[
                 styles.dockChip,
@@ -224,6 +337,7 @@ export const FloatingDock: React.FC<FloatingDockProps> = React.memo(
                 onToggleInfo();
               }}
               activeOpacity={0.7}
+              hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
               accessibilityRole="button"
               accessibilityLabel="Toggle molecule information"
               accessibilityState={{ selected: showInfo }}
@@ -233,7 +347,7 @@ export const FloatingDock: React.FC<FloatingDockProps> = React.memo(
                 name={
                   showInfo ? "information-circle" : "information-circle-outline"
                 }
-                size={isCompact ? 16 : styles.infoIcon.fontSize}
+                size={isCompact ? 15 : styles.infoIcon.fontSize}
                 color={showInfo ? COLORS.primary : COLORS.textSecondary}
                 style={iconSpacingStyle}
               />
@@ -249,26 +363,28 @@ export const FloatingDock: React.FC<FloatingDockProps> = React.memo(
               </Text>
             </TouchableOpacity>
 
+            {/* 3. Measure */}
             <TouchableOpacity
               style={[
                 styles.dockChip,
                 isCompact && styles.dockChipCompact,
-                showLabels && styles.dockChipActive,
+                isMeasuring && styles.dockChipActive,
               ]}
               onPress={() => {
                 triggerSelectionHaptic();
-                onToggleLabels();
+                onToggleMeasure?.();
               }}
               activeOpacity={0.7}
+              hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
               accessibilityRole="button"
-              accessibilityLabel="Toggle atom labels"
-              accessibilityState={{ selected: showLabels }}
+              accessibilityLabel="Toggle measurement mode"
+              accessibilityState={{ selected: isMeasuring }}
             >
               <Ionicons
                 allowFontScaling={false}
-                name={showLabels ? "text" : "text-outline"}
-                size={isCompact ? 16 : styles.infoIcon.fontSize}
-                color={showLabels ? COLORS.primary : COLORS.textSecondary}
+                name={isMeasuring ? "resize" : "resize-outline"}
+                size={isCompact ? 15 : styles.infoIcon.fontSize}
+                color={isMeasuring ? COLORS.primary : COLORS.textSecondary}
                 style={iconSpacingStyle}
               />
               <Text
@@ -276,33 +392,37 @@ export const FloatingDock: React.FC<FloatingDockProps> = React.memo(
                 style={[
                   styles.dockChipText,
                   isCompact && styles.dockChipTextCompact,
-                  showLabels && styles.dockChipTextActive,
+                  isMeasuring && styles.dockChipTextActive,
                 ]}
               >
-                Labels
+                Measure
               </Text>
             </TouchableOpacity>
 
+            {/* 4. Display (Render Style & Labels) */}
             <TouchableOpacity
               style={[
                 styles.dockChip,
                 isCompact && styles.dockChipCompact,
-                showStyleMenu && styles.dockChipActive,
+                showDisplayOptions && styles.dockChipActive,
               ]}
               onPress={() => {
                 triggerStylePressHaptic();
-                onToggleStyleMenu();
+                onToggleDisplayOptions();
               }}
               activeOpacity={0.7}
+              hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
               accessibilityRole="button"
-              accessibilityLabel="Toggle rendering styles menu"
-              accessibilityState={{ expanded: showStyleMenu }}
+              accessibilityLabel="Toggle display and style options"
+              accessibilityState={{ expanded: showDisplayOptions }}
             >
               <Ionicons
                 allowFontScaling={false}
-                name={showStyleMenu ? "cube" : "cube-outline"}
-                size={isCompact ? 16 : styles.infoIcon.fontSize}
-                color={showStyleMenu ? COLORS.primary : COLORS.textSecondary}
+                name={showDisplayOptions ? "options" : "options-outline"}
+                size={isCompact ? 15 : styles.infoIcon.fontSize}
+                color={
+                  showDisplayOptions ? COLORS.primary : COLORS.textSecondary
+                }
                 style={iconSpacingStyle}
               />
               <Text
@@ -310,10 +430,10 @@ export const FloatingDock: React.FC<FloatingDockProps> = React.memo(
                 style={[
                   styles.dockChipText,
                   isCompact && styles.dockChipTextCompact,
-                  showStyleMenu && styles.dockChipTextActive,
+                  showDisplayOptions && styles.dockChipTextActive,
                 ]}
               >
-                Style
+                Display
               </Text>
             </TouchableOpacity>
           </View>

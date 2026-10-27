@@ -6,6 +6,7 @@ import {
   triggerImpactLight,
   triggerSuccessHaptic,
   triggerWarningHaptic,
+  triggerMeasurementHaptic,
 } from "../haptics";
 
 jest.mock("expo-haptics", () => ({
@@ -66,6 +67,13 @@ describe("Haptics Utility", () => {
     await triggerWarningHaptic();
     expect(Haptics.notificationAsync).toHaveBeenCalledWith(
       Haptics.NotificationFeedbackType.Warning,
+    );
+  });
+
+  it("triggers measurement haptic feedback with Medium style", async () => {
+    await triggerMeasurementHaptic();
+    expect(Haptics.impactAsync).toHaveBeenCalledWith(
+      Haptics.ImpactFeedbackStyle.Medium,
     );
   });
 

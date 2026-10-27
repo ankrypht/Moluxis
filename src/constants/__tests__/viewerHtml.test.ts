@@ -74,6 +74,20 @@ describe("VIEWER_HTML", () => {
     expect(VIEWER_HTML).toContain("type: 'SNAPSHOT_RESULT'");
   });
 
+  it("should support interactive atom picking and measurement messages with isolated labels and 3D struts", () => {
+    expect(VIEWER_HTML).toContain("function setupAtomPicking()");
+    expect(VIEWER_HTML).toContain("function clearMeasurementVisuals(");
+    expect(VIEWER_HTML).toContain("function drawMeasurements(");
+    expect(VIEWER_HTML).toContain("type: 'ATOM_PICKED'");
+    expect(VIEWER_HTML).toContain("message.type === 'SET_MEASUREMENT_MODE'");
+    expect(VIEWER_HTML).toContain("message.type === 'DRAW_MEASUREMENTS'");
+    expect(VIEWER_HTML).toContain("message.type === 'CLEAR_MEASUREMENTS'");
+    expect(VIEWER_HTML).toContain("let elementLabels = []");
+    expect(VIEWER_HTML).toContain("let measurementLabels = []");
+    expect(VIEWER_HTML).toContain("viewer.addCylinder");
+    expect(VIEWER_HTML).toContain("function getDynamicAtomMeshRadius(");
+  });
+
   it("should have dark theme styles", () => {
     expect(VIEWER_HTML).toContain(`background-color: ${COLORS.background}`);
   });

@@ -420,8 +420,8 @@ describe("Recent Searches & Favorites", () => {
   it("keeps animation active when info panel or style menu is opened", async () => {
     const { getByLabelText, getByText } = render(<App />);
 
-    // Open style menu
-    const styleBtn = getByLabelText("Toggle rendering styles menu");
+    // Open display and style menu
+    const styleBtn = getByLabelText("Toggle display and style options");
     await act(async () => {
       fireEvent.press(styleBtn);
     });
@@ -658,5 +658,208 @@ describe("App SplashScreen Lifecycle", () => {
     await waitFor(() => {
       expect(SplashScreen.hideAsync).toHaveBeenCalled();
     });
+  });
+});
+
+describe("Interactive Atom Picking and Measurement Mode", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockMoleculeData = {
+      name: "Water",
+      formula: "H2O",
+      molecularWeight: "18.015",
+      cid: "962",
+      sdf2d: "sdf2d-data",
+      sdf3d: "sdf3d-data",
+      properties: {},
+      safety: {},
+    };
+  });
+
+  it("toggles measurement mode and calculates bond distance when 2 atoms are picked", async () => {
+    const { getByText, getByTestId, queryByText } = render(<App />);
+
+    // Signal webview ready
+    const webview = getByTestId("molecule-webview");
+    act(() => {
+      webview.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: "WEBVIEW_READY" }),
+        },
+      });
+    });
+
+    // Press "Measure" chip on dock
+    const measureChip = getByText("Measure");
+    await act(async () => {
+      fireEvent.press(measureChip);
+    });
+
+    // Verify MeasurementPanel is visible with initial prompt
+    expect(getByText("Tap 2 atoms to measure bond distance")).toBeTruthy();
+
+    // Pick Atom 1 (Oxygen)
+    act(() => {
+      webview.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: "ATOM_PICKED",
+            atom: { serial: 1, index: 0, elem: "O", x: 0, y: 0, z: 0 },
+          }),
+        },
+      });
+    });
+
+    expect(getByText("Select 1 more atom on the model...")).toBeTruthy();
+    expect(getByText("O")).toBeTruthy();
+    expect(getByText("#1")).toBeTruthy();
+
+    // Pick Atom 2 (Hydrogen at distance 0.96 Angstroms)
+    act(() => {
+      webview.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: "ATOM_PICKED",
+            atom: { serial: 2, index: 1, elem: "H", x: 0.96, y: 0, z: 0 },
+          }),
+        },
+      });
+    });
+
+    // Measurement is computed and displayed
+    expect(getByText("d(O1 — H2)")).toBeTruthy();
+    expect(getByText("0.960 Å")).toBeTruthy();
+    expect(getByText("Distance")).toBeTruthy();
+
+    // Close measurement mode with "Done"
+    const doneBtn = getByText("Done");
+    await act(async () => {
+      fireEvent.press(doneBtn);
+    });
+
+    // Measurement panel is closed
+    expect(queryByText("d(O1 — H2)")).toBeNull();
+  });
+
+  it("calculates bond angle when 3 atoms are picked in angle mode", async () => {
+    const { getByText, getByTestId } = render(<App />);
+
+    const webview = getByTestId("molecule-webview");
+    act(() => {
+      webview.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: "WEBVIEW_READY" }),
+        },
+      });
+    });
+
+    // Open measure mode
+    const measureChip = getByText("Measure");
+    await act(async () => {
+      fireEvent.press(measureChip);
+    });
+
+    // Switch to Angle mode
+    const angleTab = getByText("Angle (3)");
+    await act(async () => {
+      fireEvent.press(angleTab);
+    });
+
+    expect(getByText("Tap 3 atoms (second atom is the vertex)")).toBeTruthy();
+
+    // Pick H1, O (vertex), H2
+    act(() => {
+      webview.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: "ATOM_PICKED",
+            atom: { serial: 1, index: 0, elem: "H", x: 0.757, y: 0.586, z: 0 },
+          }),
+        },
+      });
+    });
+    act(() => {
+      webview.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: "ATOM_PICKED",
+            atom: { serial: 2, index: 1, elem: "O", x: 0, y: 0, z: 0 },
+          }),
+        },
+      });
+    });
+    act(() => {
+      webview.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: "ATOM_PICKED",
+            atom: { serial: 3, index: 2, elem: "H", x: -0.757, y: 0.586, z: 0 },
+          }),
+        },
+      });
+    });
+
+    // Angle computed
+    expect(getByText("∠(H1 — O2 — H3)")).toBeTruthy();
+    expect(getByText("Angle")).toBeTruthy();
+  });
+
+  it("resets measurement mode when switching structure format (2D/3D)", async () => {
+    const { getByText, getByTestId, queryByText } = render(<App />);
+
+    const webview = getByTestId("molecule-webview");
+    act(() => {
+      webview.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: "WEBVIEW_READY" }),
+        },
+      });
+    });
+
+    // Enter measurement mode
+    const measureChip = getByText("Measure");
+    await act(async () => {
+      fireEvent.press(measureChip);
+    });
+    expect(getByText("Tap 2 atoms to measure bond distance")).toBeTruthy();
+
+    // Switch format to 2D
+    const format2dBtn = getByText("2D");
+    await act(async () => {
+      fireEvent.press(format2dBtn);
+    });
+
+    // Measurement panel should be closed
+    expect(queryByText("Tap 2 atoms to measure bond distance")).toBeNull();
+  });
+
+  it("hides measurement panel when display options is open and restores it when closed", async () => {
+    const { getByText, queryByText, getByLabelText } = render(<App />);
+
+    // Enter measurement mode
+    const measureChip = getByText("Measure");
+    await act(async () => {
+      fireEvent.press(measureChip);
+    });
+    expect(getByText("Tap 2 atoms to measure bond distance")).toBeTruthy();
+
+    // Open display options
+    const displayChip = getByText("Display");
+    await act(async () => {
+      fireEvent.press(displayChip);
+    });
+
+    // Measurement panel is hidden behind display options
+    expect(queryByText("Tap 2 atoms to measure bond distance")).toBeNull();
+    expect(getByText("Display Options")).toBeTruthy();
+
+    // Close display options via backdrop
+    const backdrop = getByLabelText("Close display options");
+    await act(async () => {
+      fireEvent.press(backdrop);
+    });
+
+    // Measurement panel restored
+    expect(getByText("Tap 2 atoms to measure bond distance")).toBeTruthy();
   });
 });
