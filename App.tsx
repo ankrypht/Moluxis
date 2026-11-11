@@ -59,6 +59,12 @@ import { CustomAlertModal } from "./src/components/CustomAlert";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
+const EMPTY_MEASURE_PANEL_SIZE = {
+  width: 0,
+  height: 0,
+  isLandscape: false,
+};
+
 const has3dStructure = (data: MoleculeInfo | null | undefined): boolean =>
   Boolean(data?.sdf3d || data?.useCif);
 
@@ -191,7 +197,7 @@ function MoleculeExplorer() {
     width: number;
     height: number;
     isLandscape: boolean;
-  }>({ width: 0, height: 0, isLandscape });
+  }>(EMPTY_MEASURE_PANEL_SIZE);
 
   const handleMeasurePanelLayout = useCallback(
     (size: { width: number; height: number }) => {
@@ -209,17 +215,11 @@ function MoleculeExplorer() {
     [isLandscape],
   );
 
-  useEffect(() => {
-    if (!isMeasuring) {
-      setMeasurePanelSize((prev) =>
-        prev.width === 0 &&
-        prev.height === 0 &&
-        prev.isLandscape === isLandscape
-          ? prev
-          : { width: 0, height: 0, isLandscape },
-      );
-    }
-  }, [isMeasuring, isLandscape]);
+  const handleCloseMeasure = useCallback(() => {
+    setIsMeasuring(false);
+    setPickedAtoms([]);
+    setMeasurePanelSize(EMPTY_MEASURE_PANEL_SIZE);
+  }, []);
 
   const dynamicViewerContainerStyle = useMemo<ViewStyle>(() => {
     if (isMeasuring) {
@@ -287,6 +287,7 @@ function MoleculeExplorer() {
     setIsAnimated(false);
     setIsMeasuring(false);
     setPickedAtoms([]);
+    setMeasurePanelSize(EMPTY_MEASURE_PANEL_SIZE);
     if (moleculeData) {
       setStructureFormat(getDefaultStructureFormat(moleculeData));
     }
@@ -309,16 +310,17 @@ function MoleculeExplorer() {
     const next = !isAnimated;
     setIsAnimated(next);
     if (next) {
-      setIsMeasuring(false);
-      setPickedAtoms([]);
+      handleCloseMeasure();
     }
-  }, [isAnimated]);
+  }, [isAnimated, handleCloseMeasure]);
 
-  const handleSelectFormat = useCallback((format: "2d" | "3d") => {
-    setStructureFormat(format);
-    setIsMeasuring(false);
-    setPickedAtoms([]);
-  }, []);
+  const handleSelectFormat = useCallback(
+    (format: "2d" | "3d") => {
+      setStructureFormat(format);
+      handleCloseMeasure();
+    },
+    [handleCloseMeasure],
+  );
 
   const handleSearch = useCallback(
     (query?: string) => {
@@ -344,14 +346,13 @@ function MoleculeExplorer() {
     searchInputRef.current?.blur();
     Keyboard.dismiss();
     setIsAnimated(false);
-    setIsMeasuring(false);
-    setPickedAtoms([]);
+    handleCloseMeasure();
     setShowInfo(false);
     setShowDisplayOptions(false);
     setShowHistoryModal(false);
     setShowShareModal(false);
     clearMolecule();
-  }, [clearMolecule]);
+  }, [clearMolecule, handleCloseMeasure]);
 
   const handleToggleCurrentBookmark = useCallback(() => {
     if (moleculeData?.name) {
@@ -385,9 +386,8 @@ function MoleculeExplorer() {
     Keyboard.dismiss();
     setShowInfo((prev) => !prev);
     setShowDisplayOptions(false);
-    setIsMeasuring(false);
-    setPickedAtoms([]);
-  }, []);
+    handleCloseMeasure();
+  }, [handleCloseMeasure]);
 
   const handleCloseInfo = useCallback(() => {
     setShowInfo(false);
@@ -458,9 +458,8 @@ function MoleculeExplorer() {
     setShowDisplayOptions(false);
     setShowHistoryModal(false);
     setShowShareModal(false);
-    setIsMeasuring(false);
-    setPickedAtoms([]);
-  }, []);
+    handleCloseMeasure();
+  }, [handleCloseMeasure]);
 
   const handleExitZenMode = useCallback(() => {
     setShowControls(true);
@@ -513,8 +512,7 @@ function MoleculeExplorer() {
 
   const handleToggleMeasure = useCallback(() => {
     if (isMeasuring) {
-      setIsMeasuring(false);
-      setPickedAtoms([]);
+      handleCloseMeasure();
     } else {
       if (structureFormat === "2d" && has3dStructure(moleculeData)) {
         setStructureFormat("3d");
@@ -524,12 +522,7 @@ function MoleculeExplorer() {
       setShowDisplayOptions(false);
       setShowInfo(false);
     }
-  }, [isMeasuring, structureFormat, moleculeData]);
-
-  const handleCloseMeasure = useCallback(() => {
-    setIsMeasuring(false);
-    setPickedAtoms([]);
-  }, []);
+  }, [isMeasuring, structureFormat, moleculeData, handleCloseMeasure]);
 
   useEffect(() => {
     if (!isMeasuring || showShareModal || showHistoryModal) return;
