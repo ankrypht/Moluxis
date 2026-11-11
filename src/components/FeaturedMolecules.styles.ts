@@ -17,8 +17,8 @@ export const getFeaturedMoleculesStyles = ({
       width: "100%",
       paddingHorizontal: hScaleSize(16),
       paddingTop: isLandscape
-        ? Math.max(insets.top, scaleSize(10)) + scaleSize(75)
-        : insets.top + scaleSize(145),
+        ? Math.max(insets.top, scaleSize(10)) + scaleSize(86)
+        : insets.top + scaleSize(165),
       paddingBottom: Math.max(insets.bottom, scaleSize(16)) + scaleSize(24),
     },
     heroSection: {

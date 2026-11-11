@@ -94,9 +94,6 @@ export const FloatingDock: React.FC<FloatingDockProps> = React.memo(
     isCompact: isCompactProp,
   }) => {
     const isCompact = Boolean(isLandscape && (isCompactProp ?? showInfo));
-    const iconSpacingStyle = isCompact
-      ? styles.dockIconCompact
-      : styles.dockIcon;
 
     return (
       <View
@@ -250,24 +247,34 @@ export const FloatingDock: React.FC<FloatingDockProps> = React.memo(
                       accessibilityLabel={`${label} style`}
                       accessibilityState={{ selected: isActive }}
                     >
-                      <View style={styles.displayOptionsItemLeft}>
+                      <View
+                        style={[
+                          styles.displayOptionsItemLeft,
+                          isLandscape && styles.displayOptionsItemLeftLandscape,
+                        ]}
+                      >
                         <View
                           style={[
                             styles.displayOptionsIconBadge,
+                            isLandscape &&
+                              styles.displayOptionsIconBadgeLandscape,
                             { backgroundColor: accentBg },
                           ]}
                         >
                           <Ionicons
                             name={icon}
-                            size={14}
+                            size={isLandscape ? 13 : 14}
                             color={color}
                             allowFontScaling={false}
                           />
                         </View>
                         <Text
                           allowFontScaling={false}
+                          numberOfLines={1}
                           style={[
                             styles.displayOptionsItemText,
+                            isLandscape &&
+                              styles.displayOptionsItemTextLandscape,
                             isActive && [
                               styles.displayOptionsItemTextActive,
                               { color: COLORS.textPrimary },
@@ -280,9 +287,12 @@ export const FloatingDock: React.FC<FloatingDockProps> = React.memo(
                       {isActive && (
                         <Ionicons
                           name="checkmark-circle"
-                          size={17}
+                          size={isLandscape ? 14 : 17}
                           color={color}
                           allowFontScaling={false}
+                          style={
+                            isLandscape ? styles.checkmarkLandscape : undefined
+                          }
                         />
                       )}
                     </TouchableOpacity>
@@ -312,7 +322,7 @@ export const FloatingDock: React.FC<FloatingDockProps> = React.memo(
                 name="expand-outline"
                 size={isCompact ? 15 : styles.infoIcon.fontSize}
                 color={COLORS.textSecondary}
-                style={iconSpacingStyle}
+                style={styles.dockIcon}
               />
               <Text
                 allowFontScaling={false}
@@ -349,7 +359,7 @@ export const FloatingDock: React.FC<FloatingDockProps> = React.memo(
                 }
                 size={isCompact ? 15 : styles.infoIcon.fontSize}
                 color={showInfo ? COLORS.primary : COLORS.textSecondary}
-                style={iconSpacingStyle}
+                style={styles.dockIcon}
               />
               <Text
                 allowFontScaling={false}
@@ -385,7 +395,7 @@ export const FloatingDock: React.FC<FloatingDockProps> = React.memo(
                 name={isMeasuring ? "resize" : "resize-outline"}
                 size={isCompact ? 15 : styles.infoIcon.fontSize}
                 color={isMeasuring ? COLORS.primary : COLORS.textSecondary}
-                style={iconSpacingStyle}
+                style={styles.dockIcon}
               />
               <Text
                 allowFontScaling={false}
@@ -423,7 +433,7 @@ export const FloatingDock: React.FC<FloatingDockProps> = React.memo(
                 color={
                   showDisplayOptions ? COLORS.primary : COLORS.textSecondary
                 }
-                style={iconSpacingStyle}
+                style={styles.dockIcon}
               />
               <Text
                 allowFontScaling={false}

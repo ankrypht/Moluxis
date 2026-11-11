@@ -1,6 +1,6 @@
 import React from "react";
 import { render, fireEvent, waitFor, act } from "@testing-library/react-native";
-import { Keyboard } from "react-native";
+import { Keyboard, BackHandler } from "react-native";
 import * as SplashScreen from "expo-splash-screen";
 import App from "../App";
 import {
@@ -712,7 +712,7 @@ describe("Interactive Atom Picking and Measurement Mode", () => {
 
     expect(getByText("Select 1 more atom on the model...")).toBeTruthy();
     expect(getByText("O")).toBeTruthy();
-    expect(getByText("#1")).toBeTruthy();
+    expect(queryByText("#1")).toBeNull();
 
     // Pick Atom 2 (Hydrogen at distance 0.96 Angstroms)
     act(() => {
@@ -804,8 +804,8 @@ describe("Interactive Atom Picking and Measurement Mode", () => {
     expect(getByText("Angle")).toBeTruthy();
   });
 
-  it("resets measurement mode when switching structure format (2D/3D)", async () => {
-    const { getByText, getByTestId, queryByText } = render(<App />);
+  it("hides other UI elements during measurement mode and restores them when closed", async () => {
+    const { getByText, queryByText, getByTestId } = render(<App />);
 
     const webview = getByTestId("molecule-webview");
     act(() => {
@@ -816,6 +816,10 @@ describe("Interactive Atom Picking and Measurement Mode", () => {
       });
     });
 
+    // Structure controls and dock are initially visible
+    expect(getByText("2D")).toBeTruthy();
+    expect(getByText("Display")).toBeTruthy();
+
     // Enter measurement mode
     const measureChip = getByText("Measure");
     await act(async () => {
@@ -823,17 +827,23 @@ describe("Interactive Atom Picking and Measurement Mode", () => {
     });
     expect(getByText("Tap 2 atoms to measure bond distance")).toBeTruthy();
 
-    // Switch format to 2D
-    const format2dBtn = getByText("2D");
+    // Verify other UI elements (controls, dock) are hidden
+    expect(queryByText("2D")).toBeNull();
+    expect(queryByText("Display")).toBeNull();
+
+    // Exit measurement mode via Done
+    const doneBtn = getByText("Done");
     await act(async () => {
-      fireEvent.press(format2dBtn);
+      fireEvent.press(doneBtn);
     });
 
-    // Measurement panel should be closed
+    // Measurement panel should be closed and other UI elements restored
     expect(queryByText("Tap 2 atoms to measure bond distance")).toBeNull();
+    expect(getByText("2D")).toBeTruthy();
+    expect(getByText("Display")).toBeTruthy();
   });
 
-  it("hides measurement panel when display options is open and restores it when closed", async () => {
+  it("exits measurement mode when close button is pressed and restores controls", async () => {
     const { getByText, queryByText, getByLabelText } = render(<App />);
 
     // Enter measurement mode
@@ -842,24 +852,88 @@ describe("Interactive Atom Picking and Measurement Mode", () => {
       fireEvent.press(measureChip);
     });
     expect(getByText("Tap 2 atoms to measure bond distance")).toBeTruthy();
+    expect(queryByText("Display")).toBeNull();
 
-    // Open display options
-    const displayChip = getByText("Display");
+    // Close measurement panel via close button
+    const closeBtn = getByLabelText("Close measurement tool");
     await act(async () => {
-      fireEvent.press(displayChip);
+      fireEvent.press(closeBtn);
     });
 
-    // Measurement panel is hidden behind display options
+    // Measurement panel is closed and dock is restored
     expect(queryByText("Tap 2 atoms to measure bond distance")).toBeNull();
-    expect(getByText("Display Options")).toBeTruthy();
+    expect(getByText("Display")).toBeTruthy();
+  });
 
-    // Close display options via backdrop
-    const backdrop = getByLabelText("Close display options");
+  it("exits measurement mode on hardware back press and restores controls", async () => {
+    const backSpy = jest.spyOn(BackHandler, "addEventListener");
+
+    try {
+      const { getByText, queryByText } = render(<App />);
+
+      const callsBefore = backSpy.mock.calls.length;
+      const measureChip = getByText("Measure");
+      await act(async () => {
+        fireEvent.press(measureChip);
+      });
+      expect(getByText("Tap 2 atoms to measure bond distance")).toBeTruthy();
+      expect(queryByText("Display")).toBeNull();
+
+      const measureBackCall = backSpy.mock.calls
+        .slice(callsBefore)
+        .filter(([event]) => event === "hardwareBackPress")
+        .pop();
+      expect(measureBackCall).toBeDefined();
+
+      let handled: boolean | null | undefined;
+      act(() => {
+        handled = measureBackCall?.[1]({
+          type: "hardwareBackPress",
+          timeStamp: 0,
+        });
+      });
+
+      expect(handled).toBe(true);
+      expect(queryByText("Tap 2 atoms to measure bond distance")).toBeNull();
+      expect(getByText("Display")).toBeTruthy();
+    } finally {
+      backSpy.mockRestore();
+    }
+  });
+
+  it("keeps 2D structure format selected on 2D-only molecules when entering measurement mode", async () => {
+    mockMoleculeData = {
+      name: "Water",
+      formula: "H2O",
+      molecularWeight: "18.015",
+      cid: "962",
+      sdf2d: "sdf2d-data",
+      sdf3d: "",
+      useCif: false,
+      properties: {},
+      safety: {},
+    };
+
+    const { getByText, queryByText, getByLabelText } = render(<App />);
+
+    expect(
+      getByLabelText("2D Structure").props.accessibilityState.selected,
+    ).toBe(true);
+
+    const measureChip = getByText("Measure");
     await act(async () => {
-      fireEvent.press(backdrop);
+      fireEvent.press(measureChip);
+    });
+    expect(getByText("Tap 2 atoms to measure bond distance")).toBeTruthy();
+
+    const doneBtn = getByText("Done");
+    await act(async () => {
+      fireEvent.press(doneBtn);
     });
 
-    // Measurement panel restored
-    expect(getByText("Tap 2 atoms to measure bond distance")).toBeTruthy();
+    expect(queryByText("Tap 2 atoms to measure bond distance")).toBeNull();
+    expect(
+      getByLabelText("2D Structure").props.accessibilityState.selected,
+    ).toBe(true);
   });
 });

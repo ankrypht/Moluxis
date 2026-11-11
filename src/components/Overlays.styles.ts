@@ -12,17 +12,17 @@ export const getOverlaysStyles = ({
     landscapeNameOverlay: {
       position: "absolute",
       bottom: isLandscape
-        ? Math.max(insets.bottom, scaleSize(12)) + scaleSize(64)
-        : scaleSize(80),
-      left: isLandscape ? insets.left : 0,
-      right: isLandscape ? insets.right : 0,
-      paddingHorizontal: hScaleSize(32),
+        ? Math.max(insets.bottom, scaleSize(12))
+        : insets.bottom + scaleSize(80),
+      left: 0,
+      right: 0,
+      paddingHorizontal: hScaleSize(16),
       alignItems: "center",
       zIndex: 10,
     },
     landscapeNameText: {
       color: COLORS.textSecondary,
-      fontSize: scaleSize(14),
+      fontSize: scaleSize(13),
       fontWeight: "800",
       textTransform: "uppercase",
       letterSpacing: 2,

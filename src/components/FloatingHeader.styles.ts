@@ -41,9 +41,12 @@ export const getFloatingHeaderStyles = ({
       width: "100%",
     },
     headerIslandLandscape: {
-      padding: scaleSize(10),
-      borderRadius: scaleSize(16),
-      maxWidth: 480,
+      paddingVertical: scaleSize(5),
+      paddingHorizontal: scaleSize(5),
+      borderRadius: scaleSize(18),
+      maxWidth: scaleSize(440),
+      alignSelf: "center",
+      width: "88%",
     },
     titleRow: {
       flexDirection: "row",
@@ -77,9 +80,9 @@ export const getFloatingHeaderStyles = ({
       borderColor: addOpacity(COLORS.warning, 0.5),
     },
     headerIconButtonLandscape: {
-      width: scaleSize(40),
-      height: scaleSize(40),
-      borderRadius: scaleSize(14),
+      width: scaleSize(38),
+      height: scaleSize(38),
+      borderRadius: scaleSize(13),
     },
     searchRow: {
       flexDirection: "row",
@@ -109,8 +112,8 @@ export const getFloatingHeaderStyles = ({
       paddingRight: scaleSize(40),
     },
     inputLandscape: {
-      paddingVertical: scaleSize(10),
-      fontSize: scaleSize(14),
+      paddingVertical: scaleSize(8),
+      fontSize: scaleSize(13),
     },
     clearButton: {
       position: "absolute",
@@ -138,14 +141,15 @@ export const getFloatingHeaderStyles = ({
       elevation: 0,
     },
     buttonLandscape: {
-      width: scaleSize(40),
-      height: scaleSize(40),
+      width: scaleSize(38),
+      height: scaleSize(38),
+      borderRadius: scaleSize(13),
     },
     suggestionsContainer: {
-      position: "absolute",
-      top: "140%", // just below the header island
-      left: 0,
-      right: 0,
+      marginTop: scaleSize(6),
+      alignSelf: "center",
+      width: "100%",
+      maxWidth: 500,
       backgroundColor: COLORS.surface,
       borderRadius: scaleSize(16),
       elevation: 10,
@@ -155,11 +159,17 @@ export const getFloatingHeaderStyles = ({
       shadowRadius: 12,
       zIndex: 999,
       borderWidth: 1,
-      borderColor: COLORS.border,
+      borderColor: COLORS.surfaceElevated,
       overflow: "hidden",
     },
+    suggestionsContainerLandscape: {
+      width: "88%",
+      maxWidth: scaleSize(440),
+      marginTop: scaleSize(4),
+      borderRadius: scaleSize(14),
+    },
     suggestionsList: {
-      maxHeight: scaleSize(200),
+      maxHeight: isLandscape ? scaleSize(130) : scaleSize(180),
     },
     controlsRow: {
       flexDirection: "row",
@@ -171,13 +181,6 @@ export const getFloatingHeaderStyles = ({
       maxWidth: 500,
       width: "100%",
       alignSelf: "center",
-    },
-    islandInlineControls: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      marginTop: scaleSize(8),
-      gap: hScaleSize(12),
     },
   });
 

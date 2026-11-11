@@ -21,6 +21,14 @@ export const COLORS = {
   amber: "#F59E0B",
 };
 
+/** Highlight colors used for picked atoms in the 3D mesh and measurement pills. */
+export const ATOM_MESH_COLORS = [
+  COLORS.cyan,
+  COLORS.emerald,
+  COLORS.amber,
+  COLORS.rose,
+] as const;
+
 export const addOpacity = (hex: string, opacity: number): string => {
   if (!hex || !hex.startsWith("#")) {
     return hex;

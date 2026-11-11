@@ -1,10 +1,18 @@
 import React from "react";
+import { StyleSheet } from "react-native";
 import { render, fireEvent } from "@testing-library/react-native";
 import { MeasurementPanel } from "../MeasurementPanel";
 import { PickedAtom, MeasurementData } from "../../types";
+import { ATOM_MESH_COLORS, addOpacity } from "../../constants/colors";
 
 const mockStyles: any = {
+  measurementPanelWrapper: {},
   measurementPanelContainer: {},
+  measurementTopSection: {},
+  measurementTopScroll: {},
+  measurementLandscapeHeader: {},
+  measurementLandscapeTitleRow: {},
+  measurementLandscapeTitle: {},
   measurementHeader: {},
   measurementModeTabs: {},
   measurementModeTab: {},
@@ -19,7 +27,6 @@ const mockStyles: any = {
   measurementAtomIndexBadge: {},
   measurementAtomIndexText: {},
   measurementAtomElemText: {},
-  measurementAtomSerialText: {},
   measurementAtomRemoveIcon: {},
   measurementEmptySlotText: {},
   measurementResultCard: {},
@@ -88,9 +95,9 @@ describe("MeasurementPanel", () => {
     expect(onSelectMode).toHaveBeenCalledWith("angle");
   });
 
-  it("renders picked atom badges and allows removing an individual atom", () => {
+  it("renders color-coded picked atom badges without #serial and allows removing an individual atom", () => {
     const onRemoveAtom = jest.fn();
-    const { getByText, getByLabelText } = render(
+    const { getByText, queryByText, getByLabelText } = render(
       <MeasurementPanel
         mode="distance"
         pickedAtoms={sampleAtoms}
@@ -104,11 +111,22 @@ describe("MeasurementPanel", () => {
     );
 
     expect(getByText("C")).toBeTruthy();
-    expect(getByText("#1")).toBeTruthy();
     expect(getByText("O")).toBeTruthy();
-    expect(getByText("#2")).toBeTruthy();
+    expect(queryByText("#1")).toBeNull();
+    expect(queryByText("#2")).toBeNull();
 
     const firstAtomPill = getByLabelText("Remove atom 1: C 1");
+    const secondAtomPill = getByLabelText("Remove atom 2: O 2");
+
+    expect(StyleSheet.flatten(firstAtomPill.props.style)).toMatchObject({
+      borderColor: addOpacity(ATOM_MESH_COLORS[0], 0.75),
+      backgroundColor: addOpacity(ATOM_MESH_COLORS[0], 0.14),
+    });
+    expect(StyleSheet.flatten(secondAtomPill.props.style)).toMatchObject({
+      borderColor: addOpacity(ATOM_MESH_COLORS[1], 0.75),
+      backgroundColor: addOpacity(ATOM_MESH_COLORS[1], 0.14),
+    });
+
     fireEvent.press(firstAtomPill);
     expect(onRemoveAtom).toHaveBeenCalledWith(0);
   });

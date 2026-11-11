@@ -13,6 +13,7 @@ import {
   ViewStyle,
   Platform,
   AppState,
+  BackHandler,
 } from "react-native";
 import {
   useSafeAreaInsets,
@@ -23,6 +24,7 @@ import { NavigationBar } from "expo-navigation-bar";
 import * as SplashScreen from "expo-splash-screen";
 
 import {
+  MoleculeInfo,
   VisualizationType,
   MeasurementMode,
   PickedAtom,
@@ -45,6 +47,7 @@ import {
   MoleculeViewerRef,
 } from "./src/components/MoleculeViewer";
 import { FloatingHeader } from "./src/components/FloatingHeader";
+import { StructureControls } from "./src/components/StructureControls";
 import { FloatingDock } from "./src/components/FloatingDock";
 import { MeasurementPanel } from "./src/components/MeasurementPanel";
 import { MoleculeInfoSheet } from "./src/components/MoleculeInfoSheet";
@@ -55,6 +58,18 @@ import { ShareExportModal } from "./src/components/ShareExportModal";
 import { CustomAlertModal } from "./src/components/CustomAlert";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
+
+const has3dStructure = (data: MoleculeInfo | null | undefined): boolean =>
+  Boolean(data?.sdf3d || data?.useCif);
+
+const getDefaultStructureFormat = (
+  data: MoleculeInfo | null | undefined,
+): "3d" | "2d" => {
+  if (data && !has3dStructure(data) && data.sdf2d) {
+    return "2d";
+  }
+  return "3d";
+};
 
 export default function App() {
   useEffect(() => {
@@ -105,7 +120,9 @@ function MoleculeExplorer() {
   const [isAnimated, setIsAnimated] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
   const [showControls, setShowControls] = useState(true);
-  const [structureFormat, setStructureFormat] = useState<"3d" | "2d">("3d");
+  const [structureFormat, setStructureFormat] = useState<"3d" | "2d">(() =>
+    getDefaultStructureFormat(moleculeData),
+  );
   const [isMeasuring, setIsMeasuring] = useState(false);
   const [measurementMode, setMeasurementMode] =
     useState<MeasurementMode>("distance");
@@ -170,10 +187,78 @@ function MoleculeExplorer() {
     [width, height, top, bottom, left, right],
   );
 
-  const dynamicViewerContainerStyle = useMemo<ViewStyle>(
-    () => ({ right: isLandscape && showInfo ? "45%" : 0 }),
-    [isLandscape, showInfo],
+  const [measurePanelSize, setMeasurePanelSize] = useState<{
+    width: number;
+    height: number;
+    isLandscape: boolean;
+  }>({ width: 0, height: 0, isLandscape });
+
+  const handleMeasurePanelLayout = useCallback(
+    (size: { width: number; height: number }) => {
+      setMeasurePanelSize((prev) => {
+        if (
+          prev.width === size.width &&
+          prev.height === size.height &&
+          prev.isLandscape === isLandscape
+        ) {
+          return prev;
+        }
+        return { ...size, isLandscape };
+      });
+    },
+    [isLandscape],
   );
+
+  useEffect(() => {
+    if (!isMeasuring) {
+      setMeasurePanelSize((prev) =>
+        prev.width === 0 &&
+        prev.height === 0 &&
+        prev.isLandscape === isLandscape
+          ? prev
+          : { width: 0, height: 0, isLandscape },
+      );
+    }
+  }, [isMeasuring, isLandscape]);
+
+  const dynamicViewerContainerStyle = useMemo<ViewStyle>(() => {
+    if (isMeasuring) {
+      const hasMatchingSize = measurePanelSize.isLandscape === isLandscape;
+      if (isLandscape) {
+        const panelWidth =
+          hasMatchingSize && measurePanelSize.width > 0
+            ? measurePanelSize.width
+            : "width" in styles.measurementPanelWrapper &&
+                typeof styles.measurementPanelWrapper.width === "number"
+              ? styles.measurementPanelWrapper.width
+              : 360;
+        return {
+          right: panelWidth,
+          bottom: 0,
+        };
+      }
+      const panelHeight =
+        hasMatchingSize && measurePanelSize.height > 0
+          ? measurePanelSize.height
+          : 210;
+      return {
+        bottom: panelHeight,
+        right: 0,
+      };
+    }
+    return {
+      right: isLandscape && showInfo ? "45%" : 0,
+      bottom: 0,
+    };
+  }, [
+    isMeasuring,
+    isLandscape,
+    showInfo,
+    measurePanelSize.width,
+    measurePanelSize.height,
+    measurePanelSize.isLandscape,
+    styles.measurementPanelWrapper,
+  ]);
   const dynamicHeaderContainerStyle = useMemo<ViewStyle>(
     () => ({
       right: isLandscape ? (showInfo ? "45%" : insets.right) : 0,
@@ -182,16 +267,17 @@ function MoleculeExplorer() {
   );
   const dynamicDockContainerStyle = useMemo<ViewStyle>(
     () => ({
-      right: isLandscape
+      ...(isLandscape
         ? showInfo
-          ? "45%"
+          ? { right: "45%" }
           : showShareModal
-            ? "52%"
-            : insets.right
-        : 0,
+            ? { right: "52%" }
+            : {}
+        : { right: 0 }),
+      marginRight: isLandscape && (showInfo || showShareModal) ? 8 : 0,
       zIndex: showDisplayOptions ? 150 : 50,
     }),
-    [isLandscape, showInfo, showShareModal, showDisplayOptions, insets.right],
+    [isLandscape, showInfo, showShareModal, showDisplayOptions],
   );
 
   if (moleculeData !== prevMoleculeData) {
@@ -202,11 +288,7 @@ function MoleculeExplorer() {
     setIsMeasuring(false);
     setPickedAtoms([]);
     if (moleculeData) {
-      if (moleculeData.sdf3d || moleculeData.useCif) {
-        setStructureFormat("3d");
-      } else if (moleculeData.sdf2d) {
-        setStructureFormat("2d");
-      }
+      setStructureFormat(getDefaultStructureFormat(moleculeData));
     }
   }
 
@@ -223,18 +305,14 @@ function MoleculeExplorer() {
     }
   }, []);
 
-  const toggleAnimation = useCallback(
-    () =>
-      setIsAnimated((previousState) => {
-        const next = !previousState;
-        if (next) {
-          setIsMeasuring(false);
-          setPickedAtoms([]);
-        }
-        return next;
-      }),
-    [],
-  );
+  const toggleAnimation = useCallback(() => {
+    const next = !isAnimated;
+    setIsAnimated(next);
+    if (next) {
+      setIsMeasuring(false);
+      setPickedAtoms([]);
+    }
+  }, [isAnimated]);
 
   const handleSelectFormat = useCallback((format: "2d" | "3d") => {
     setStructureFormat(format);
@@ -434,22 +512,36 @@ function MoleculeExplorer() {
   }, [isMeasuring, measurementMode, pickedAtoms, measurementData]);
 
   const handleToggleMeasure = useCallback(() => {
-    setIsMeasuring((prev) => {
-      const next = !prev;
-      if (!next) {
-        setPickedAtoms([]);
+    if (isMeasuring) {
+      setIsMeasuring(false);
+      setPickedAtoms([]);
+    } else {
+      if (structureFormat === "2d" && has3dStructure(moleculeData)) {
+        setStructureFormat("3d");
       }
-      return next;
-    });
-    setIsAnimated(false);
-    setShowDisplayOptions(false);
-    setShowInfo(false);
-  }, []);
+      setIsMeasuring(true);
+      setIsAnimated(false);
+      setShowDisplayOptions(false);
+      setShowInfo(false);
+    }
+  }, [isMeasuring, structureFormat, moleculeData]);
 
   const handleCloseMeasure = useCallback(() => {
     setIsMeasuring(false);
     setPickedAtoms([]);
   }, []);
+
+  useEffect(() => {
+    if (!isMeasuring || showShareModal || showHistoryModal) return;
+    const subscription = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => {
+        handleCloseMeasure();
+        return true;
+      },
+    );
+    return () => subscription.remove();
+  }, [isMeasuring, showShareModal, showHistoryModal, handleCloseMeasure]);
 
   const handleSelectMeasurementMode = useCallback((mode: MeasurementMode) => {
     setMeasurementMode(mode);
@@ -470,10 +562,10 @@ function MoleculeExplorer() {
       triggerMeasurementHaptic();
 
       setPickedAtoms((prev) => {
-        const existingIndex = prev.findIndex(
-          (a) =>
-            (a.index !== undefined && a.index === atom.index) ||
-            (a.serial !== undefined && a.serial === atom.serial),
+        const existingIndex = prev.findIndex((a) =>
+          a.index !== undefined && atom.index !== undefined
+            ? a.index === atom.index
+            : a.serial !== undefined && a.serial === atom.serial,
         );
         if (existingIndex !== -1) {
           return prev.filter((_, i) => i !== existingIndex);
@@ -503,13 +595,15 @@ function MoleculeExplorer() {
         showLabels={showLabels}
         isAnimated={isAnimated}
         isInteracting={isInteracting}
-        isMeasuring={isMeasuring && !showDisplayOptions}
+        isMeasuring={isMeasuring}
         measurementMode={measurementMode}
         onAtomPicked={handleAtomPicked}
         containerStyle={dynamicViewerContainerStyle}
         styles={styles}
         onSelectMolecule={handleSelectSuggestion}
-        topOffset={headerHeight}
+        topOffset={
+          headerHeight > 0 ? headerHeight + (isLandscape ? 18 : 16) : 0
+        }
         history={history}
         bookmarks={bookmarks}
         onOpenHistory={handleOpenHistoryModal}
@@ -517,7 +611,7 @@ function MoleculeExplorer() {
       />
 
       {/* FLOATING HEADER (Island) */}
-      {showControls && (
+      {showControls && !isMeasuring && (
         <FloatingHeader
           searchInputRef={searchInputRef}
           searchText={searchText}
@@ -546,8 +640,32 @@ function MoleculeExplorer() {
         />
       )}
 
+      {/* FLOATING LEFT RAIL (Structure & Animation in Landscape) */}
+      {moleculeData &&
+        !isLoading &&
+        showControls &&
+        !isMeasuring &&
+        isLandscape && (
+          <View
+            style={styles.floatingLeftRailContainer}
+            pointerEvents="box-none"
+          >
+            <View style={styles.floatingLeftRail}>
+              <StructureControls
+                moleculeData={moleculeData}
+                isAnimated={isAnimated}
+                structureFormat={structureFormat}
+                onToggleAnimation={toggleAnimation}
+                onSelectFormat={handleSelectFormat}
+                styles={styles}
+                isLandscape={true}
+              />
+            </View>
+          </View>
+        )}
+
       {/* FLOATING DOCK (Controls) */}
-      {moleculeData && !isLoading && showControls && (
+      {moleculeData && !isLoading && showControls && !isMeasuring && (
         <FloatingDock
           vizStyle={vizStyle}
           showLabels={showLabels}
@@ -572,7 +690,6 @@ function MoleculeExplorer() {
         !isLoading &&
         isMeasuring &&
         showControls &&
-        !showDisplayOptions &&
         !showShareModal &&
         !showHistoryModal && (
           <MeasurementPanel
@@ -585,6 +702,7 @@ function MoleculeExplorer() {
             onClose={handleCloseMeasure}
             styles={styles}
             isLandscape={isLandscape}
+            onPanelLayout={handleMeasurePanelLayout}
           />
         )}
 
@@ -604,9 +722,13 @@ function MoleculeExplorer() {
       )}
 
       {/* Landscape Name Overlay (visible when info sheet is closed) */}
-      {moleculeData && !isLoading && !showInfo && showControls && (
-        <LandscapeNameOverlay name={moleculeData.name} styles={styles} />
-      )}
+      {moleculeData &&
+        !isLoading &&
+        !showInfo &&
+        showControls &&
+        !isMeasuring && (
+          <LandscapeNameOverlay name={moleculeData.name} styles={styles} />
+        )}
 
       {/* Floating Exit Full Screen Button */}
       {!showControls && (

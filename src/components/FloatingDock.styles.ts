@@ -12,18 +12,20 @@ export const getFloatingDockStyles = ({
     floatingDockContainer: {
       position: "absolute",
       bottom: 0,
-      left: isLandscape ? insets.left : 0,
-      right: isLandscape ? insets.right : 0,
+      top: isLandscape ? 0 : undefined,
+      left: isLandscape ? undefined : 0,
+      right: isLandscape
+        ? Math.max(insets.right, scaleSize(20)) + scaleSize(16)
+        : 0,
       zIndex: 50,
-      alignItems: "center",
-      paddingBottom: isLandscape
-        ? Math.max(insets.bottom, scaleSize(12))
-        : insets.bottom + scaleSize(16),
+      justifyContent: isLandscape ? "center" : "flex-end",
+      alignItems: isLandscape ? "flex-end" : "center",
+      paddingBottom: isLandscape ? 0 : insets.bottom + scaleSize(16),
     },
     dock: {
-      flexDirection: "row",
+      flexDirection: isLandscape ? "column" : "row",
       backgroundColor: addOpacity(COLORS.surface, 0.88),
-      borderRadius: scaleSize(32),
+      borderRadius: isLandscape ? scaleSize(22) : scaleSize(32),
       padding: scaleSize(5),
       borderWidth: 1,
       borderColor: COLORS.surfaceElevated,
@@ -32,14 +34,15 @@ export const getFloatingDockStyles = ({
       shadowOpacity: 0.3,
       shadowRadius: 12,
       elevation: 8,
-      width: isLandscape ? "90%" : "94%",
-      maxWidth: isLandscape ? scaleSize(540) : scaleSize(390),
+      width: isLandscape ? "auto" : "94%",
+      maxWidth: isLandscape ? scaleSize(68) : scaleSize(390),
+      alignItems: "center",
     },
     dockCompact: {
-      width: "92%",
-      maxWidth: scaleSize(440),
+      width: isLandscape ? "auto" : "92%",
+      maxWidth: isLandscape ? scaleSize(62) : scaleSize(440),
       padding: scaleSize(4),
-      borderRadius: scaleSize(26),
+      borderRadius: isLandscape ? scaleSize(18) : scaleSize(26),
     },
     dockBackdrop: {
       position: "absolute",
@@ -51,9 +54,11 @@ export const getFloatingDockStyles = ({
     },
     displayOptionsMenu: {
       position: "absolute",
-      bottom: isLandscape
-        ? Math.max(insets.bottom, scaleSize(8)) + scaleSize(56)
-        : insets.bottom + scaleSize(74),
+      ...(isLandscape
+        ? {}
+        : {
+            bottom: insets.bottom + scaleSize(74),
+          }),
       backgroundColor: addOpacity(COLORS.surface, 0.96),
       borderRadius: scaleSize(20),
       borderWidth: 1,
@@ -68,13 +73,14 @@ export const getFloatingDockStyles = ({
       minWidth: scaleSize(230),
     },
     displayOptionsMenuLandscape: {
-      bottom: Math.max(insets.bottom, scaleSize(8)) + scaleSize(56),
-      minWidth: scaleSize(340),
-      maxWidth: scaleSize(380),
-      padding: scaleSize(6),
+      right: scaleSize(74),
+      minWidth: scaleSize(320),
+      maxWidth: scaleSize(350),
+      padding: scaleSize(8),
+      borderRadius: scaleSize(18),
     },
     displayOptionsMenuCompact: {
-      minWidth: scaleSize(320),
+      minWidth: scaleSize(280),
     },
     displayOptionsGridLandscape: {
       flexDirection: "row",
@@ -84,7 +90,7 @@ export const getFloatingDockStyles = ({
     displayOptionsItemLandscape: {
       width: "48.5%",
       paddingVertical: scaleSize(6),
-      paddingHorizontal: hScaleSize(8),
+      paddingHorizontal: scaleSize(7),
       marginVertical: scaleSize(2),
     },
     displayOptionsHeader: {
@@ -137,6 +143,7 @@ export const getFloatingDockStyles = ({
       marginVertical: scaleSize(2),
       borderWidth: 1,
       borderColor: "transparent",
+      overflow: "hidden",
     },
     displayOptionsItemActive: {
       backgroundColor: addOpacity(COLORS.primary, 0.12),
@@ -146,6 +153,13 @@ export const getFloatingDockStyles = ({
       flexDirection: "row",
       alignItems: "center",
       gap: hScaleSize(10),
+      flex: 1,
+      minWidth: 0,
+    },
+    displayOptionsItemLeftLandscape: {
+      gap: scaleSize(6),
+      flex: 1,
+      minWidth: 0,
     },
     displayOptionsIconBadge: {
       width: scaleSize(26),
@@ -154,10 +168,24 @@ export const getFloatingDockStyles = ({
       justifyContent: "center",
       alignItems: "center",
     },
+    displayOptionsIconBadgeLandscape: {
+      width: scaleSize(22),
+      height: scaleSize(22),
+      borderRadius: scaleSize(7),
+    },
     displayOptionsItemText: {
       fontSize: scaleSize(13),
       fontWeight: "600",
       color: COLORS.textSecondary,
+      flexShrink: 1,
+    },
+    displayOptionsItemTextLandscape: {
+      fontSize: scaleSize(11.5),
+      flexShrink: 1,
+    },
+    checkmarkLandscape: {
+      marginLeft: scaleSize(3),
+      flexShrink: 0,
     },
     displayOptionsItemTextActive: {
       color: COLORS.textPrimary,
@@ -186,49 +214,59 @@ export const getFloatingDockStyles = ({
       fontWeight: "800",
     },
     dockRow: {
-      flexDirection: "row",
+      flexDirection: isLandscape ? "column" : "row",
       alignItems: "center",
-      justifyContent: "space-between",
-      width: "100%",
-      paddingHorizontal: isLandscape ? scaleSize(8) : scaleSize(4),
+      justifyContent: isLandscape ? "center" : "space-between",
+      width: isLandscape ? "auto" : "100%",
+      paddingHorizontal: isLandscape ? 0 : scaleSize(4),
+      paddingVertical: isLandscape ? scaleSize(4) : 0,
+      gap: isLandscape ? scaleSize(6) : 0,
     },
     dockRowCompact: {
-      width: "100%",
-      paddingHorizontal: scaleSize(4),
+      width: isLandscape ? "auto" : "100%",
+      paddingHorizontal: isLandscape ? 0 : scaleSize(4),
+      paddingVertical: isLandscape ? scaleSize(2) : 0,
+      gap: isLandscape ? scaleSize(4) : 0,
     },
     dockIcon: {
-      marginRight: 4,
-    },
-    dockIconCompact: {
-      marginRight: 3,
+      marginRight: isLandscape ? 0 : 4,
+      marginBottom: isLandscape ? scaleSize(1) : 0,
     },
     dockChip: {
-      paddingHorizontal: isLandscape ? scaleSize(14) : scaleSize(8),
-      paddingVertical: isLandscape ? scaleSize(8) : scaleSize(7),
-      borderRadius: scaleSize(24),
+      paddingHorizontal: isLandscape ? scaleSize(4) : scaleSize(8),
+      paddingVertical: isLandscape ? scaleSize(7) : scaleSize(7),
+      borderRadius: isLandscape ? scaleSize(14) : scaleSize(24),
       backgroundColor: "transparent",
       borderWidth: 1,
       borderColor: "transparent",
-      flexDirection: "row",
+      flexDirection: isLandscape ? "column" : "row",
       alignItems: "center",
       justifyContent: "center",
+      width: isLandscape ? scaleSize(50) : undefined,
+      minWidth: isLandscape ? scaleSize(48) : scaleSize(74),
+      gap: isLandscape ? scaleSize(2) : 0,
     },
     dockChipCompact: {
-      paddingHorizontal: scaleSize(8),
-      paddingVertical: scaleSize(6),
-      borderRadius: scaleSize(18),
+      paddingHorizontal: isLandscape ? scaleSize(3) : scaleSize(8),
+      paddingVertical: isLandscape ? scaleSize(5) : scaleSize(6),
+      borderRadius: isLandscape ? scaleSize(12) : scaleSize(18),
+      width: isLandscape ? scaleSize(44) : undefined,
+      minWidth: isLandscape ? scaleSize(42) : scaleSize(60),
+      gap: isLandscape ? scaleSize(1) : 0,
     },
     dockChipActive: {
       backgroundColor: addOpacity(COLORS.primary, 0.2),
       borderColor: addOpacity(COLORS.primary, 0.5),
     },
     dockChipText: {
-      fontSize: isLandscape ? scaleSize(13) : scaleSize(12),
+      fontSize: isLandscape ? scaleSize(9.5) : scaleSize(12),
       fontWeight: "700",
       color: COLORS.textSecondary,
+      textAlign: "center",
+      letterSpacing: -0.2,
     },
     dockChipTextCompact: {
-      fontSize: scaleSize(11),
+      fontSize: isLandscape ? scaleSize(8.5) : scaleSize(11),
     },
     dockChipTextActive: {
       color: COLORS.primary,

@@ -177,4 +177,77 @@ describe("StructureControls Component", () => {
     expect(handleToggleAnimation).toHaveBeenCalledTimes(1);
     expect(mockTriggerSelectionHaptic).toHaveBeenCalledTimes(1);
   });
+
+  describe("Landscape Rail Mode", () => {
+    it("renders 3D, 2D, and Animate buttons in landscape rail and handles actions", () => {
+      const handleSelectFormat = jest.fn();
+      const handleToggleAnimation = jest.fn();
+
+      const { getByLabelText } = render(
+        <StructureControls
+          moleculeData={mockMoleculeData}
+          isAnimated={false}
+          structureFormat="3d"
+          onToggleAnimation={handleToggleAnimation}
+          onSelectFormat={handleSelectFormat}
+          styles={styles}
+          isLandscape={true}
+        />,
+      );
+
+      const button3D = getByLabelText("3D Structure");
+      const button2D = getByLabelText("2D Structure");
+      const buttonAnimate = getByLabelText("Toggle rotation animation");
+
+      expect(button3D.props.accessibilityState).toMatchObject({
+        selected: true,
+      });
+      expect(button2D.props.accessibilityState).toMatchObject({
+        selected: false,
+      });
+      expect(buttonAnimate.props.accessibilityState).toMatchObject({
+        selected: false,
+        checked: false,
+      });
+
+      fireEvent.press(button2D);
+      expect(handleSelectFormat).toHaveBeenCalledWith("2d");
+      expect(mockTriggerSelectionHaptic).toHaveBeenCalledTimes(1);
+
+      fireEvent.press(buttonAnimate);
+      expect(handleToggleAnimation).toHaveBeenCalledTimes(1);
+    });
+
+    it("shows alert when 2D is unavailable in landscape", () => {
+      const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => {});
+      const handleSelectFormat = jest.fn();
+
+      const moleculeWithout2D: MoleculeInfo = {
+        ...mockMoleculeData,
+        sdf2d: "",
+      };
+
+      const { getByLabelText } = render(
+        <StructureControls
+          moleculeData={moleculeWithout2D}
+          isAnimated={false}
+          structureFormat="3d"
+          onToggleAnimation={jest.fn()}
+          onSelectFormat={handleSelectFormat}
+          styles={styles}
+          isLandscape={true}
+        />,
+      );
+
+      const button2D = getByLabelText("2D Structure (Unavailable)");
+      fireEvent.press(button2D);
+      expect(alertSpy).toHaveBeenCalledWith(
+        "2D Structure Unavailable",
+        "No 2D structure data available for this compound.",
+      );
+      expect(handleSelectFormat).not.toHaveBeenCalled();
+
+      alertSpy.mockRestore();
+    });
+  });
 });

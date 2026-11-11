@@ -1,4 +1,4 @@
-import { COLORS } from "./colors";
+import { ATOM_MESH_COLORS, COLORS } from "./colors";
 import { THREE_DMOL_SCRIPT } from "./threeDmolScript";
 
 export const VIEWER_HTML = `
@@ -301,7 +301,7 @@ ${THREE_DMOL_SCRIPT}
         clearMeasurementVisuals(true);
         lastMeasurementCall = { mode: mode, atoms: atoms, label: label };
 
-        const atomColors = ['#06B6D4', '#10B981', '#F59E0B', '#F43F5E'];
+        const atomColors = ${JSON.stringify(ATOM_MESH_COLORS)};
 
         for (let i = 0; i < atoms.length; i++) {
           const atom = atoms[i];
@@ -535,6 +535,17 @@ ${THREE_DMOL_SCRIPT}
     window.addEventListener('focus', function() {
       if (isAnimating && !isUserDragging) {
         startAnimation();
+      }
+    });
+
+    window.addEventListener('resize', function() {
+      if (viewer) {
+        try {
+          viewer.resize();
+          viewer.render();
+        } catch (e) {
+          console.error('Resize error:', e);
+        }
       }
     });
 
