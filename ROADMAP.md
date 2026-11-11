@@ -5,7 +5,7 @@ This document captures Android-focused architectural patterns and feature bluepr
 1. **Expo Widgets (`expo-widgets`)** & **Jetpack Compose** for interactive home screen widgets.
 2. **Expo Notifications (`expo-notifications`)** for release alerts, molecule spotlights, and background task signals.
 3. **In-App Update & Changelog System** for surfacing release highlights directly inside the app.
-4. **Advanced 3D Scientific Tools**: Bond measurements, 3D printing STL export, and electrostatic surfaces.
+4. **Advanced 3D Scientific Tools**: Bond & angle measurements (✅ implemented, pending release), 3D printing STL export, and electrostatic surfaces.
 5. **Android-Native Integrations**: Launcher App Shortcuts, AR Scene Viewer, and Voice Search.
 6. **Chemistry Education & Discovery**: Interactive Periodic Table explorer and curated offline subject packs.
 
@@ -1360,23 +1360,31 @@ These features transform Moluxis from a 3D visualization viewer into an active s
 
 ---
 
-### 1. 📏 Interactive Atom Picking: Bond Length & Bond Angle Calculator
+### 1. 📏 Interactive Atom Picking: Bond Length, Angle & Dihedral Calculator ✅ Implemented
+
+> **Status:** Implemented in `8f19e6c`, `1b6eff3`, `c841626` (unreleased — kept in roadmap until cleared after the next release).
 
 - **Concept**: In 3Dmol.js, users can tap directly on atoms in the canvas to measure geometric properties:
-  - **Bond Length (2 atoms selected)**: Calculates Euclidean distance in Ångströms (e.g., $d(C-O) = 1.43\text{ Å}$). Renders a dashed measurement line and a floating label between the two atoms.
-  - **Bond Angle (3 atoms selected)**: Calculates the bond angle in degrees (e.g., $\angle(H-O-H) = 104.5^\circ$ for Water). Renders an arc overlay.
-  - **Dihedral / Torsion Angle (4 atoms selected)**: Calculates the dihedral torsion angle (critical for conformational analysis of proteins and organic molecules).
+  - **Bond Length (2 atoms selected)**: Calculates Euclidean distance in Ångströms (e.g., `d(C1 — O2) = 1.430 Å`). Renders color-coded wireframe spheres, a dashed 3D strut, and a floating 3D label at the midpoint.
+  - **Bond Angle (3 atoms selected)**: Calculates the bond angle in degrees (e.g., `∠(H1 — O2 — H3) = 104.50°`). Renders wireframe highlights, dashed struts, and a floating 3D label offset from the vertex atom.
+  - **Dihedral / Torsion Angle (4 atoms selected)**: Calculates the dihedral torsion angle `τ(A — B — C — D)` in `[-180, 180]` degrees with a floating 3D label at the central bond midpoint.
 - **Technical Implementation & WebView RPC Protocol**:
-  - In `viewerHtml.ts`, register a click listener on the active model when measurement mode is enabled:
+  - In `src/constants/viewerHtml.ts`, `setupAtomPicking()` registers a click listener when measurement mode is active:
     ```javascript
-    viewer.setClickable({}, true, function (atom, viewer, event, container) {
-      if (!isMeasurementMode) return;
+    viewer.setClickable({}, isMeasurementMode, function (atom) {
+      if (!isMeasurementMode || !atom) return;
       window.ReactNativeWebView.postMessage(
         JSON.stringify({
           type: "ATOM_PICKED",
           atom: {
-            serial: atom.serial,
-            elem: atom.elem,
+            serial:
+              atom.serial !== undefined
+                ? atom.serial
+                : atom.index !== undefined
+                  ? atom.index + 1
+                  : 1,
+            index: atom.index !== undefined ? atom.index : 0,
+            elem: atom.elem || "C",
             x: atom.x,
             y: atom.y,
             z: atom.z,
@@ -1385,13 +1393,15 @@ These features transform Moluxis from a 3D visualization viewer into an active s
       );
     });
     ```
-  - **React Native to WebView Messages**:
-    - `{ type: 'SET_MEASUREMENT_MODE', mode: 'distance' | 'angle' | 'dihedral' | 'none' }`
-    - `{ type: 'DRAW_MEASUREMENT_LINE', p1: {x, y, z}, p2: {x, y, z}, label: '1.43 Å' }`:
-      Invokes `viewer.addLine({ dashed: true, start: p1, end: p2, color: 'white' })` and `viewer.addLabel(label, { position: midpoint, fontSize: 12, backgroundColor: '#10B981' })`.
-    - `{ type: 'CLEAR_MEASUREMENTS' }`: Clears custom measurement shapes and labels from the scene.
-  - **State & Feedback**:
-    - Display the calculated measurement in a sleek floating bottom chip overlay in `MoleculeViewer.tsx` with haptic feedback (`Haptics.impactAsync(ImpactFeedbackStyle.Medium)`) on each atom selection, plus a "Clear" button.
+  - **React Native to WebView Messages** (via `MoleculeViewer.tsx` ref methods):
+    - `{ type: 'SET_MEASUREMENT_MODE', active: boolean, mode: 'distance' | 'angle' | 'dihedral' }`
+    - `{ type: 'DRAW_MEASUREMENTS', mode, atoms, label }`:
+      Calls `drawMeasurements()` to render color-coded wireframe atom spheres (`ATOM_MESH_COLORS`), dashed 3D struts (`viewer.addCylinder` with `dashed: true`, or `viewer.addLine` fallback), and a floating `viewer.addLabel(...)`.
+    - `{ type: 'CLEAR_MEASUREMENTS' }`: Clears `measurementShapes` and `measurementLabels` via `clearMeasurementVisuals()`.
+- **Calculations, State & UI**:
+  - `src/utils/geometry.ts`: `calculateDistance`, `calculateAngle`, `calculateDihedral`, `getRequiredAtomCount`, and `formatMeasurement`.
+  - `src/components/FloatingDock.tsx` provides the **Measure** toggle; `App.tsx` manages picked atom state, auto-switches 2D structures to 3D when available, handles Android hardware back press, and adapts viewport layout.
+  - `src/components/MeasurementPanel.tsx` renders mode tabs (`Length`, `Angle`, `Dihedral`), tappable atom selection pills, the live measurement result card, and **Clear** / close controls across portrait and landscape layouts, with `triggerMeasurementHaptic()` (`ImpactFeedbackStyle.Medium`) in `src/utils/haptics.ts`.
 
 ---
 
@@ -1559,9 +1569,11 @@ Transforming Moluxis into the ultimate educational and discovery platform for ch
 
 ---
 
-# 📋 Comprehensive Phased Implementation Checklist
+# 📋 Implementation Checklist
 
-### Phase 1: Home Screen Widgets (`expo-widgets`)
+> Features can be implemented in any order. Completed items remain checked here until cleared after a release.
+
+### Home Screen Widgets (`expo-widgets`)
 
 - [ ] Install `expo-widgets` and `@expo/ui`.
 - [ ] Configure `app.config.js` with `enableAndroid: true` and 4×2 grid size.
@@ -1569,7 +1581,7 @@ Transforming Moluxis into the ultimate educational and discovery platform for ch
 - [ ] Set up deep linking scheme (`moluxis://`) in `app.config.js` and link listeners in `App.tsx`.
 - [ ] Wire up `updateSnapshot` in `useMoleculeSearch` to sync active molecules to the widget.
 
-### Phase 2: Notifications & Update Alerts (`expo-notifications`)
+### Notifications & Update Alerts (`expo-notifications`)
 
 - [ ] Install `expo-notifications` and `expo-application`.
 - [ ] Configure notification icons and color in `app.config.js`.
@@ -1578,27 +1590,27 @@ Transforming Moluxis into the ultimate educational and discovery platform for ch
 - [ ] Implement `checkVersionAndTriggerNotice` in `src/services/updateNoticeService.ts`.
 - [ ] Schedule offline weekly Molecule Spotlight.
 
-### Phase 3: In-App Update & "What's New" Modals
+### In-App Update & "What's New" Modals
 
 - [ ] Create `src/components/UpdateAvailableModal.tsx` (Pre-update dialog with smart Play Store / GitHub APK buttons & 24h snooze).
 - [ ] Create `src/components/WhatsNewModal.tsx` (Post-update changelog dialog with categorized release highlights).
 - [ ] Hook `checkForAppUpdate` and `checkVersionAndTriggerNotice` on app startup in `App.tsx`.
 - [ ] Connect "Explore Features" button to navigate to featured showcase or newly added crystal dataset.
 
-### Phase 4: Native Android Quick Actions & App Shortcuts
+### Native Android Quick Actions & App Shortcuts
 
 - [ ] Install `expo-quick-actions`.
 - [ ] Register shortcuts: Search, Crystals, Bookmarks, Random Compound.
 - [ ] Handle quick action intents in `App.tsx`.
 
-### Phase 5: Scientific Tools (Measurements & Surfaces)
+### Scientific Tools (Measurements & Surfaces)
 
-- [ ] Enable atom picking in `viewerHtml.ts` for bond length (Å) and bond angle (°) calculation.
-- [ ] Add visual measurement banner with "Clear Selection" chip in `MoleculeViewer.tsx`.
+- [x] Enable atom picking in `src/constants/viewerHtml.ts` and geometric calculations in `src/utils/geometry.ts` for bond length (Å), bond angle (°), and dihedral/torsion angle (°).
+- [x] Add interactive measurement UI (`src/components/MeasurementPanel.tsx`, `src/components/FloatingDock.tsx` Measure toggle, 3D wireframe atom highlights/dashed struts/labels in `viewerHtml.ts`, and haptic feedback in `src/utils/haptics.ts`).
 - [ ] Add Electrostatic Potential (ESP) and Van der Waals surface options in style selector.
 - [ ] Implement STL 3D-printing mesh export in `ShareExportModal.tsx`.
 
-### Phase 6: Educational Expansions
+### Educational Expansions
 
 - [ ] Implement Interactive Periodic Table modal/drawer.
 - [ ] Link periodic elements to PubChem queries and crystal structures.
