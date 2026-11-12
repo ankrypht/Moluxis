@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.2.0](https://github.com/ankrypht/Moluxis/compare/v2.1.1...v2.2.0) (2026-11-11)
+
+
+### Features
+
+* add interactive atom picking and measurement calculator ([8f19e6c](https://github.com/ankrypht/Moluxis/commit/8f19e6c807374eb731350b99be083789acd8ba6b))
+* refine landscape layout, measurement UX, and fix state edge cases ([1b6eff3](https://github.com/ankrypht/Moluxis/commit/1b6eff380f926911a3dbb999f729085af6f122ba))
+
+
+### Bug Fixes
+
+* reset measurement panel size without setState in effect ([c841626](https://github.com/ankrypht/Moluxis/commit/c8416264f716837650038c7b452094df17162c67))
+
 ## [2.1.1](https://github.com/ankrypht/Moluxis/compare/v2.1.0...v2.1.1) (2026-10-11)
 
 
