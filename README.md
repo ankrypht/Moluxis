@@ -21,6 +21,7 @@
     <a href="https://play.google.com/store/apps/details?id=com.ankushsarkar.moluxis">
       <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="70" />
     </a>
+  </p>
 
   <a href="https://play.google.com/store/apps/details?id=com.ankushsarkar.moluxis">
     <img src="https://playbadges.pavi2410.com/badge/full?id=com.ankushsarkar.moluxis&country=in&theme=dark" alt="Google Play Store Details" />
