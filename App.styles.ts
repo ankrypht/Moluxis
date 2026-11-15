@@ -12,6 +12,9 @@ import { getHistoryBookmarksModalStyles } from "./src/components/HistoryBookmark
 import { getShareExportModalStyles } from "./src/components/ShareExportModal.styles";
 import { getCustomAlertStyles } from "./src/components/CustomAlert.styles";
 import { getMeasurementPanelStyles } from "./src/components/MeasurementPanel.styles";
+import { getUpdateAvailableModalStyles } from "./src/components/UpdateAvailableModal.styles";
+import { getWhatsNewModalStyles } from "./src/components/WhatsNewModal.styles";
+import { getDevTestModalStyles } from "./src/components/DevTestModal.styles";
 
 export const getStyles = (width: number, height: number, insets: Insets) => {
   const metrics = getScaleMetrics(width, height, insets);
@@ -36,6 +39,9 @@ export const getStyles = (width: number, height: number, insets: Insets) => {
     ...getShareExportModalStyles(metrics),
     ...getCustomAlertStyles(metrics),
     ...getMeasurementPanelStyles(metrics),
+    ...getUpdateAvailableModalStyles(metrics),
+    ...getWhatsNewModalStyles(metrics),
+    ...getDevTestModalStyles(metrics),
   };
 };
 

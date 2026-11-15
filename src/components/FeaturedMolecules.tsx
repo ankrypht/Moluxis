@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   View,
   Text,
@@ -25,6 +31,7 @@ import { triggerSelectionHaptic, triggerImpactLight } from "../utils/haptics";
 
 let savedShowcaseScrollOffset = 0;
 let savedFeaturedCategory: FeaturedCategoryKey = "biochemicals";
+const categoryListeners = new Set<(category: FeaturedCategoryKey) => void>();
 
 export const resetShowcaseScrollOffset = () => {
   savedShowcaseScrollOffset = 0;
@@ -36,6 +43,12 @@ export const getSavedShowcaseScrollOffset = () => {
 
 export const resetSavedFeaturedCategory = () => {
   savedFeaturedCategory = "biochemicals";
+  categoryListeners.forEach((listener) => listener("biochemicals"));
+};
+
+export const setSavedFeaturedCategory = (category: FeaturedCategoryKey) => {
+  savedFeaturedCategory = category;
+  categoryListeners.forEach((listener) => listener(category));
 };
 
 export const getSavedFeaturedCategory = () => {
@@ -77,6 +90,13 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
       useState<FeaturedCategoryKey>(
         () => initialCategory ?? savedFeaturedCategory,
       );
+
+    useEffect(() => {
+      categoryListeners.add(setSelectedCategory);
+      return () => {
+        categoryListeners.delete(setSelectedCategory);
+      };
+    }, []);
 
     const handleSelectCategory = useCallback(
       (category: FeaturedCategoryKey) => {

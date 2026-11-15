@@ -6,7 +6,6 @@ export const getHistoryBookmarksModalStyles = ({
   isLandscape,
   insets,
   scaleSize,
-  hScaleSize,
 }: ScaleMetrics) =>
   StyleSheet.create({
     backdrop: {

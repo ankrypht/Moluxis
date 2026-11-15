@@ -34,7 +34,87 @@ jest.mock("@react-native-async-storage/async-storage", () => ({
   getItem: jest.fn().mockResolvedValue(null),
   setItem: jest.fn().mockResolvedValue(undefined),
   removeItem: jest.fn().mockResolvedValue(undefined),
+  multiRemove: jest.fn().mockResolvedValue(undefined),
   clear: jest.fn().mockResolvedValue(undefined),
+}));
+
+const mockNotificationResponseListeners = new Set<(response: any) => void>();
+const mockLinkingListeners = new Set<(event: { url: string }) => void>();
+
+jest.mock("expo-notifications", () => ({
+  setNotificationHandler: jest.fn(),
+  setNotificationChannelAsync: jest.fn().mockResolvedValue(null),
+  getPermissionsAsync: jest.fn().mockResolvedValue({ status: "granted" }),
+  requestPermissionsAsync: jest.fn().mockResolvedValue({ status: "granted" }),
+  scheduleNotificationAsync: jest.fn().mockResolvedValue("mock-notif-id"),
+  cancelScheduledNotificationAsync: jest.fn().mockResolvedValue(undefined),
+  cancelAllScheduledNotificationsAsync: jest.fn().mockResolvedValue(undefined),
+  getAllScheduledNotificationsAsync: jest.fn().mockResolvedValue([]),
+  getLastNotificationResponseAsync: jest.fn().mockResolvedValue(null),
+  clearLastNotificationResponseAsync: jest.fn().mockResolvedValue(undefined),
+  addNotificationResponseReceivedListener: jest.fn((cb) => {
+    mockNotificationResponseListeners.add(cb);
+    return {
+      remove: jest.fn(() => {
+        mockNotificationResponseListeners.delete(cb);
+      }),
+    };
+  }),
+  AndroidImportance: {
+    LOW: 2,
+    DEFAULT: 3,
+    HIGH: 4,
+  },
+  SchedulableTriggerInputTypes: {
+    TIME_INTERVAL: "timeInterval",
+    WEEKLY: "weekly",
+    CALENDAR: "calendar",
+  },
+}));
+
+jest.mock("expo-application", () => ({
+  nativeApplicationVersion: "2.1.1",
+  getInstallReferrerAsync: jest
+    .fn()
+    .mockRejectedValue(
+      new Error("ERR_APPLICATION_INSTALL_REFERRER_UNAVAILABLE"),
+    ),
+}));
+
+jest.mock("expo-constants", () => ({
+  __esModule: true,
+  default: {
+    expoConfig: {
+      extra: {
+        isDevVariant: true,
+        disableUpdateCheck: true,
+      },
+    },
+  },
+}));
+
+jest.mock("expo-linking", () => ({
+  parse: jest.fn((url: string) => {
+    const cleaned = url.replace(/^moluxis:\/\//, "");
+    const [hostPart, queryPart] = cleaned.split("?");
+    const queryParams: Record<string, string> = {};
+    if (queryPart) {
+      queryPart.split("&").forEach((pair) => {
+        const [k, v] = pair.split("=");
+        if (k) queryParams[decodeURIComponent(k)] = decodeURIComponent(v || "");
+      });
+    }
+    return { hostname: hostPart, path: hostPart, queryParams };
+  }),
+  addEventListener: jest.fn((_event, cb) => {
+    mockLinkingListeners.add(cb);
+    return {
+      remove: jest.fn(() => {
+        mockLinkingListeners.delete(cb);
+      }),
+    };
+  }),
+  getInitialURL: jest.fn().mockResolvedValue(null),
 }));
 
 jest.mock("react-native-webview", () => {
@@ -935,5 +1015,79 @@ describe("Interactive Atom Picking and Measurement Mode", () => {
     expect(
       getByLabelText("2D Structure").props.accessibilityState.selected,
     ).toBe(true);
+  });
+});
+
+describe("Notifications, Deep Links & Dev Test Lab Integration", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockNotificationResponseListeners.clear();
+    mockLinkingListeners.clear();
+    mockMoleculeData = null;
+  });
+
+  it("handles moluxis://molecule deep link URLs", async () => {
+    render(<App />);
+
+    await waitFor(() => {
+      expect(mockLinkingListeners.size).toBeGreaterThan(0);
+    });
+
+    await act(async () => {
+      mockLinkingListeners.forEach((cb) =>
+        cb({ url: "moluxis://molecule?query=Benzene" }),
+      );
+    });
+
+    expect(mockSelectSuggestion).toHaveBeenCalledWith("Benzene");
+  });
+
+  it("opens Bookmarks modal when a bookmark retention notification is tapped", async () => {
+    const { getByTestId } = render(<App />);
+
+    await waitFor(() => {
+      expect(mockNotificationResponseListeners.size).toBeGreaterThan(0);
+    });
+
+    await act(async () => {
+      mockNotificationResponseListeners.forEach((cb) =>
+        cb({
+          notification: {
+            request: {
+              identifier: "notif-bookmarks-1",
+              content: {
+                data: {
+                  type: "OPEN_BOOKMARKS",
+                  url: "moluxis://bookmarks",
+                },
+              },
+            },
+          },
+        }),
+      );
+    });
+
+    await waitFor(() => {
+      expect(getByTestId("tab-toggle-bookmarks")).toBeTruthy();
+    });
+  });
+
+  it("opens Dev Notification & Update Lab by long-pressing the Moluxis header title", async () => {
+    const { getByTestId, queryByTestId } = render(<App />);
+
+    const titleBtn = getByTestId("header-moluxis-home-button");
+    await act(async () => {
+      fireEvent(titleBtn, "longPress");
+    });
+
+    await waitFor(() => {
+      expect(getByTestId("dev-test-modal")).toBeTruthy();
+    });
+
+    await act(async () => {
+      fireEvent.press(getByTestId("dev-test-close-button"));
+    });
+
+    expect(queryByTestId("dev-test-modal")).toBeNull();
   });
 });

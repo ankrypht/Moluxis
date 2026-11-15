@@ -1,0 +1,18 @@
+{
+  "version": "2.1.1",
+  "releaseDate": "October 2026",
+  "features": [
+    "Curated Featured Molecules showcase with persistent category filters",
+    "High-resolution 3D canvas snapshot export & compound sharing",
+    "Recent search history and offline-ready bookmarks"
+  ],
+  "improvements": [
+    "Bundled 3Dmol.js locally for instant offline 3D rendering",
+    "60 FPS throttled WebGL loop with automatic pause during input",
+    "Multi-tier in-memory and disk caching for compound lookups"
+  ],
+  "fixes": [
+    "Prevented redundant WebView re-initialization and duplicate dispatches",
+    "Fixed bookmark merging and search race conditions"
+  ]
+}

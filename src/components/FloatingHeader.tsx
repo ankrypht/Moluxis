@@ -45,6 +45,7 @@ export interface FloatingHeaderProps {
   onToggleBookmark?: () => void;
   onOpenHistory?: () => void;
   onOpenShare?: () => void;
+  onOpenDevTools?: () => void;
 }
 
 export const FloatingHeader: React.FC<FloatingHeaderProps> = React.memo(
@@ -73,6 +74,7 @@ export const FloatingHeader: React.FC<FloatingHeaderProps> = React.memo(
     onToggleBookmark,
     onOpenHistory,
     onOpenShare,
+    onOpenDevTools,
   }) => {
     const renderSuggestionItem = useCallback(
       ({ item }: { item: string }) => (
@@ -185,11 +187,21 @@ export const FloatingHeader: React.FC<FloatingHeaderProps> = React.memo(
               {!isLandscape && (
                 <View style={styles.titleRow}>
                   <TouchableOpacity
+                    testID="header-moluxis-home-button"
                     onPress={() => {
                       triggerImpactLight();
                       onClear?.();
                     }}
-                    disabled={!onClear}
+                    onLongPress={
+                      onOpenDevTools
+                        ? () => {
+                            triggerImpactLight();
+                            onOpenDevTools();
+                          }
+                        : undefined
+                    }
+                    delayLongPress={800}
+                    disabled={!onClear && !onOpenDevTools}
                     activeOpacity={0.7}
                     accessibilityRole="button"
                     accessibilityLabel="Moluxis Home"
@@ -262,6 +274,15 @@ export const FloatingHeader: React.FC<FloatingHeaderProps> = React.memo(
                     triggerSelectionHaptic();
                     onSearch();
                   }}
+                  onLongPress={
+                    isLandscape && onOpenDevTools
+                      ? () => {
+                          triggerImpactLight();
+                          onOpenDevTools();
+                        }
+                      : undefined
+                  }
+                  delayLongPress={1000}
                   disabled={isLoading}
                 >
                   {isLoading ? (

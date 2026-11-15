@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useRef,
-  useEffect,
-  useCallback,
-  useMemo,
-} from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import {
   View,
   type TextInputInstance,
@@ -40,6 +34,12 @@ import {
 import { triggerMeasurementHaptic } from "./src/utils/haptics";
 import { useMoleculeSearch } from "./src/hooks/useMoleculeSearch";
 import { useCompoundHistoryAndBookmarks } from "./src/hooks/useCompoundHistoryAndBookmarks";
+import {
+  IS_DEV_TEST_ENABLED,
+  useNotificationsAndUpdates,
+} from "./src/hooks/useNotificationsAndUpdates";
+import { FeaturedCategoryKey } from "./src/constants/featuredMolecules";
+import { setSavedFeaturedCategory } from "./src/components/FeaturedMolecules";
 import { getStyles } from "./App.styles";
 
 import {
@@ -56,6 +56,9 @@ import { ExitFullScreenButton } from "./src/components/ExitFullScreenButton";
 import { HistoryBookmarksModal } from "./src/components/HistoryBookmarksModal";
 import { ShareExportModal } from "./src/components/ShareExportModal";
 import { CustomAlertModal } from "./src/components/CustomAlert";
+import { UpdateAvailableModal } from "./src/components/UpdateAvailableModal";
+import { WhatsNewModal } from "./src/components/WhatsNewModal";
+import { DevTestModal } from "./src/components/DevTestModal";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -141,6 +144,7 @@ function MoleculeExplorer() {
     "history" | "bookmarks"
   >("history");
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showDevTestModal, setShowDevTestModal] = useState(false);
   const [snapshotUri, setSnapshotUri] = useState<string | null>(null);
   const [isCapturingSnapshot, setIsCapturingSnapshot] = useState(false);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
@@ -157,10 +161,6 @@ function MoleculeExplorer() {
       hideSub.remove();
     };
   }, []);
-
-  const isInteracting = Boolean(
-    isKeyboardVisible || showHistoryModal || showSuggestions || showShareModal,
-  );
 
   // Automatically record inspected compounds in search history
   const lastRecordedNameRef = useRef<string | null>(null);
@@ -448,6 +448,46 @@ function MoleculeExplorer() {
     handleCaptureSnapshot();
   }, [handleCaptureSnapshot]);
 
+  const handleOpenBookmarksFromLink = useCallback(() => {
+    handleOpenHistoryModal("bookmarks");
+  }, [handleOpenHistoryModal]);
+
+  const handleOpenCategoryFromLink = useCallback(
+    (category: FeaturedCategoryKey) => {
+      setSavedFeaturedCategory(category);
+      handleClearToShowcase();
+    },
+    [handleClearToShowcase],
+  );
+
+  const {
+    releaseInfo,
+    showUpdateModal,
+    dismissUpdateModal,
+    whatsNewNotes,
+    showWhatsNewModal,
+    dismissWhatsNewModal,
+    openPreviewUpdateModal,
+    openPreviewWhatsNewModal,
+    runLiveUpdateCheck,
+    refreshVersionNotice,
+  } = useNotificationsAndUpdates({
+    bookmarks,
+    onSelectMolecule: handleSelectSuggestion,
+    onOpenBookmarks: handleOpenBookmarksFromLink,
+    onOpenCategory: handleOpenCategoryFromLink,
+  });
+
+  const isInteracting = Boolean(
+    isKeyboardVisible ||
+    showHistoryModal ||
+    showSuggestions ||
+    showShareModal ||
+    showUpdateModal ||
+    showWhatsNewModal ||
+    showDevTestModal,
+  );
+
   const handleCloseShareModal = useCallback(() => {
     setShowShareModal(false);
   }, []);
@@ -630,6 +670,9 @@ function MoleculeExplorer() {
           onToggleBookmark={handleToggleCurrentBookmark}
           onOpenHistory={() => handleOpenHistoryModal("history")}
           onOpenShare={handleOpenShareModal}
+          onOpenDevTools={
+            IS_DEV_TEST_ENABLED ? () => setShowDevTestModal(true) : undefined
+          }
         />
       )}
 
@@ -759,6 +802,36 @@ function MoleculeExplorer() {
         isLandscape={isLandscape}
         height={height}
       />
+
+      {/* IN-APP UPDATE AVAILABLE MODAL */}
+      <UpdateAvailableModal
+        visible={showUpdateModal}
+        releaseInfo={releaseInfo}
+        onDismiss={dismissUpdateModal}
+        styles={styles}
+      />
+
+      {/* POST-UPDATE WHAT'S NEW MODAL */}
+      <WhatsNewModal
+        visible={showWhatsNewModal}
+        releaseNotes={whatsNewNotes}
+        onClose={dismissWhatsNewModal}
+        styles={styles}
+      />
+
+      {/* DEV-ONLY NOTIFICATIONS & UPDATES TEST LAB */}
+      {IS_DEV_TEST_ENABLED && (
+        <DevTestModal
+          visible={showDevTestModal}
+          onClose={() => setShowDevTestModal(false)}
+          styles={styles}
+          bookmarks={bookmarks}
+          onPreviewUpdateModal={openPreviewUpdateModal}
+          onPreviewWhatsNewModal={openPreviewWhatsNewModal}
+          onRunLiveUpdateCheck={runLiveUpdateCheck}
+          onRefreshVersionNotice={refreshVersionNotice}
+        />
+      )}
 
       {/* THEMED CUSTOM ALERT POPUP */}
       <CustomAlertModal

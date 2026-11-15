@@ -62,3 +62,14 @@ export interface MeasurementData {
   designation: string;
   atoms: PickedAtom[];
 }
+
+export interface SpotlightMolecule {
+  id: string;
+  name: string;
+  query: string;
+  formula: string;
+  formattedFormula: string;
+  tag: string;
+  description: string;
+  category: string;
+}

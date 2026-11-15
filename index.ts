@@ -1,6 +1,9 @@
 import { registerRootComponent } from "expo";
 import { Text, TextInput } from "react-native";
 
+// Register headless background tasks (Jetpack WorkManager on Android)
+import "./src/services/updates/backgroundUpdateTask";
+
 import App from "./App";
 
 // Disable font scaling globally in every text related thing
