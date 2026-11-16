@@ -95,10 +95,18 @@ export const getStructureControlsStyles = ({
       width: "auto",
       maxWidth: scaleSize(72),
     },
+    floatingLeftRailCompact: {
+      borderRadius: scaleSize(18),
+      padding: scaleSize(4),
+      maxWidth: scaleSize(62),
+    },
     leftRailColumn: {
       flexDirection: "column",
       alignItems: "center",
       gap: scaleSize(4),
+    },
+    leftRailColumnCompact: {
+      gap: scaleSize(3),
     },
     leftRailChip: {
       alignItems: "center",
@@ -107,6 +115,13 @@ export const getStructureControlsStyles = ({
       paddingHorizontal: scaleSize(6),
       borderRadius: scaleSize(16),
       minWidth: scaleSize(54),
+    },
+    leftRailChipCompact: {
+      paddingVertical: scaleSize(5),
+      paddingHorizontal: scaleSize(3),
+      borderRadius: scaleSize(12),
+      width: scaleSize(44),
+      minWidth: scaleSize(42),
     },
     leftRailChipActive: {
       backgroundColor: addOpacity(COLORS.primary, 0.15),
@@ -117,11 +132,17 @@ export const getStructureControlsStyles = ({
     leftRailIcon: {
       marginBottom: scaleSize(2),
     },
+    leftRailIconCompact: {
+      marginBottom: scaleSize(1),
+    },
     leftRailChipText: {
       fontSize: scaleSize(9.5),
       fontWeight: "700",
       color: COLORS.textSecondary,
       letterSpacing: 0.2,
+    },
+    leftRailChipTextCompact: {
+      fontSize: scaleSize(8.5),
     },
     leftRailChipTextActive: {
       color: COLORS.primary,

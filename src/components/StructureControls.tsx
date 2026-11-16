@@ -15,6 +15,8 @@ export interface StructureControlsProps {
   onSelectFormat: (format: "3d" | "2d") => void;
   styles: StructureControlsStyles;
   isLandscape?: boolean;
+  isCompact?: boolean;
+  showInfo?: boolean;
 }
 
 export const StructureControls: React.FC<StructureControlsProps> = React.memo(
@@ -26,7 +28,10 @@ export const StructureControls: React.FC<StructureControlsProps> = React.memo(
     onSelectFormat,
     styles,
     isLandscape = false,
+    isCompact: isCompactProp,
+    showInfo = false,
   }) => {
+    const isCompact = Boolean(isLandscape && (isCompactProp ?? showInfo));
     const has3d = Boolean(moleculeData.sdf3d || moleculeData.useCif);
     const has2d = Boolean(moleculeData.sdf2d);
 
@@ -65,11 +70,17 @@ export const StructureControls: React.FC<StructureControlsProps> = React.memo(
 
     if (isLandscape) {
       return (
-        <View style={styles.leftRailColumn}>
+        <View
+          style={[
+            styles.leftRailColumn,
+            isCompact && styles.leftRailColumnCompact,
+          ]}
+        >
           {/* 3D Structure Button */}
           <TouchableOpacity
             style={[
               styles.leftRailChip,
+              isCompact && styles.leftRailChipCompact,
               structureFormat === "3d" && styles.leftRailChipActive,
               !has3d && styles.leftRailChipDisabled,
             ]}
@@ -84,14 +95,19 @@ export const StructureControls: React.FC<StructureControlsProps> = React.memo(
             <Ionicons
               allowFontScaling={false}
               name={structureFormat === "3d" ? "cube" : "cube-outline"}
-              size={18}
+              size={isCompact ? 15 : 18}
               color={getFormatColor("3d")}
-              style={styles.leftRailIcon}
+              style={[
+                styles.leftRailIcon,
+                isCompact && styles.leftRailIconCompact,
+              ]}
             />
             <Text
               allowFontScaling={false}
+              numberOfLines={1}
               style={[
                 styles.leftRailChipText,
+                isCompact && styles.leftRailChipTextCompact,
                 structureFormat === "3d" && styles.leftRailChipTextActive,
                 !has3d && styles.leftRailChipTextDisabled,
               ]}
@@ -104,6 +120,7 @@ export const StructureControls: React.FC<StructureControlsProps> = React.memo(
           <TouchableOpacity
             style={[
               styles.leftRailChip,
+              isCompact && styles.leftRailChipCompact,
               structureFormat === "2d" && styles.leftRailChipActive,
               !has2d && styles.leftRailChipDisabled,
             ]}
@@ -118,14 +135,19 @@ export const StructureControls: React.FC<StructureControlsProps> = React.memo(
             <Ionicons
               allowFontScaling={false}
               name={structureFormat === "2d" ? "layers" : "layers-outline"}
-              size={18}
+              size={isCompact ? 15 : 18}
               color={getFormatColor("2d")}
-              style={styles.leftRailIcon}
+              style={[
+                styles.leftRailIcon,
+                isCompact && styles.leftRailIconCompact,
+              ]}
             />
             <Text
               allowFontScaling={false}
+              numberOfLines={1}
               style={[
                 styles.leftRailChipText,
+                isCompact && styles.leftRailChipTextCompact,
                 structureFormat === "2d" && styles.leftRailChipTextActive,
                 !has2d && styles.leftRailChipTextDisabled,
               ]}
@@ -138,6 +160,7 @@ export const StructureControls: React.FC<StructureControlsProps> = React.memo(
           <TouchableOpacity
             style={[
               styles.leftRailChip,
+              isCompact && styles.leftRailChipCompact,
               isAnimated && styles.leftRailChipActive,
             ]}
             onPress={handleToggleAnim}
@@ -152,15 +175,19 @@ export const StructureControls: React.FC<StructureControlsProps> = React.memo(
             <Ionicons
               allowFontScaling={false}
               name={isAnimated ? "sync" : "sync-outline"}
-              size={18}
+              size={isCompact ? 15 : 18}
               color={isAnimated ? COLORS.primary : COLORS.textSecondary}
-              style={styles.leftRailIcon}
+              style={[
+                styles.leftRailIcon,
+                isCompact && styles.leftRailIconCompact,
+              ]}
             />
             <Text
               allowFontScaling={false}
               numberOfLines={1}
               style={[
                 styles.leftRailChipText,
+                isCompact && styles.leftRailChipTextCompact,
                 isAnimated && styles.leftRailChipTextActive,
               ]}
             >

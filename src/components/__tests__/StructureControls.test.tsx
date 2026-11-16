@@ -249,5 +249,52 @@ describe("StructureControls Component", () => {
 
       alertSpy.mockRestore();
     });
+
+    it("renders properly in compact landscape mode when showInfo is true", () => {
+      const { getByLabelText } = render(
+        <StructureControls
+          moleculeData={mockMoleculeData}
+          isAnimated={false}
+          structureFormat="3d"
+          onToggleAnimation={jest.fn()}
+          onSelectFormat={jest.fn()}
+          styles={styles}
+          isLandscape={true}
+          showInfo={true}
+        />,
+      );
+
+      const button3D = getByLabelText("3D Structure");
+      const button2D = getByLabelText("2D Structure");
+      const buttonAnimate = getByLabelText("Toggle rotation animation");
+
+      expect(button3D).toBeTruthy();
+      expect(button2D).toBeTruthy();
+      expect(buttonAnimate).toBeTruthy();
+
+      expect(button3D.props.style).toMatchObject(styles.leftRailChipCompact);
+      expect(button2D.props.style).toMatchObject(styles.leftRailChipCompact);
+      expect(buttonAnimate.props.style).toMatchObject(
+        styles.leftRailChipCompact,
+      );
+    });
+
+    it("renders properly in compact landscape mode when isCompact is explicitly true", () => {
+      const { getByLabelText } = render(
+        <StructureControls
+          moleculeData={mockMoleculeData}
+          isAnimated={false}
+          structureFormat="3d"
+          onToggleAnimation={jest.fn()}
+          onSelectFormat={jest.fn()}
+          styles={styles}
+          isLandscape={true}
+          isCompact={true}
+        />,
+      );
+
+      const button3D = getByLabelText("3D Structure");
+      expect(button3D.props.style).toMatchObject(styles.leftRailChipCompact);
+    });
   });
 });

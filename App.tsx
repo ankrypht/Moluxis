@@ -686,7 +686,12 @@ function MoleculeExplorer() {
             style={styles.floatingLeftRailContainer}
             pointerEvents="box-none"
           >
-            <View style={styles.floatingLeftRail}>
+            <View
+              style={[
+                styles.floatingLeftRail,
+                (showInfo || showShareModal) && styles.floatingLeftRailCompact,
+              ]}
+            >
               <StructureControls
                 moleculeData={moleculeData}
                 isAnimated={isAnimated}
@@ -695,6 +700,8 @@ function MoleculeExplorer() {
                 onSelectFormat={handleSelectFormat}
                 styles={styles}
                 isLandscape={true}
+                showInfo={showInfo}
+                isCompact={Boolean(isLandscape && (showInfo || showShareModal))}
               />
             </View>
           </View>
