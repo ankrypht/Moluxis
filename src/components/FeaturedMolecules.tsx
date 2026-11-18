@@ -24,6 +24,12 @@ import {
 } from "../constants/featuredMolecules";
 import { FeaturedMoleculesStyles } from "./FeaturedMolecules.styles";
 import { COLORS, addOpacity } from "../constants/colors";
+import {
+  APP_AUTHOR,
+  GITHUB_REPO_URL,
+  getAppVersion,
+  openExternalUrl,
+} from "../constants/distributions";
 
 import { SavedCompoundItem } from "../types";
 import { ChemicalFormula } from "./ChemicalFormula";
@@ -64,6 +70,7 @@ export interface FeaturedMoleculesProps {
   history?: SavedCompoundItem[];
   bookmarks?: SavedCompoundItem[];
   onOpenHistory?: (initialTab?: "history" | "bookmarks") => void;
+  onOpenAbout?: () => void;
   initialCategory?: FeaturedCategoryKey;
   onCategoryChange?: (category: FeaturedCategoryKey) => void;
 }
@@ -78,9 +85,11 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
     history,
     bookmarks,
     onOpenHistory,
+    onOpenAbout,
     initialCategory,
     onCategoryChange,
   }) => {
+    const appVersion = getAppVersion();
     const { width, height } = useWindowDimensions();
     const isLandscape = width > height;
     const scrollViewRef = useRef<ScrollViewInstance>(null);
@@ -333,10 +342,98 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
           onContentSizeChange={handleContentSizeChange}
           contentContainerStyle={[
             styles.featuredScrollContent,
-            topOffset ? { paddingTop: topOffset + 14 } : null,
+            topOffset ? { paddingTop: topOffset } : null,
           ]}
           keyboardShouldPersistTaps="handled"
         >
+          {/* Compact Creator & Open Source Banner (immediately visible above the fold) */}
+          <View
+            style={styles.showcaseAboutBanner}
+            testID="showcase-about-banner"
+          >
+            <View style={styles.showcaseAboutInfoCol}>
+              <View style={styles.showcaseAboutCreditRow}>
+                <Text
+                  allowFontScaling={false}
+                  style={styles.showcaseAboutCreditText}
+                  numberOfLines={1}
+                >
+                  Made by{" "}
+                  <Text style={styles.showcaseAboutAuthorName}>
+                    {APP_AUTHOR}
+                  </Text>
+                </Text>
+                <Text
+                  allowFontScaling={false}
+                  style={styles.showcaseAboutVersionText}
+                >
+                  v{appVersion}
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                testID="showcase-github-button"
+                accessibilityRole="button"
+                accessibilityLabel="Open source on GitHub"
+                style={styles.showcaseGithubLink}
+                activeOpacity={0.7}
+                hitSlop={{ top: 6, bottom: 8, left: 4, right: 8 }}
+                onPress={() => {
+                  triggerSelectionHaptic();
+                  openExternalUrl(GITHUB_REPO_URL).catch(() => {});
+                }}
+              >
+                <Ionicons
+                  name="logo-github"
+                  size={12}
+                  color={COLORS.textSecondary}
+                />
+                <Text
+                  allowFontScaling={false}
+                  style={styles.showcaseGithubLinkText}
+                >
+                  Open source on GitHub
+                </Text>
+                <Ionicons
+                  name="open-outline"
+                  size={10}
+                  color={COLORS.textMuted}
+                />
+              </TouchableOpacity>
+            </View>
+
+            {onOpenAbout && (
+              <TouchableOpacity
+                testID="showcase-about-button"
+                accessibilityRole="button"
+                accessibilityLabel="About Moluxis"
+                style={styles.showcaseAboutPill}
+                activeOpacity={0.75}
+                onPress={() => {
+                  triggerImpactLight();
+                  onOpenAbout();
+                }}
+              >
+                <Ionicons
+                  name="information-circle-outline"
+                  size={15}
+                  color={COLORS.primary}
+                />
+                <Text
+                  allowFontScaling={false}
+                  style={styles.showcaseAboutPillText}
+                >
+                  About
+                </Text>
+                <Ionicons
+                  name="chevron-forward"
+                  size={12}
+                  color={COLORS.primary}
+                />
+              </TouchableOpacity>
+            )}
+          </View>
+
           {/* Jump Back In (Recent Searches & Favorites) */}
           {recentItems.length > 0 && (
             <View style={styles.jumpBackSection}>

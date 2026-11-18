@@ -1090,3 +1090,55 @@ describe("Notifications, Deep Links & Dev Test Lab Integration", () => {
     expect(queryByTestId("dev-test-modal")).toBeNull();
   });
 });
+
+describe("About Moluxis Modal & Top Showcase Banner", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.spyOn(Keyboard, "dismiss").mockImplementation(() => {});
+    mockMoleculeData = null;
+    resetShowcaseScrollOffset();
+    resetSavedFeaturedCategory();
+  });
+
+  it("shows top showcase banner without a redundant header info button and opens What's New from About", async () => {
+    const { getByTestId, queryByTestId } = render(<App />);
+
+    expect(getByTestId("showcase-about-banner")).toBeTruthy();
+    expect(queryByTestId("header-about-button")).toBeNull();
+
+    await act(async () => {
+      fireEvent.press(getByTestId("showcase-about-button"));
+    });
+
+    expect(getByTestId("about-modal")).toBeTruthy();
+
+    // Open What's New directly from About modal
+    await act(async () => {
+      fireEvent.press(getByTestId("about-whats-new-row"));
+    });
+
+    expect(queryByTestId("about-modal")).toBeNull();
+    expect(getByTestId("whats-new-modal")).toBeTruthy();
+
+    await act(async () => {
+      fireEvent.press(getByTestId("whats-new-dismiss-button"));
+    });
+    expect(queryByTestId("whats-new-modal")).toBeNull();
+  });
+
+  it("opens About modal from the top showcase banner and closes cleanly", async () => {
+    const { getByTestId, queryByTestId } = render(<App />);
+
+    await act(async () => {
+      fireEvent.press(getByTestId("showcase-about-button"));
+    });
+
+    expect(getByTestId("about-modal")).toBeTruthy();
+
+    await act(async () => {
+      fireEvent.press(getByTestId("close-about-modal"));
+    });
+
+    expect(queryByTestId("about-modal")).toBeNull();
+  });
+});

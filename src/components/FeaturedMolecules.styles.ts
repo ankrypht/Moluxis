@@ -7,8 +7,10 @@ export const getFeaturedMoleculesStyles = ({
   insets,
   scaleSize,
   hScaleSize,
-}: ScaleMetrics) =>
-  StyleSheet.create({
+}: ScaleMetrics) => {
+  const sectionGap = scaleSize(16);
+
+  return StyleSheet.create({
     featuredContainer: {
       flex: 1,
       width: "100%",
@@ -17,13 +19,13 @@ export const getFeaturedMoleculesStyles = ({
       width: "100%",
       paddingHorizontal: hScaleSize(16),
       paddingTop: isLandscape
-        ? Math.max(insets.top, scaleSize(10)) + scaleSize(86)
-        : insets.top + scaleSize(165),
+        ? Math.max(insets.top, scaleSize(10)) + scaleSize(70)
+        : insets.top + scaleSize(148),
       paddingBottom: Math.max(insets.bottom, scaleSize(16)) + scaleSize(24),
     },
     heroSection: {
       alignItems: "center",
-      marginBottom: scaleSize(16),
+      marginBottom: sectionGap,
       paddingHorizontal: hScaleSize(8),
       maxWidth: 720,
       width: "100%",
@@ -64,7 +66,7 @@ export const getFeaturedMoleculesStyles = ({
       lineHeight: scaleSize(18),
     },
     jumpBackSection: {
-      marginBottom: scaleSize(20),
+      marginBottom: sectionGap,
       maxWidth: 960,
       width: "100%",
       alignSelf: "center",
@@ -142,7 +144,7 @@ export const getFeaturedMoleculesStyles = ({
       color: COLORS.textSecondary,
     },
     tabBarContainer: {
-      marginBottom: scaleSize(16),
+      marginBottom: sectionGap,
       maxWidth: 960,
       width: "100%",
       alignSelf: "center",
@@ -321,7 +323,79 @@ export const getFeaturedMoleculesStyles = ({
       gap: hScaleSize(10),
       marginBottom: scaleSize(10),
     },
+    showcaseAboutBanner: {
+      marginTop: sectionGap,
+      marginBottom: sectionGap,
+      maxWidth: 960,
+      width: "100%",
+      alignSelf: "center",
+      backgroundColor: addOpacity(COLORS.surface, 0.72),
+      borderRadius: scaleSize(16),
+      borderWidth: 1,
+      borderColor: addOpacity(COLORS.border, 0.5),
+      paddingVertical: scaleSize(9),
+      paddingHorizontal: hScaleSize(12),
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: hScaleSize(10),
+    },
+    showcaseAboutInfoCol: {
+      flex: 1,
+      minWidth: 0,
+      justifyContent: "center",
+    },
+    showcaseAboutCreditRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      flexWrap: "wrap",
+      gap: hScaleSize(6),
+    },
+    showcaseAboutCreditText: {
+      fontSize: scaleSize(12.5),
+      color: COLORS.textSecondary,
+      fontWeight: "500",
+    },
+    showcaseAboutAuthorName: {
+      color: COLORS.textPrimary,
+      fontWeight: "800",
+    },
+    showcaseAboutVersionText: {
+      fontSize: scaleSize(10.5),
+      color: COLORS.textMuted,
+      fontWeight: "600",
+    },
+    showcaseGithubLink: {
+      flexDirection: "row",
+      alignItems: "center",
+      alignSelf: "flex-start",
+      marginTop: scaleSize(3),
+      gap: hScaleSize(4),
+    },
+    showcaseGithubLinkText: {
+      fontSize: scaleSize(11.5),
+      color: COLORS.textSecondary,
+      fontWeight: "600",
+    },
+    showcaseAboutPill: {
+      flexShrink: 0,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: hScaleSize(5),
+      backgroundColor: addOpacity(COLORS.primary, 0.14),
+      borderWidth: 1,
+      borderColor: addOpacity(COLORS.primary, 0.38),
+      borderRadius: scaleSize(12),
+      paddingHorizontal: hScaleSize(12),
+      paddingVertical: scaleSize(8),
+    },
+    showcaseAboutPillText: {
+      fontSize: scaleSize(12.5),
+      fontWeight: "700",
+      color: COLORS.primary,
+    },
   });
+};
 
 export type FeaturedMoleculesStyles = ReturnType<
   typeof getFeaturedMoleculesStyles

@@ -15,6 +15,7 @@ import { getMeasurementPanelStyles } from "./src/components/MeasurementPanel.sty
 import { getUpdateAvailableModalStyles } from "./src/components/UpdateAvailableModal.styles";
 import { getWhatsNewModalStyles } from "./src/components/WhatsNewModal.styles";
 import { getDevTestModalStyles } from "./src/components/DevTestModal.styles";
+import { getAboutModalStyles } from "./src/components/AboutModal.styles";
 
 export const getStyles = (width: number, height: number, insets: Insets) => {
   const metrics = getScaleMetrics(width, height, insets);
@@ -42,5 +43,6 @@ export const getStyles = (width: number, height: number, insets: Insets) => {
     ...getUpdateAvailableModalStyles(metrics),
     ...getWhatsNewModalStyles(metrics),
     ...getDevTestModalStyles(metrics),
+    ...getAboutModalStyles(metrics),
   };
 };

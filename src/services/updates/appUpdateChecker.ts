@@ -1,10 +1,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as Application from "expo-application";
 import Constants from "expo-constants";
-import pkg from "../../../package.json";
 import {
   AppReleaseInfo,
   GITHUB_REPO,
+  getAppVersion,
   openPlayStoreUpdate,
 } from "../../constants/distributions";
 import {
@@ -47,7 +46,7 @@ export function compareSemver(v1: string, v2: string): number {
 }
 
 export function getInstalledAppVersion(): string {
-  return Application.nativeApplicationVersion || pkg.version;
+  return getAppVersion();
 }
 
 export function isUpdateCheckDisabled(): boolean {

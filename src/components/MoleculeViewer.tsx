@@ -80,6 +80,7 @@ export interface MoleculeViewerProps {
   history?: SavedCompoundItem[];
   bookmarks?: SavedCompoundItem[];
   onOpenHistory?: (initialTab?: "history" | "bookmarks") => void;
+  onOpenAbout?: () => void;
   onSnapshotCaptured?: (dataUri: string | null) => void;
 }
 
@@ -106,6 +107,7 @@ export const MoleculeViewer = React.memo(
         history,
         bookmarks,
         onOpenHistory,
+        onOpenAbout,
         onSnapshotCaptured,
       },
       ref,
@@ -538,6 +540,7 @@ export const MoleculeViewer = React.memo(
               history={history}
               bookmarks={bookmarks}
               onOpenHistory={onOpenHistory}
+              onOpenAbout={onOpenAbout}
             />
           )}
         </View>

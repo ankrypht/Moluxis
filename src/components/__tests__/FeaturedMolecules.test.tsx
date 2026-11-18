@@ -1,4 +1,5 @@
 import { render, fireEvent, act } from "@testing-library/react-native";
+import { Linking } from "react-native";
 import {
   FeaturedMolecules,
   resetShowcaseScrollOffset,
@@ -8,6 +9,7 @@ import {
 } from "../FeaturedMolecules";
 import { getFeaturedMoleculesStyles } from "../FeaturedMolecules.styles";
 import { getScaleMetrics } from "../../utils/scaling";
+import { GITHUB_REPO_URL } from "../../constants/distributions";
 
 // Mock @expo/vector-icons
 jest.mock("@expo/vector-icons", () => {
@@ -337,5 +339,37 @@ describe("FeaturedMolecules Component", () => {
         "recent-chip-olderbookmark",
       ],
     );
+  });
+
+  it("renders top showcase banner with author credit, GitHub link, and About trigger", async () => {
+    const openSpy = jest
+      .spyOn(Linking, "openURL")
+      .mockResolvedValue(undefined as never);
+    const mockOpenAbout = jest.fn();
+
+    const { getByTestId, getByText } = render(
+      <FeaturedMolecules
+        onSelectMolecule={jest.fn()}
+        styles={styles}
+        onOpenAbout={mockOpenAbout}
+      />,
+    );
+
+    expect(getByTestId("showcase-about-banner")).toBeTruthy();
+    expect(getByText(/Ankush Sarkar/)).toBeTruthy();
+    expect(getByText("Open source on GitHub")).toBeTruthy();
+    expect(getByText("About")).toBeTruthy();
+
+    await act(async () => {
+      fireEvent.press(getByTestId("showcase-github-button"));
+    });
+    expect(openSpy).toHaveBeenCalledWith(GITHUB_REPO_URL);
+
+    await act(async () => {
+      fireEvent.press(getByTestId("showcase-about-button"));
+    });
+    expect(mockOpenAbout).toHaveBeenCalledTimes(1);
+
+    openSpy.mockRestore();
   });
 });

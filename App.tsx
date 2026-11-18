@@ -59,6 +59,8 @@ import { CustomAlertModal } from "./src/components/CustomAlert";
 import { UpdateAvailableModal } from "./src/components/UpdateAvailableModal";
 import { WhatsNewModal } from "./src/components/WhatsNewModal";
 import { DevTestModal } from "./src/components/DevTestModal";
+import { AboutModal } from "./src/components/AboutModal";
+import { CURRENT_RELEASE_NOTES } from "./src/services/updates/updateNoticeService";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -144,6 +146,7 @@ function MoleculeExplorer() {
     "history" | "bookmarks"
   >("history");
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showAboutModal, setShowAboutModal] = useState(false);
   const [showDevTestModal, setShowDevTestModal] = useState(false);
   const [snapshotUri, setSnapshotUri] = useState<string | null>(null);
   const [isCapturingSnapshot, setIsCapturingSnapshot] = useState(false);
@@ -351,6 +354,7 @@ function MoleculeExplorer() {
     setShowDisplayOptions(false);
     setShowHistoryModal(false);
     setShowShareModal(false);
+    setShowAboutModal(false);
     clearMolecule();
   }, [clearMolecule, handleCloseMeasure]);
 
@@ -373,12 +377,27 @@ function MoleculeExplorer() {
       setShowHistoryModal(true);
       setShowInfo(false);
       setShowDisplayOptions(false);
+      setShowAboutModal(false);
     },
     [],
   );
 
   const handleCloseHistoryModal = useCallback(() => {
     setShowHistoryModal(false);
+  }, []);
+
+  const handleOpenAboutModal = useCallback(() => {
+    searchInputRef.current?.blur();
+    Keyboard.dismiss();
+    setShowAboutModal(true);
+    setShowInfo(false);
+    setShowDisplayOptions(false);
+    setShowHistoryModal(false);
+    setShowShareModal(false);
+  }, []);
+
+  const handleCloseAboutModal = useCallback(() => {
+    setShowAboutModal(false);
   }, []);
 
   const handleToggleInfo = useCallback(() => {
@@ -445,6 +464,7 @@ function MoleculeExplorer() {
     setShowInfo(false);
     setShowDisplayOptions(false);
     setShowHistoryModal(false);
+    setShowAboutModal(false);
     handleCaptureSnapshot();
   }, [handleCaptureSnapshot]);
 
@@ -483,6 +503,7 @@ function MoleculeExplorer() {
     showHistoryModal ||
     showSuggestions ||
     showShareModal ||
+    showAboutModal ||
     showUpdateModal ||
     showWhatsNewModal ||
     showDevTestModal,
@@ -492,12 +513,17 @@ function MoleculeExplorer() {
     setShowShareModal(false);
   }, []);
 
+  const handleOpenWhatsNewFromAbout = useCallback(() => {
+    openPreviewWhatsNewModal(CURRENT_RELEASE_NOTES);
+  }, [openPreviewWhatsNewModal]);
+
   const handleEnterZenMode = useCallback(() => {
     setShowControls(false);
     setShowInfo(false);
     setShowDisplayOptions(false);
     setShowHistoryModal(false);
     setShowShareModal(false);
+    setShowAboutModal(false);
     handleCloseMeasure();
   }, [handleCloseMeasure]);
 
@@ -634,12 +660,11 @@ function MoleculeExplorer() {
         containerStyle={dynamicViewerContainerStyle}
         styles={styles}
         onSelectMolecule={handleSelectSuggestion}
-        topOffset={
-          headerHeight > 0 ? headerHeight + (isLandscape ? 18 : 16) : 0
-        }
+        topOffset={headerHeight > 0 ? headerHeight : 0}
         history={history}
         bookmarks={bookmarks}
         onOpenHistory={handleOpenHistoryModal}
+        onOpenAbout={handleOpenAboutModal}
         onSnapshotCaptured={handleSnapshotCaptured}
       />
 
@@ -805,6 +830,17 @@ function MoleculeExplorer() {
         snapshotUri={snapshotUri}
         isCapturingSnapshot={isCapturingSnapshot}
         onRefreshSnapshot={handleCaptureSnapshot}
+        styles={styles}
+        isLandscape={isLandscape}
+        height={height}
+      />
+
+      {/* ABOUT MOLUXIS MODAL */}
+      <AboutModal
+        visible={showAboutModal}
+        onClose={handleCloseAboutModal}
+        onOpenWhatsNew={handleOpenWhatsNewFromAbout}
+        onCheckForUpdates={runLiveUpdateCheck}
         styles={styles}
         isLandscape={isLandscape}
         height={height}
