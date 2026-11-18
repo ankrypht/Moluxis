@@ -86,6 +86,17 @@
         text-decoration: underline;
       }
 
+      code {
+        font-family:
+          ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+        font-size: 0.875em;
+        background-color: var(--surface-color);
+        padding: 0.15rem 0.375rem;
+        border-radius: 4px;
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+      }
+
       .dates {
         font-size: 0.9rem;
         color: var(--text-muted);
@@ -114,7 +125,7 @@
     <h1>Privacy Policy</h1>
     <div class="dates">
       <span>Effective Date: April 4, 2026</span> &bull;
-      <span>Last Updated: October 2026</span>
+      <span>Last Updated: November 2026</span>
     </div>
 
     <p>
@@ -134,7 +145,8 @@
     <ul>
       <li>
         Your device's Internet Protocol (IP) address (transmitted during network
-        requests to fetch chemical and crystal structure data).
+        requests to fetch chemical and crystal structure data, or when querying
+        public release metadata to check for application updates).
       </li>
       <li>The operating system and version used on your mobile device.</li>
       <li>
@@ -150,10 +162,48 @@
 
     <h2>Local Device Storage</h2>
     <p>
-      The Application stores user preferences, pinned molecule bookmarks, and
-      recent search history locally on your device storage. This data remains
-      strictly on your device and is never uploaded, synced, or transmitted to
-      any external server.
+      The Application stores user preferences, pinned molecule bookmarks, recent
+      search history, and local update/notification preferences (such as snooze
+      timestamps, last-notified update versions, and changelog display flags)
+      locally on your device storage. This data remains strictly on your device
+      and is never uploaded, synced, or transmitted to any external server.
+    </p>
+
+    <h2>Device Permissions and Notifications</h2>
+    <p>
+      On devices running Android 13 (API level 33) or higher, the Application
+      may request permission to post notifications
+      (<code>android.permission.POST_NOTIFICATIONS</code>). Notifications are
+      used solely for:
+    </p>
+    <ul>
+      <li>
+        Alerting you when a new app release or update is available on Google
+        Play.
+      </li>
+      <li>
+        Optional, locally scheduled weekly molecular discovery spotlights and
+        saved library reminders.
+      </li>
+    </ul>
+    <p>
+      All notifications are generated and scheduled
+      <strong>strictly locally</strong> on your device. The Application does not
+      use remote push notification services, does not collect or transmit device
+      push notification tokens (such as Firebase Cloud Messaging tokens), and
+      does not identify or track your device for message delivery. You can
+      grant, deny, or revoke this permission at any time in your device's system
+      settings without impacting core molecular visualization features.
+    </p>
+
+    <h2>Background Tasks and Update Checks</h2>
+    <p>
+      To ensure you have access to the latest features, improvements, and
+      security fixes, the Application registers a periodic background task (via
+      Android WorkManager) that checks for newer releases against public version
+      metadata on GitHub. This check only retrieves public release tags and
+      compares semantic versions locally. It does not transmit any personal
+      data, user identifiers, bookmarks, or browsing history.
     </p>
 
     <h2>Image Export and Sharing</h2>
@@ -168,9 +218,10 @@
     <h2>Third Party Access and APIs</h2>
     <p>
       Only aggregated, anonymized data is periodically transmitted to external
-      services to aid the Service Provider in improving the Application. The
-      Application utilizes third-party services that have their own Privacy
-      Policies. Below are the links to the providers used by the Application:
+      services to aid the Service Provider in improving the Application and
+      retrieving chemical structures. The Application utilizes third-party
+      services that have their own Privacy Policies. Below are the links to the
+      providers used by the Application:
     </p>
     <ul>
       <li>
@@ -188,6 +239,16 @@
           rel="noopener noreferrer"
           >Expo</a
         >
+      </li>
+      <li>
+        <a
+          href="https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement"
+          target="_blank"
+          rel="noopener noreferrer"
+          >GitHub (Microsoft)</a
+        >
+        (Used for querying public release information to check for application
+        updates in the foreground and periodic background checks)
       </li>
       <li>
         <a
@@ -215,10 +276,10 @@
       as long as you use the Application and for a reasonable time thereafter.
       Since the Application does not collect "User Provided" personal data (like
       names, emails, or accounts), there is no online personal profile data to
-      delete. All locally stored data (including pinned bookmarks, settings, and
-      search history) can be immediately cleared by clearing the Application's
-      storage or cache in your device settings, or by uninstalling the
-      Application.
+      delete. All locally stored data (including pinned bookmarks, settings,
+      notification preferences, and search history) can be immediately cleared
+      by clearing the Application's storage or cache in your device settings, or
+      by uninstalling the Application.
     </p>
 
     <h2>Children's Privacy</h2>

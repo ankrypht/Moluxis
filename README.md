@@ -15,6 +15,7 @@
     <a href="https://expo.dev"><img src="https://img.shields.io/badge/Expo-SDK%2058-000020?style=flat&logo=expo&logoColor=white" alt="Expo" /></a>
     <a href="https://reactnative.dev"><img src="https://img.shields.io/badge/React%20Native-0.88-61DAFB?style=flat&logo=react&logoColor=black" alt="React Native" /></a>
     <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-Strict-3178C6?style=flat&logo=typescript&logoColor=white" alt="TypeScript" /></a>
+    <a href="https://ankrypht.github.io/Moluxis/privacy.html"><img src="https://img.shields.io/badge/Privacy-Policy-blue?style=flat" alt="Privacy Policy" /></a>
   </p>
 
   <p>
@@ -57,6 +58,13 @@
   - **Dual Representation:** Seamlessly toggle between 3D molecular models and 2D chemical structural diagrams.
   - **Adaptive Layout:** Responsive split-screen view optimized for landscape orientation and tablets.
 
+- **🔬 Interactive Atom Picking & Measurement Calculator**
+  - **Direct 3D Picking:** Tap atoms on the 3D WebGL canvas with interactive wireframe highlighting and dashed 3D connection struts.
+  - **Bond Length (2 Atoms):** Calculates Euclidean distance in Ångströms (Å).
+  - **Bond Angle (3 Atoms):** Computes precise bond angles in degrees (°) at the vertex atom.
+  - **Dihedral / Torsion Angle (4 Atoms):** Measures 3D torsion angles between planes in degrees (°).
+  - **Measurement Panel:** Collapsible dock with atom slot chips, live geometric readouts, and tactile haptic feedback.
+
 - **💎 Crystal Lattices & Minerals**
   - Visualize 3D unit cells and crystal lattice geometries for inorganic minerals via COD.
 
@@ -87,6 +95,23 @@
   - Custom dark-themed glassmorphic alert popups replacing generic system alerts.
   - Edge-to-edge Android layout with transparent system navigation bar integration.
 
+- **🔔 In-App Updates & Periodic Background Check**
+  - **Automated Version Oracle:** Checks GitHub Releases for new semver releases and prompts users with direct Google Play Store redirection and a 24-hour snooze option.
+  - **Headless Android WorkManager Task:** Periodic 12-hour background worker (`moluxis-background-update-task`) to alert users when a newer release is ready.
+  - **Post-Upgrade "What's New":** Automatic changelog modal displaying highlights, improvements, and fixes on the first launch after updating.
+
+- **📢 Offline Discovery Notifications & Spotlights**
+  - **Weekly Molecule Spotlight:** Offline scheduled discovery notifications introducing curated chemical compounds every Saturday.
+  - **Library Retention Reminders:** Inactivity reminder to revisit saved molecule bookmarks.
+  - **Notification Channels:** Dedicated channels for `app_updates` and `discoveries` honoring Android 13+ `POST_NOTIFICATIONS` permissions.
+
+- **🧭 Hardware Back Navigation & Deep Linking**
+  - **Prioritized Back Stack:** Comprehensive Android hardware back-button handling: closes open modals ➔ clears measurement selections ➔ exits search suggestions ➔ exits full-screen Zen mode ➔ returns home ➔ double-back to exit prompt.
+  - **Unified Deep Linking (`moluxis://`):** Direct routing for molecules (`moluxis://molecule?query=...`), bookmarks (`moluxis://bookmarks`), category tabs (`moluxis://category?name=...`), and update dialogs (`moluxis://update`).
+
+- **ℹ️ About & Attribution Modal**
+  - Built-in About modal presenting developer attribution, version diagnostics, official data source citations, GitHub links, feedback mailto, and quick access to the Privacy Policy.
+
 - **⚡ Engineered for Speed & Stability**
   - **React Native New Architecture:** Fully leveraging Bridgeless mode and TurboModules in React Native 0.88 for low latency and high runtime responsiveness.
   - **Smooth 60 FPS WebGL Loop:** Throttled requestAnimationFrame engine with automatic WebGL activity pausing during text input or modal inspection to eliminate ANRs and save battery.
@@ -104,6 +129,9 @@
 | **3D Engine**         | [3Dmol.js](https://3Dmol.csb.pitt.edu/) via `react-native-webview` (v14)                                                                                               |
 | **Data Sources**      | [PubChem PUG REST API](https://pubchem.ncbi.nlm.nih.gov/docs/pug-rest), [Crystallography Open Database (COD)](https://www.crystallography.net/)                        |
 | **Storage & Caching** | AsyncStorage, FileSystem, Multi-tier LRU Memory & Disk Cache                                                                                                           |
+| **Background Tasks**  | [Android WorkManager](https://developer.android.com/topic/libraries/architecture/workmanager) via `expo-background-task`, `expo-task-manager`                          |
+| **Notifications**     | [Expo Notifications](https://docs.expo.dev/versions/latest/sdk/notifications/) (Local channels & triggers)                                                             |
+| **Deep Linking**      | [Expo Linking](https://docs.expo.dev/versions/latest/sdk/linking/) (`moluxis://`)                                                                                      |
 | **Sensory & Haptics** | [Expo Haptics](https://docs.expo.dev/versions/latest/sdk/haptics/)                                                                                                     |
 | **Export & Sharing**  | [Expo Sharing](https://docs.expo.dev/versions/latest/sdk/sharing/), [Expo FileSystem](https://docs.expo.dev/versions/latest/sdk/filesystem/)                           |
 | **UI & Systems**      | Expo Navigation Bar, Expo System UI, Custom Glassmorphic Modal Alerts                                                                                                  |
@@ -151,6 +179,19 @@
    npm run lint
    npm run doctor
    ```
+
+---
+
+## 🔒 Privacy & Data Safety
+
+Moluxis is built with privacy by design:
+
+- **Zero Tracking & Telemetry:** No user accounts, personal data harvesting, advertising IDs, or third-party analytics trackers.
+- **Strictly Local Notifications:** All scheduled discovery spotlights and update alerts are generated entirely on your device — no remote push servers, push tokens (e.g. FCM), or device identifiers are collected.
+- **Local Device Storage:** Pinned bookmarks, search history, and update preferences are stored exclusively on your device via AsyncStorage.
+- **Encrypted Requests:** All chemical data and version queries are fetched over HTTPS (PubChem, COD, and GitHub).
+
+For full details, read the [Moluxis Privacy Policy](https://ankrypht.github.io/Moluxis/privacy.html) (or view [`docs/privacy.html`](docs/privacy.html)).
 
 ---
 
