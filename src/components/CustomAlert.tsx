@@ -28,7 +28,6 @@ export interface CustomAlertButton {
   text?: string;
   onPress?: () => void;
   style?: AlertButtonStyle;
-  isPreferred?: boolean;
 }
 
 export type CustomAlertType =
@@ -100,15 +99,6 @@ class CustomAlertManagerClass {
 
 export const customAlertManager = new CustomAlertManagerClass();
 
-export const customAlert = (
-  title: string,
-  message?: string,
-  buttons?: CustomAlertButton[],
-  options?: CustomAlertOptions,
-): void => {
-  customAlertManager.alert(title, message, buttons, options);
-};
-
 export const Alert = {
   alert: (
     title: string,
@@ -122,8 +112,6 @@ export const Alert = {
     customAlertManager.dismiss();
   },
 };
-
-export const CustomAlert = Alert;
 
 interface ResolvedTheme {
   iconName: keyof typeof Ionicons.glyphMap;
@@ -234,7 +222,6 @@ const DEFAULT_INSETS: Insets = { top: 0, bottom: 0, left: 0, right: 0 };
 
 export interface CustomAlertModalProps {
   styles?: Partial<CustomAlertStyles>;
-  isLandscape?: boolean;
   insets?: Insets;
 }
 
@@ -363,7 +350,6 @@ export const CustomAlertModal: React.FC<CustomAlertModalProps> = React.memo(
         () => {
           if (alertData.options?.cancelable !== false) {
             handleBackdropPress();
-            return true;
           }
           return true;
         },
@@ -460,14 +446,11 @@ export const CustomAlertModal: React.FC<CustomAlertModalProps> = React.memo(
             {buttons.map((btn, index) => {
               const isCancel = btn.style === "cancel";
               const isDestructive = btn.style === "destructive";
-              const isSingle = buttons.length === 1;
 
               const buttonStyle = [
-                isSingle
-                  ? styles.alertButtonFullWidth
-                  : shouldUseRowLayout
-                    ? styles.alertButton
-                    : styles.alertButtonFullWidth,
+                shouldUseRowLayout
+                  ? styles.alertButton
+                  : styles.alertButtonFullWidth,
                 isDestructive
                   ? styles.alertButtonDestructive
                   : isCancel

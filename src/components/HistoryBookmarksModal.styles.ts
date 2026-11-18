@@ -40,7 +40,6 @@ export const getHistoryBookmarksModalStyles = ({
       right: 0,
       left: "48%", // Take right 52% in landscape
       width: "52%",
-      borderTopLeftRadius: scaleSize(28),
       borderBottomLeftRadius: scaleSize(28),
       borderTopRightRadius: 0,
       borderBottomRightRadius: 0,

@@ -169,10 +169,7 @@ export const FloatingDock: React.FC<FloatingDockProps> = React.memo(
                   allowFontScaling={false}
                   style={[
                     styles.displayOptionsItemText,
-                    showLabels && [
-                      styles.displayOptionsItemTextActive,
-                      { color: COLORS.textPrimary },
-                    ],
+                    showLabels && styles.displayOptionsItemTextActive,
                   ]}
                 >
                   Atom Labels
@@ -275,10 +272,7 @@ export const FloatingDock: React.FC<FloatingDockProps> = React.memo(
                             styles.displayOptionsItemText,
                             isLandscape &&
                               styles.displayOptionsItemTextLandscape,
-                            isActive && [
-                              styles.displayOptionsItemTextActive,
-                              { color: COLORS.textPrimary },
-                            ],
+                            isActive && styles.displayOptionsItemTextActive,
                           ]}
                         >
                           {label}

@@ -1,4 +1,3 @@
-import React from "react";
 import { StyleSheet } from "react-native";
 import { render, fireEvent } from "@testing-library/react-native";
 import { MeasurementPanel } from "../MeasurementPanel";

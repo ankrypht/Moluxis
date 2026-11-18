@@ -404,7 +404,7 @@ export const DevTestModal: React.FC<DevTestModalProps> = React.memo(
                 style={styles.devActionBtn}
                 onPress={() =>
                   runAction("Sent Play Store update notification", () =>
-                    triggerDevUpdateNotification().then(() => {}),
+                    triggerDevUpdateNotification(),
                   )
                 }
               >

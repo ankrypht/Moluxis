@@ -1,4 +1,3 @@
-import React from "react";
 import { render, fireEvent, act } from "@testing-library/react-native";
 import { ShareExportModal } from "../ShareExportModal";
 import { getShareExportModalStyles } from "../ShareExportModal.styles";

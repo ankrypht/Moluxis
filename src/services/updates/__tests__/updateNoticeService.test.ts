@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
+  CURRENT_RELEASE_NOTES,
   LAST_SEEN_VERSION_KEY,
-  LATEST_RELEASE_NOTES,
   checkVersionAndTriggerNotice,
   markCurrentVersionSeen,
   validateReleaseNotes,
@@ -24,7 +24,7 @@ describe("updateNoticeService", () => {
 
   describe("validateReleaseNotes", () => {
     it("validates the bundled release notes against 2.1.1", () => {
-      const result = validateReleaseNotes(LATEST_RELEASE_NOTES, "2.1.1");
+      const result = validateReleaseNotes(CURRENT_RELEASE_NOTES, "2.1.1");
       expect(result.valid).toBe(true);
       expect(result.error).toBeUndefined();
     });

@@ -1,8 +1,5 @@
 import { PixelRatio } from "react-native";
-
-// Reference dimensions from Samsung S24
-const REFERENCE_WIDTH = 360;
-const REFERENCE_HEIGHT = 736;
+import { REFERENCE_HEIGHT, REFERENCE_WIDTH } from "./scaling";
 
 /**
  * Dynamic scaling that responds to window dimension changes.

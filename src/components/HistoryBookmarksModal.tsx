@@ -277,7 +277,7 @@ export const HistoryBookmarksModal: React.FC<HistoryBookmarksModalProps> =
       return (
         <Animated.View
           style={[styles.backdrop, { opacity: fadeAnim }]}
-          pointerEvents={visible ? "auto" : "none"}
+          pointerEvents="auto"
         >
           <Pressable style={{ flex: 1 }} onPress={onClose} />
 

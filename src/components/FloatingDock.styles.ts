@@ -158,8 +158,6 @@ export const getFloatingDockStyles = ({
     },
     displayOptionsItemLeftLandscape: {
       gap: scaleSize(6),
-      flex: 1,
-      minWidth: 0,
     },
     displayOptionsIconBadge: {
       width: scaleSize(26),
@@ -181,7 +179,6 @@ export const getFloatingDockStyles = ({
     },
     displayOptionsItemTextLandscape: {
       fontSize: scaleSize(11.5),
-      flexShrink: 1,
     },
     checkmarkLandscape: {
       marginLeft: scaleSize(3),
@@ -223,8 +220,6 @@ export const getFloatingDockStyles = ({
       gap: isLandscape ? scaleSize(6) : 0,
     },
     dockRowCompact: {
-      width: isLandscape ? "auto" : "100%",
-      paddingHorizontal: isLandscape ? 0 : scaleSize(4),
       paddingVertical: isLandscape ? scaleSize(2) : 0,
       gap: isLandscape ? scaleSize(4) : 0,
     },
@@ -234,7 +229,7 @@ export const getFloatingDockStyles = ({
     },
     dockChip: {
       paddingHorizontal: isLandscape ? scaleSize(4) : scaleSize(8),
-      paddingVertical: isLandscape ? scaleSize(7) : scaleSize(7),
+      paddingVertical: scaleSize(7),
       borderRadius: isLandscape ? scaleSize(14) : scaleSize(24),
       backgroundColor: "transparent",
       borderWidth: 1,

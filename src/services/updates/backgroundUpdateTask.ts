@@ -19,13 +19,6 @@ export const BACKGROUND_UPDATE_TASK_NAME = "moluxis-background-update-task";
  */
 export const BACKGROUND_UPDATE_INTERVAL_MINUTES = 12 * 60; // 12 hours
 
-export interface BackgroundTaskExecutionResult {
-  result: BackgroundTask.BackgroundTaskResult;
-  notified: boolean;
-  version?: string;
-  error?: string;
-}
-
 /**
  * Task executor called periodically by Android WorkManager / iOS BGTaskScheduler.
  * Runs silently in the background:

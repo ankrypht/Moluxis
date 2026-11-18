@@ -1,10 +1,8 @@
-import React from "react";
 import { render, fireEvent, act } from "@testing-library/react-native";
 import { BackHandler } from "react-native";
 import {
   CustomAlertModal,
   Alert,
-  customAlert,
   customAlertManager,
   resolveAlertTheme,
 } from "../CustomAlert";
@@ -145,7 +143,7 @@ describe("CustomAlert Component & Service", () => {
       const { getByTestId, getByText } = render(<CustomAlertModal />);
 
       act(() => {
-        customAlert("Clear Search History?", "Remove all records?", [
+        Alert.alert("Clear Search History?", "Remove all records?", [
           { text: "Cancel", style: "cancel", onPress: onCancelMock },
           { text: "Clear All", style: "destructive", onPress: onClearMock },
         ]);

@@ -44,5 +44,3 @@ export const getStyles = (width: number, height: number, insets: Insets) => {
     ...getDevTestModalStyles(metrics),
   };
 };
-
-export type AppStyles = ReturnType<typeof getStyles>;

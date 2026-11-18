@@ -13,8 +13,6 @@ const SCOPE = "https://www.googleapis.com/auth/playdeveloperreporting";
 const GOOGLE_THRESHOLDS = {
   anrRate: 0.0047, // 0.47% bad behavior threshold
   crashRate: 0.0109, // 1.09% bad behavior threshold
-  slowRenderingRate: 0.08, // 8% slow rendering threshold
-  slowStartRate: 0.05, // 5% slow startup threshold
 };
 
 function findKeyFile() {

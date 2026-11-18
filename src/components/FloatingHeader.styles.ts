@@ -45,7 +45,6 @@ export const getFloatingHeaderStyles = ({
       paddingHorizontal: scaleSize(5),
       borderRadius: scaleSize(18),
       maxWidth: scaleSize(440),
-      alignSelf: "center",
       width: "88%",
     },
     titleRow: {

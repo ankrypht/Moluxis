@@ -59,7 +59,6 @@ export const ShareExportModal: React.FC<ShareExportModalProps> = React.memo(
     const sheetHeight = isLandscape ? height : Math.round(height * 0.75);
     const slideDistance = isLandscape ? windowWidth : sheetHeight;
     const slideAnim = useAnimatedValue(slideDistance);
-    const fadeAnim = useAnimatedValue(0);
 
     const [isSharingImage, setIsSharingImage] = useState(false);
     const [pendingShareSnapshot, setPendingShareSnapshot] = useState(false);
@@ -68,22 +67,15 @@ export const ShareExportModal: React.FC<ShareExportModalProps> = React.memo(
     useEffect(() => {
       if (visible) {
         setPendingShareSnapshot(false);
-        Animated.parallel([
-          Animated.timing(fadeAnim, {
-            toValue: 1,
-            duration: 200,
-            useNativeDriver: true,
-          }),
-          Animated.spring(slideAnim, {
-            toValue: 0,
-            useNativeDriver: true,
-            friction: 9,
-            tension: 65,
-            overshootClamping: true,
-          }),
-        ]).start();
+        Animated.spring(slideAnim, {
+          toValue: 0,
+          useNativeDriver: true,
+          friction: 9,
+          tension: 65,
+          overshootClamping: true,
+        }).start();
       }
-    }, [visible, slideAnim, fadeAnim]);
+    }, [visible, slideAnim]);
 
     // Auto-request snapshot if not yet captured when modal is visible
     useEffect(() => {
@@ -164,7 +156,7 @@ export const ShareExportModal: React.FC<ShareExportModalProps> = React.memo(
             styles.shareModalContainer,
             isLandscape && styles.shareModalContainerLandscape,
             {
-              height: isLandscape ? height : sheetHeight,
+              height: sheetHeight,
               transform: isLandscape
                 ? [{ translateX: slideAnim }]
                 : [{ translateY: slideAnim }],

@@ -1,4 +1,3 @@
-import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
 import { Alert } from "../CustomAlert";
 import { HistoryBookmarksModal } from "../HistoryBookmarksModal";

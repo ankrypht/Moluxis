@@ -7,11 +7,6 @@ import { COLORS } from "../../constants/colors";
 import { SavedCompoundItem } from "../../types";
 import { formatSubscriptFormula } from "../../utils/formula";
 
-export {
-  SPOTLIGHT_MOLECULES,
-  type SpotlightMolecule,
-} from "../../constants/spotlightMolecules";
-
 export const NOTIFICATION_CHANNEL_IDS = {
   APP_UPDATES: "app_updates",
   DISCOVERIES: "discoveries",

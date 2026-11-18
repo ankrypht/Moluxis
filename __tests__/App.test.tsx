@@ -1,4 +1,3 @@
-import React from "react";
 import { render, fireEvent, waitFor, act } from "@testing-library/react-native";
 import { Keyboard, BackHandler } from "react-native";
 import * as SplashScreen from "expo-splash-screen";

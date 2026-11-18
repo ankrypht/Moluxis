@@ -28,10 +28,7 @@ export const getMoleculeInfoSheetStyles = ({
     },
     bottomSheetLandscape: {
       top: 0,
-      bottom: 0,
-      right: 0,
       left: "55%", // Take up right 45%
-      borderTopLeftRadius: scaleSize(32),
       borderBottomLeftRadius: scaleSize(32),
       borderTopRightRadius: 0,
       borderBottomRightRadius: 0,
@@ -100,7 +97,7 @@ export const getMoleculeInfoSheetStyles = ({
     },
     statCard: {
       flex: 1,
-      backgroundColor: COLORS.surfaceElevated,
+      backgroundColor: addOpacity(COLORS.surfaceElevated, 0.95),
       borderRadius: scaleSize(16),
       padding: scaleSize(14),
       borderWidth: 1,
@@ -112,19 +109,15 @@ export const getMoleculeInfoSheetStyles = ({
     },
     statCardFormula: {
       borderColor: addOpacity(COLORS.emerald, 0.35),
-      backgroundColor: addOpacity(COLORS.surfaceElevated, 0.95),
     },
     statCardWeight: {
       borderColor: addOpacity(COLORS.cyan, 0.35),
-      backgroundColor: addOpacity(COLORS.surfaceElevated, 0.95),
     },
     statCardIupac: {
       borderColor: addOpacity(COLORS.purple, 0.35),
-      backgroundColor: addOpacity(COLORS.surfaceElevated, 0.95),
     },
     statCardCommon: {
       borderColor: addOpacity(COLORS.amber, 0.35),
-      backgroundColor: addOpacity(COLORS.surfaceElevated, 0.95),
     },
     statCardHeader: {
       flexDirection: "row",
@@ -245,7 +238,6 @@ export const getMoleculeInfoSheetStyles = ({
     },
     linkIcon: {
       fontSize: scaleSize(18),
-      color: COLORS.primary,
     },
   });
 

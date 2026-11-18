@@ -1,4 +1,3 @@
-import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
 import { FloatingDock } from "../FloatingDock";
 import { getFloatingDockStyles } from "../FloatingDock.styles";

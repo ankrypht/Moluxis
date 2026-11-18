@@ -129,7 +129,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surfaceElevated,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: COLORS.border,
     overflow: "hidden",
   },
   sectionHeader: {

@@ -16,7 +16,6 @@ export const COLORS = {
   cyan: "#06B6D4",
   blue: "#3B82F6",
   purple: "#8B5CF6",
-  violet: "#A855F7",
   rose: "#F43F5E",
   amber: "#F59E0B",
 };

@@ -1,4 +1,3 @@
-import React from "react";
 import { render, fireEvent, act } from "@testing-library/react-native";
 import { getScaleMetrics } from "../../utils/scaling";
 import { AppReleaseInfo } from "../../constants/distributions";

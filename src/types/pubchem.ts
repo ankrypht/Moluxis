@@ -88,8 +88,6 @@ export interface PubChemInformationResponse {
   InformationList?: PubChemInformationList;
 }
 
-export type PubChemSynonymResponse = PubChemInformationResponse;
-
 // Autocomplete response
 
 export interface PubChemAutocompleteResponse {

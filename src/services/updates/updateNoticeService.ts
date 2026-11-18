@@ -69,8 +69,6 @@ export function validateReleaseNotes(
 export const CURRENT_RELEASE_NOTES: ReleaseHighlight =
   releaseNotesData as ReleaseHighlight;
 
-export const LATEST_RELEASE_NOTES: ReleaseHighlight = CURRENT_RELEASE_NOTES;
-
 export interface VersionNoticeCheckResult {
   shouldShowModal: boolean;
   releaseNotes: ReleaseHighlight;

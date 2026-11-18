@@ -167,7 +167,6 @@ export const getFeaturedMoleculesStyles = ({
       gap: hScaleSize(6),
     },
     categoryTabActive: {
-      borderWidth: 1,
       shadowColor: COLORS.shadow,
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.25,

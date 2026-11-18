@@ -701,7 +701,7 @@ function MoleculeExplorer() {
                 styles={styles}
                 isLandscape={true}
                 showInfo={showInfo}
-                isCompact={Boolean(isLandscape && (showInfo || showShareModal))}
+                isCompact={showInfo || showShareModal}
               />
             </View>
           </View>
@@ -841,11 +841,7 @@ function MoleculeExplorer() {
       )}
 
       {/* THEMED CUSTOM ALERT POPUP */}
-      <CustomAlertModal
-        styles={styles}
-        isLandscape={isLandscape}
-        insets={insets}
-      />
+      <CustomAlertModal styles={styles} insets={insets} />
     </View>
   );
 }

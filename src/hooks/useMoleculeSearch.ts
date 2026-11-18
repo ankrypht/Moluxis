@@ -25,8 +25,6 @@ export const clearMoleculeCache = () => {
   moleculeCache.clear();
 };
 
-export const getMoleculeCacheSize = () => moleculeCache.size;
-
 const cacheMoleculeInRam = (term: string, molecule: MoleculeInfo) => {
   while (moleculeCache.size >= MAX_MOLECULE_CACHE_SIZE) {
     const oldestKey = moleculeCache.keys().next().value;

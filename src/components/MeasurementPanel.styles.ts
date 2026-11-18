@@ -239,7 +239,7 @@ export const getMeasurementPanelStyles = ({
       alignItems: "center",
       justifyContent: "flex-end",
       gap: hScaleSize(10),
-      marginTop: isLandscape ? scaleSize(6) : scaleSize(6),
+      marginTop: scaleSize(6),
     },
     measurementClearButton: {
       flexDirection: "row",

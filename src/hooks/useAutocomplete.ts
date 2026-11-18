@@ -9,8 +9,6 @@ export const clearSuggestionCache = () => {
   suggestionCache.clear();
 };
 
-export const getSuggestionCacheSize = () => suggestionCache.size;
-
 export const useAutocomplete = () => {
   const [searchText, setSearchText] = useState("");
   const [suggestions, setSuggestions] = useState<string[]>([]);

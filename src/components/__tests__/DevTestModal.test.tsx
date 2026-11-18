@@ -1,4 +1,3 @@
-import React from "react";
 import { render, fireEvent, act, waitFor } from "@testing-library/react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";

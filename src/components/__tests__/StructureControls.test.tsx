@@ -1,4 +1,3 @@
-import React from "react";
 import { Alert } from "../CustomAlert";
 import { render, fireEvent } from "@testing-library/react-native";
 import { StructureControls } from "../StructureControls";
