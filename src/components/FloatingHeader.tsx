@@ -9,6 +9,7 @@ import {
   FlatList,
   StyleProp,
   ViewStyle,
+  useWindowDimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -83,9 +84,12 @@ export const FloatingHeader: React.FC<FloatingHeaderProps> = React.memo(
       [onSelectSuggestion],
     );
 
+    const { width, height } = useWindowDimensions();
+    const isTablet = Math.min(width, height) >= 600;
+
     const isSuggestionsDropdownVisible =
       showSuggestions && suggestions.length > 0;
-    const actionIconSize = isLandscape ? 18 : 20;
+    const actionIconSize = isLandscape && !isTablet ? 18 : 20;
     const actionButtonStyle = isLandscape
       ? [styles.headerIconButton, styles.headerIconButtonLandscape]
       : styles.headerIconButton;
@@ -309,6 +313,7 @@ export const FloatingHeader: React.FC<FloatingHeaderProps> = React.memo(
               !isLoading &&
               !isSuggestionsDropdownVisible && (
                 <View
+                  testID="floating-header-controls-row"
                   style={styles.controlsRow}
                   pointerEvents={showInfo ? "none" : "auto"}
                 >

@@ -264,9 +264,9 @@ function MoleculeExplorer() {
   ]);
   const dynamicHeaderContainerStyle = useMemo<ViewStyle>(
     () => ({
-      right: isLandscape ? (showInfo ? "45%" : insets.right) : 0,
+      right: isLandscape ? (showInfo ? "45%" : 0) : 0,
     }),
-    [isLandscape, showInfo, insets.right],
+    [isLandscape, showInfo],
   );
   const dynamicDockContainerStyle = useMemo<ViewStyle>(
     () => ({

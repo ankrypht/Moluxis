@@ -1,13 +1,25 @@
 import { StyleSheet } from "react-native";
 import { COLORS, addOpacity } from "../constants/colors";
-import { ScaleMetrics } from "../utils/scaling";
+import {
+  ScaleMetrics,
+  REFERENCE_WIDTH,
+  REFERENCE_HEIGHT,
+} from "../utils/scaling";
 
 export const getStructureControlsStyles = ({
   insets,
   scaleSize,
   hScaleSize,
-}: ScaleMetrics) =>
-  StyleSheet.create({
+  width,
+  height,
+  isLandscape,
+}: ScaleMetrics) => {
+  const safeWidth = width ?? (isLandscape ? REFERENCE_HEIGHT : REFERENCE_WIDTH);
+  const safeHeight = height ?? (isLandscape ? REFERENCE_WIDTH : REFERENCE_HEIGHT);
+  const isTablet = Math.min(safeWidth, safeHeight) >= 600;
+  const isTabletPortrait = !isLandscape && isTablet;
+
+  return StyleSheet.create({
     toggleContainer: {
       flexDirection: "row",
       alignItems: "center",
@@ -19,6 +31,8 @@ export const getStructureControlsStyles = ({
       borderWidth: 1,
       borderColor: addOpacity(COLORS.border, 0.7),
       gap: hScaleSize(6),
+      minHeight: scaleSize(36),
+      justifyContent: "center",
     },
     toggleContainerActive: {
       borderColor: addOpacity(COLORS.primary, 0.45),
@@ -27,6 +41,10 @@ export const getStructureControlsStyles = ({
     badgeContainer: {
       flexDirection: "row",
       gap: hScaleSize(8),
+      alignItems: "center",
+    },
+    controlsDivider: {
+      display: "none",
     },
     toggleText: {
       fontSize: scaleSize(13),
@@ -44,6 +62,7 @@ export const getStructureControlsStyles = ({
       borderWidth: 1,
       borderColor: addOpacity(COLORS.border, 0.7),
       justifyContent: "center",
+      minHeight: scaleSize(36),
     },
     badgeActive: {
       backgroundColor: addOpacity(COLORS.primary, 0.2),
@@ -151,6 +170,7 @@ export const getStructureControlsStyles = ({
       color: COLORS.textMuted,
     },
   });
+};
 
 export type StructureControlsStyles = ReturnType<
   typeof getStructureControlsStyles

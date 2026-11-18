@@ -296,4 +296,68 @@ describe("StructureControls Component", () => {
       expect(button3D.props.style).toMatchObject(styles.leftRailChipCompact);
     });
   });
+
+  describe("Tablet Portrait Structure Controls", () => {
+    const tabletMetrics = getScaleMetrics(768, 1024, {
+      top: 24,
+      right: 0,
+      bottom: 24,
+      left: 0,
+    });
+    const tabletStyles = getStructureControlsStyles(tabletMetrics);
+
+    it("renders tablet portrait controls without divider and with balanced touch targets", () => {
+      const { getByTestId, getByLabelText } = render(
+        <StructureControls
+          moleculeData={mockMoleculeData}
+          isAnimated={false}
+          structureFormat="3d"
+          onToggleAnimation={jest.fn()}
+          onSelectFormat={jest.fn()}
+          styles={tabletStyles}
+        />,
+      );
+
+      const divider = getByTestId("structure-controls-divider", {
+        includeHiddenElements: true,
+      });
+      expect(divider.props.style).toMatchObject({
+        display: "none",
+      });
+
+      const toggle = getByTestId("structure-animate-toggle");
+      expect(toggle.props.style).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            minHeight: expect.any(Number),
+          }),
+        ]),
+      );
+
+      const button2D = getByLabelText("2D Structure");
+      const button3D = getByLabelText("3D Structure");
+      expect(button2D).toBeTruthy();
+      expect(button3D).toBeTruthy();
+    });
+
+    it("hides divider on phone portrait to preserve classic mobile layout", () => {
+      const { getByTestId } = render(
+        <StructureControls
+          moleculeData={mockMoleculeData}
+          isAnimated={false}
+          structureFormat="3d"
+          onToggleAnimation={jest.fn()}
+          onSelectFormat={jest.fn()}
+          styles={styles}
+        />,
+      );
+
+      const divider = getByTestId("structure-controls-divider", {
+        includeHiddenElements: true,
+      });
+      expect(divider.props.style).toMatchObject({
+        display: "none",
+      });
+    });
+  });
 });

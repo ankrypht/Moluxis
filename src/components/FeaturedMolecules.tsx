@@ -92,6 +92,7 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
     const appVersion = getAppVersion();
     const { width, height } = useWindowDimensions();
     const isLandscape = width > height;
+    const isPhoneLandscape = isLandscape && height < 600;
     const scrollViewRef = useRef<ScrollViewInstance>(null);
     const hasRestoredScrollRef = useRef(false);
 
@@ -223,14 +224,14 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
               >
                 <Ionicons
                   name={molecule.iconName}
-                  size={18}
+                  size={isPhoneLandscape ? 15 : 18}
                   color={molecule.color}
                 />
               </View>
               <View style={styles.spinBadge}>
                 <Ionicons
                   name="cube-outline"
-                  size={11}
+                  size={isPhoneLandscape ? 9 : 11}
                   color={COLORS.primary}
                 />
                 <Text allowFontScaling={false} style={styles.spinBadgeText}>
@@ -269,14 +270,14 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
               </Text>
               <Ionicons
                 name="arrow-forward-circle-outline"
-                size={14}
+                size={isPhoneLandscape ? 12 : 14}
                 color={COLORS.primary}
               />
             </View>
           </TouchableOpacity>
         );
       },
-      [styles, onSelectMolecule],
+      [styles, onSelectMolecule, isPhoneLandscape],
     );
 
     const renderCategorySection = useCallback(
@@ -302,7 +303,11 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
                     { backgroundColor: addOpacity(color, 0.15) },
                   ]}
                 >
-                  <Ionicons name={icon} size={15} color={color} />
+                  <Ionicons
+                    name={icon}
+                    size={isPhoneLandscape ? 13 : 15}
+                    color={color}
+                  />
                 </View>
                 <Text allowFontScaling={false} style={styles.categoryTitle}>
                   {title}
@@ -323,7 +328,7 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
           </View>
         );
       },
-      [isLandscape, width, styles, renderCard],
+      [isLandscape, width, isPhoneLandscape, styles, renderCard],
     );
 
     return (
@@ -385,7 +390,7 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
               >
                 <Ionicons
                   name="logo-github"
-                  size={12}
+                  size={isPhoneLandscape ? 11 : 12}
                   color={COLORS.textSecondary}
                 />
                 <Text
@@ -396,7 +401,7 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
                 </Text>
                 <Ionicons
                   name="open-outline"
-                  size={10}
+                  size={isPhoneLandscape ? 9 : 10}
                   color={COLORS.textMuted}
                 />
               </TouchableOpacity>
@@ -416,7 +421,7 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
               >
                 <Ionicons
                   name="information-circle-outline"
-                  size={15}
+                  size={isPhoneLandscape ? 13 : 15}
                   color={COLORS.primary}
                 />
                 <Text
@@ -427,7 +432,7 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
                 </Text>
                 <Ionicons
                   name="chevron-forward"
-                  size={12}
+                  size={isPhoneLandscape ? 10 : 12}
                   color={COLORS.primary}
                 />
               </TouchableOpacity>
@@ -441,7 +446,7 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
                 <View style={styles.jumpBackHeaderLeft}>
                   <Ionicons
                     name="time-outline"
-                    size={17}
+                    size={isPhoneLandscape ? 14 : 17}
                     color={COLORS.primary}
                   />
                   <Text allowFontScaling={false} style={styles.jumpBackTitle}>
@@ -467,7 +472,7 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
                     </Text>
                     <Ionicons
                       name="chevron-forward"
-                      size={12}
+                      size={isPhoneLandscape ? 10 : 12}
                       color={COLORS.primary}
                     />
                   </TouchableOpacity>
@@ -505,7 +510,7 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
                       >
                         <Ionicons
                           name={isFav ? "bookmark" : "time-outline"}
-                          size={14}
+                          size={isPhoneLandscape ? 12 : 14}
                           color={isFav ? COLORS.warning : COLORS.primary}
                         />
                       </View>
@@ -534,7 +539,11 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
           {/* Hero Section */}
           <View style={styles.heroSection}>
             <View style={styles.heroBadge}>
-              <Ionicons name="sparkles" size={13} color={COLORS.primary} />
+              <Ionicons
+                name="sparkles"
+                size={isPhoneLandscape ? 11 : 13}
+                color={COLORS.primary}
+              />
               <Text allowFontScaling={false} style={styles.heroBadgeText}>
                 Curated Showcase
               </Text>
@@ -589,7 +598,7 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
                     >
                       <Ionicons
                         name={category.icon}
-                        size={12}
+                        size={isPhoneLandscape ? 10 : 12}
                         color={isActive ? category.color : COLORS.textMuted}
                       />
                     </View>

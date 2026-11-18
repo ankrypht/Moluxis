@@ -372,4 +372,69 @@ describe("FeaturedMolecules Component", () => {
 
     openSpy.mockRestore();
   });
+
+  describe("Responsive Layout & Proportions across Breakpoints", () => {
+    it("pads away from camera notch and cutout on mobile landscape", () => {
+      const cutoutInsets = { top: 0, bottom: 21, left: 48, right: 34 };
+      const landscapeMetrics = getScaleMetrics(736, 360, cutoutInsets);
+      const landscapeStyles = getFeaturedMoleculesStyles(landscapeMetrics);
+
+      // Verify padding on both left and right sides respects camera cutouts
+      expect(landscapeStyles.featuredScrollContent.paddingLeft).toBeGreaterThanOrEqual(48);
+      expect(landscapeStyles.featuredScrollContent.paddingRight).toBeGreaterThanOrEqual(34);
+    });
+
+    it("applies balanced compact proportions on mobile landscape phones", () => {
+      const cutoutInsets = { top: 0, bottom: 21, left: 44, right: 44 };
+      const phoneLandscapeMetrics = getScaleMetrics(736, 360, cutoutInsets);
+      const phoneLandscapeStyles = getFeaturedMoleculesStyles(phoneLandscapeMetrics);
+
+      // Container maxWidth aligned to 520
+      expect(phoneLandscapeStyles.heroSection.maxWidth).toBe(520);
+      expect(phoneLandscapeStyles.jumpBackSection.maxWidth).toBe(520);
+      expect(phoneLandscapeStyles.tabBarContainer.maxWidth).toBe(520);
+      expect(phoneLandscapeStyles.categorySection.maxWidth).toBe(520);
+      expect(phoneLandscapeStyles.showcaseAboutBanner.maxWidth).toBe(520);
+
+      // Balanced compact density and typography so search bar isn't overpowered
+      expect(phoneLandscapeStyles.heroTitle.fontSize).toBeLessThan(20);
+      expect(phoneLandscapeStyles.heroSection.marginBottom).toBeLessThanOrEqual(12);
+      expect(phoneLandscapeStyles.showcaseAboutBanner.paddingVertical).toBeLessThanOrEqual(6);
+      expect(phoneLandscapeStyles.jumpBackSection.padding).toBeLessThanOrEqual(10);
+      expect(phoneLandscapeStyles.card.padding).toBeLessThanOrEqual(10);
+    });
+
+    it("aligns container maxWidth to 680 on tablet portrait", () => {
+      const tabletPortraitMetrics = getScaleMetrics(768, 1024, dummyInsets);
+      const tabletPortraitStyles = getFeaturedMoleculesStyles(tabletPortraitMetrics);
+
+      expect(tabletPortraitStyles.heroSection.maxWidth).toBe(680);
+      expect(tabletPortraitStyles.jumpBackSection.maxWidth).toBe(680);
+      expect(tabletPortraitStyles.tabBarContainer.maxWidth).toBe(680);
+      expect(tabletPortraitStyles.categorySection.maxWidth).toBe(680);
+      expect(tabletPortraitStyles.showcaseAboutBanner.maxWidth).toBe(680);
+    });
+
+    it("aligns container maxWidth to 860 on tablet landscape", () => {
+      const tabletLandscapeMetrics = getScaleMetrics(1024, 768, dummyInsets);
+      const tabletLandscapeStyles = getFeaturedMoleculesStyles(tabletLandscapeMetrics);
+
+      expect(tabletLandscapeStyles.heroSection.maxWidth).toBe(860);
+      expect(tabletLandscapeStyles.jumpBackSection.maxWidth).toBe(860);
+      expect(tabletLandscapeStyles.tabBarContainer.maxWidth).toBe(860);
+      expect(tabletLandscapeStyles.categorySection.maxWidth).toBe(860);
+      expect(tabletLandscapeStyles.showcaseAboutBanner.maxWidth).toBe(860);
+    });
+
+    it("preserves mobile portrait maxWidth 500 and comfortable spacing", () => {
+      const mobilePortraitMetrics = getScaleMetrics(360, 736, dummyInsets);
+      const mobilePortraitStyles = getFeaturedMoleculesStyles(mobilePortraitMetrics);
+
+      expect(mobilePortraitStyles.heroSection.maxWidth).toBe(500);
+      expect(mobilePortraitStyles.jumpBackSection.maxWidth).toBe(500);
+      expect(mobilePortraitStyles.tabBarContainer.maxWidth).toBe(500);
+      expect(mobilePortraitStyles.categorySection.maxWidth).toBe(500);
+      expect(mobilePortraitStyles.showcaseAboutBanner.maxWidth).toBe(500);
+    });
+  });
 });

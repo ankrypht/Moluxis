@@ -201,6 +201,7 @@ export const StructureControls: React.FC<StructureControlsProps> = React.memo(
     return (
       <>
         <View
+          testID="structure-animate-toggle"
           style={[
             styles.toggleContainer,
             isAnimated && styles.toggleContainerActive,
@@ -235,7 +236,13 @@ export const StructureControls: React.FC<StructureControlsProps> = React.memo(
             accessibilityState={{ checked: isAnimated }}
           />
         </View>
-        <View style={styles.badgeContainer}>
+        <View
+          testID="structure-controls-divider"
+          style={styles.controlsDivider}
+          accessible={false}
+          importantForAccessibility="no"
+        />
+        <View testID="structure-format-badges" style={styles.badgeContainer}>
           <TouchableOpacity
             style={[
               styles.badge,

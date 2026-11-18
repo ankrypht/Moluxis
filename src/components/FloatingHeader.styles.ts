@@ -1,24 +1,50 @@
 import { StyleSheet } from "react-native";
 import { COLORS, addOpacity } from "../constants/colors";
-import { ScaleMetrics } from "../utils/scaling";
+import {
+  ScaleMetrics,
+  REFERENCE_WIDTH,
+  REFERENCE_HEIGHT,
+} from "../utils/scaling";
 
 export const getFloatingHeaderStyles = ({
   isLandscape,
   insets,
   scaleSize,
   hScaleSize,
-}: ScaleMetrics) =>
-  StyleSheet.create({
+  width,
+  height,
+}: ScaleMetrics) => {
+  const safeWidth = width ?? (isLandscape ? REFERENCE_HEIGHT : REFERENCE_WIDTH);
+  const safeHeight = height ?? (isLandscape ? REFERENCE_WIDTH : REFERENCE_HEIGHT);
+  const isTablet = Math.min(safeWidth, safeHeight) >= 600;
+  const isTabletPortrait = !isLandscape && isTablet;
+  const isTabletLandscape = isLandscape && isTablet;
+
+  // Unified container maxWidths across breakpoints:
+  // - Phone Portrait (!isLandscape && width < 600): maxWidth: 500
+  // - Tablet Portrait (!isLandscape && width >= 600): maxWidth: 680
+  // - Phone Landscape (isLandscape && height < 600): maxWidth: 520
+  // - Tablet Landscape (isLandscape && height >= 600): maxWidth: 860
+  const headerMaxWidth = isLandscape
+    ? isTabletLandscape
+      ? 860
+      : 520
+    : isTabletPortrait
+      ? 680
+      : 500;
+
+  return StyleSheet.create({
     floatingHeaderContainer: {
       position: "absolute",
       top: 0,
-      left: isLandscape ? insets.left : 0,
-      right: isLandscape ? insets.right : 0,
+      left: 0,
+      right: 0,
       bottom: 0,
       zIndex: 100,
     },
     header: {
-      paddingHorizontal: hScaleSize(16),
+      paddingLeft: Math.max(insets.left, hScaleSize(16)),
+      paddingRight: Math.max(insets.right, hScaleSize(16)),
       paddingTop: isLandscape
         ? Math.max(insets.top, scaleSize(8))
         : insets.top + scaleSize(8),
@@ -36,16 +62,17 @@ export const getFloatingHeaderStyles = ({
       shadowRadius: 16,
       elevation: 10,
       zIndex: 100,
-      maxWidth: 500,
+      maxWidth: headerMaxWidth,
       alignSelf: "center",
       width: "100%",
     },
     headerIslandLandscape: {
-      paddingVertical: scaleSize(5),
-      paddingHorizontal: scaleSize(5),
-      borderRadius: scaleSize(18),
-      maxWidth: scaleSize(440),
-      width: "88%",
+      paddingVertical: isTabletLandscape ? scaleSize(8) : scaleSize(5),
+      paddingHorizontal: isTabletLandscape ? scaleSize(10) : scaleSize(5),
+      borderRadius: isTabletLandscape ? scaleSize(20) : scaleSize(18),
+      maxWidth: headerMaxWidth,
+      width: "100%",
+      alignSelf: "center",
     },
     titleRow: {
       flexDirection: "row",
@@ -79,9 +106,9 @@ export const getFloatingHeaderStyles = ({
       borderColor: addOpacity(COLORS.warning, 0.5),
     },
     headerIconButtonLandscape: {
-      width: scaleSize(38),
-      height: scaleSize(38),
-      borderRadius: scaleSize(13),
+      width: isTabletLandscape ? scaleSize(44) : scaleSize(38),
+      height: isTabletLandscape ? scaleSize(44) : scaleSize(38),
+      borderRadius: isTabletLandscape ? scaleSize(14) : scaleSize(13),
     },
     searchRow: {
       flexDirection: "row",
@@ -89,7 +116,7 @@ export const getFloatingHeaderStyles = ({
       alignItems: "center",
     },
     searchRowLandscape: {
-      gap: hScaleSize(8),
+      gap: isTabletLandscape ? scaleSize(10) : hScaleSize(8),
     },
     inputWrapper: {
       flex: 1,
@@ -111,8 +138,8 @@ export const getFloatingHeaderStyles = ({
       paddingRight: scaleSize(40),
     },
     inputLandscape: {
-      paddingVertical: scaleSize(8),
-      fontSize: scaleSize(13),
+      paddingVertical: isTabletLandscape ? scaleSize(10) : scaleSize(8),
+      fontSize: isTabletLandscape ? scaleSize(14) : scaleSize(13),
     },
     clearButton: {
       position: "absolute",
@@ -140,15 +167,15 @@ export const getFloatingHeaderStyles = ({
       elevation: 0,
     },
     buttonLandscape: {
-      width: scaleSize(38),
-      height: scaleSize(38),
-      borderRadius: scaleSize(13),
+      width: isTabletLandscape ? scaleSize(44) : scaleSize(38),
+      height: isTabletLandscape ? scaleSize(44) : scaleSize(38),
+      borderRadius: isTabletLandscape ? scaleSize(14) : scaleSize(13),
     },
     suggestionsContainer: {
       marginTop: scaleSize(6),
       alignSelf: "center",
       width: "100%",
-      maxWidth: 500,
+      maxWidth: headerMaxWidth,
       backgroundColor: COLORS.surface,
       borderRadius: scaleSize(16),
       elevation: 10,
@@ -162,10 +189,11 @@ export const getFloatingHeaderStyles = ({
       overflow: "hidden",
     },
     suggestionsContainerLandscape: {
-      width: "88%",
-      maxWidth: scaleSize(440),
+      width: "100%",
+      maxWidth: headerMaxWidth,
       marginTop: scaleSize(4),
       borderRadius: scaleSize(14),
+      alignSelf: "center",
     },
     suggestionsList: {
       maxHeight: isLandscape ? scaleSize(130) : scaleSize(180),
@@ -174,13 +202,20 @@ export const getFloatingHeaderStyles = ({
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      paddingHorizontal: hScaleSize(16),
+      paddingLeft: Math.max(insets.left, hScaleSize(16)),
+      paddingRight: Math.max(insets.right, hScaleSize(16)),
       marginTop: scaleSize(12),
       zIndex: 50,
-      maxWidth: 500,
+      maxWidth: headerMaxWidth,
       width: "100%",
       alignSelf: "center",
+      backgroundColor: "transparent",
+      borderWidth: 0,
+      borderRadius: 0,
+      elevation: 0,
+      shadowOpacity: 0,
     },
   });
+};
 
 export type FloatingHeaderStyles = ReturnType<typeof getFloatingHeaderStyles>;
