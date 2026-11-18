@@ -18,10 +18,10 @@ export const getFeaturedMoleculesStyles = ({
   const containerMaxWidth = isTabletLandscape
     ? 860
     : isTabletPortrait
-    ? 680
-    : isPhoneLandscape
-    ? 520
-    : 500;
+      ? 680
+      : isPhoneLandscape
+        ? 520
+        : 500;
 
   const sectionGap = isPhoneLandscape ? scaleSize(8) : scaleSize(16);
 

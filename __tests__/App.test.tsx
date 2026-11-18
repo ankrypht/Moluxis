@@ -1017,6 +1017,194 @@ describe("Interactive Atom Picking and Measurement Mode", () => {
   });
 });
 
+describe("Hardware Back Press Navigation", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("navigates to home screen on hardware back press when viewing a molecule", async () => {
+    mockMoleculeData = {
+      name: "Water",
+      formula: "H2O",
+      molecularWeight: "18.015",
+      cid: "962",
+      sdf2d: "sdf2d-data",
+      sdf3d: "sdf3d-data",
+      properties: {},
+      safety: {},
+    };
+
+    const backSpy = jest.spyOn(BackHandler, "addEventListener");
+
+    try {
+      render(<App />);
+
+      const backCall = backSpy.mock.calls
+        .filter(([event]) => event === "hardwareBackPress")
+        .pop();
+      expect(backCall).toBeDefined();
+
+      let handled: boolean | null | undefined;
+      act(() => {
+        handled = backCall?.[1]({
+          type: "hardwareBackPress",
+          timeStamp: 0,
+        });
+      });
+
+      expect(handled).toBe(true);
+      expect(mockClearMolecule).toHaveBeenCalled();
+    } finally {
+      backSpy.mockRestore();
+    }
+  });
+
+  it("does not intercept hardware back press on home screen with nothing open", () => {
+    mockMoleculeData = null;
+    const backSpy = jest.spyOn(BackHandler, "addEventListener");
+
+    try {
+      render(<App />);
+
+      const backCalls = backSpy.mock.calls.filter(
+        ([event]) => event === "hardwareBackPress",
+      );
+      expect(backCalls.length).toBe(0);
+    } finally {
+      backSpy.mockRestore();
+    }
+  });
+
+  it("dismisses info panel first on hardware back press, keeping the molecule", async () => {
+    mockMoleculeData = {
+      name: "Water",
+      formula: "H2O",
+      molecularWeight: "18.015",
+      cid: "962",
+      sdf2d: "sdf2d-data",
+      sdf3d: "sdf3d-data",
+      properties: {},
+      safety: {},
+    };
+
+    const backSpy = jest.spyOn(BackHandler, "addEventListener");
+
+    try {
+      const { getByText } = render(<App />);
+
+      const infoBtn = getByText("Info");
+      await act(async () => {
+        fireEvent.press(infoBtn);
+      });
+
+      const callsAfterInfo = backSpy.mock.calls
+        .filter(([event]) => event === "hardwareBackPress")
+        .pop();
+      expect(callsAfterInfo).toBeDefined();
+
+      let handled: boolean | null | undefined;
+      act(() => {
+        handled = callsAfterInfo?.[1]({
+          type: "hardwareBackPress",
+          timeStamp: 0,
+        });
+      });
+
+      expect(handled).toBe(true);
+      expect(mockClearMolecule).not.toHaveBeenCalled();
+    } finally {
+      backSpy.mockRestore();
+    }
+  });
+
+  it("exits zen mode on hardware back press", async () => {
+    mockMoleculeData = {
+      name: "Water",
+      formula: "H2O",
+      molecularWeight: "18.015",
+      cid: "962",
+      sdf2d: "sdf2d-data",
+      sdf3d: "sdf3d-data",
+      properties: {},
+      safety: {},
+    };
+
+    const backSpy = jest.spyOn(BackHandler, "addEventListener");
+
+    try {
+      const { getByText, queryByLabelText, getByLabelText } = render(<App />);
+
+      const zenBtn = getByText("Zen");
+      await act(async () => {
+        fireEvent.press(zenBtn);
+      });
+
+      expect(getByLabelText("Exit Zen mode")).toBeTruthy();
+
+      const backCall = backSpy.mock.calls
+        .filter(([event]) => event === "hardwareBackPress")
+        .pop();
+      expect(backCall).toBeDefined();
+
+      let handled: boolean | null | undefined;
+      act(() => {
+        handled = backCall?.[1]({
+          type: "hardwareBackPress",
+          timeStamp: 0,
+        });
+      });
+
+      expect(handled).toBe(true);
+      expect(queryByLabelText("Exit Zen mode")).toBeNull();
+      expect(mockClearMolecule).not.toHaveBeenCalled();
+    } finally {
+      backSpy.mockRestore();
+    }
+  });
+
+  it("dismisses search history modal on hardware back press", async () => {
+    mockMoleculeData = {
+      name: "Water",
+      formula: "H2O",
+      molecularWeight: "18.015",
+      cid: "962",
+      sdf2d: "sdf2d-data",
+      sdf3d: "sdf3d-data",
+      properties: {},
+      safety: {},
+    };
+
+    const backSpy = jest.spyOn(BackHandler, "addEventListener");
+
+    try {
+      const { getByTestId } = render(<App />);
+
+      const historyBtn = getByTestId("header-history-button");
+      await act(async () => {
+        fireEvent.press(historyBtn);
+      });
+
+      const backCall = backSpy.mock.calls
+        .filter(([event]) => event === "hardwareBackPress")
+        .pop();
+      expect(backCall).toBeDefined();
+
+      let handled: boolean | null | undefined;
+      act(() => {
+        handled = backCall?.[1]({
+          type: "hardwareBackPress",
+          timeStamp: 0,
+        });
+      });
+
+      expect(handled).toBe(true);
+      expect(mockClearMolecule).not.toHaveBeenCalled();
+    } finally {
+      backSpy.mockRestore();
+    }
+  });
+});
+
 describe("Notifications, Deep Links & Dev Test Lab Integration", () => {
   beforeEach(() => {
     jest.clearAllMocks();

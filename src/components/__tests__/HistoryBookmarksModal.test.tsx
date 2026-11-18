@@ -1,4 +1,5 @@
-import { render, fireEvent } from "@testing-library/react-native";
+import { render, fireEvent, act } from "@testing-library/react-native";
+import { BackHandler } from "react-native";
 import { Alert } from "../CustomAlert";
 import { HistoryBookmarksModal } from "../HistoryBookmarksModal";
 import { getHistoryBookmarksModalStyles } from "../HistoryBookmarksModal.styles";
@@ -266,5 +267,40 @@ describe("HistoryBookmarksModal", () => {
     fireEvent.press(closeBtn);
 
     expect(mockOnClose).toHaveBeenCalled();
+  });
+
+  it("dismisses on hardware back press when visible", () => {
+    let backHandlerCb: (() => boolean | null | undefined) | undefined;
+    const backSpy = jest
+      .spyOn(BackHandler, "addEventListener")
+      .mockImplementation((_event, cb) => {
+        backHandlerCb = () => (cb as () => boolean | null | undefined)();
+        return { remove: jest.fn() } as never;
+      });
+
+    const onClose = jest.fn();
+    render(
+      <HistoryBookmarksModal
+        visible={true}
+        onClose={onClose}
+        onSelectCompound={mockOnSelectCompound}
+        history={sampleHistory}
+        bookmarks={sampleBookmarks}
+        onToggleBookmark={mockOnToggleBookmark}
+        onRemoveHistoryItem={mockOnRemoveHistoryItem}
+        onRemoveBookmarkItem={mockOnRemoveBookmarkItem}
+        onClearHistory={mockOnClearHistory}
+        onClearBookmarks={mockOnClearBookmarks}
+        isBookmarked={mockIsBookmarked}
+        styles={styles}
+      />,
+    );
+
+    act(() => {
+      expect(backHandlerCb?.()).toBe(true);
+    });
+    expect(onClose).toHaveBeenCalledTimes(1);
+
+    backSpy.mockRestore();
   });
 });

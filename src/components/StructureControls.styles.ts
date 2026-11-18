@@ -1,25 +1,13 @@
 import { StyleSheet } from "react-native";
 import { COLORS, addOpacity } from "../constants/colors";
-import {
-  ScaleMetrics,
-  REFERENCE_WIDTH,
-  REFERENCE_HEIGHT,
-} from "../utils/scaling";
+import { ScaleMetrics } from "../utils/scaling";
 
 export const getStructureControlsStyles = ({
   insets,
   scaleSize,
   hScaleSize,
-  width,
-  height,
-  isLandscape,
-}: ScaleMetrics) => {
-  const safeWidth = width ?? (isLandscape ? REFERENCE_HEIGHT : REFERENCE_WIDTH);
-  const safeHeight = height ?? (isLandscape ? REFERENCE_WIDTH : REFERENCE_HEIGHT);
-  const isTablet = Math.min(safeWidth, safeHeight) >= 600;
-  const isTabletPortrait = !isLandscape && isTablet;
-
-  return StyleSheet.create({
+}: ScaleMetrics) =>
+  StyleSheet.create({
     toggleContainer: {
       flexDirection: "row",
       alignItems: "center",
@@ -170,7 +158,6 @@ export const getStructureControlsStyles = ({
       color: COLORS.textMuted,
     },
   });
-};
 
 export type StructureControlsStyles = ReturnType<
   typeof getStructureControlsStyles

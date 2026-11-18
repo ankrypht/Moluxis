@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   useWindowDimensions,
   StyleSheet,
+  BackHandler,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { MoleculeInfo } from "../types";
@@ -76,6 +77,16 @@ export const ShareExportModal: React.FC<ShareExportModalProps> = React.memo(
         }).start();
       }
     }, [visible, slideAnim]);
+
+    // Dismiss on hardware back press
+    useEffect(() => {
+      if (!visible) return;
+      const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+        onClose();
+        return true;
+      });
+      return () => sub.remove();
+    }, [visible, onClose]);
 
     // Auto-request snapshot if not yet captured when modal is visible
     useEffect(() => {

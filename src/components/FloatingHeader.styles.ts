@@ -15,7 +15,8 @@ export const getFloatingHeaderStyles = ({
   height,
 }: ScaleMetrics) => {
   const safeWidth = width ?? (isLandscape ? REFERENCE_HEIGHT : REFERENCE_WIDTH);
-  const safeHeight = height ?? (isLandscape ? REFERENCE_WIDTH : REFERENCE_HEIGHT);
+  const safeHeight =
+    height ?? (isLandscape ? REFERENCE_WIDTH : REFERENCE_HEIGHT);
   const isTablet = Math.min(safeWidth, safeHeight) >= 600;
   const isTabletPortrait = !isLandscape && isTablet;
   const isTabletLandscape = isLandscape && isTablet;

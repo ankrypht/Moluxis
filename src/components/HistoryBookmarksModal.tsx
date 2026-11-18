@@ -8,6 +8,7 @@ import {
   useAnimatedValue,
   Pressable,
   useWindowDimensions,
+  BackHandler,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Alert } from "./CustomAlert";
@@ -98,6 +99,15 @@ export const HistoryBookmarksModal: React.FC<HistoryBookmarksModalProps> =
           ]).start();
         }
       }, [visible, slideAnim, fadeAnim]);
+
+      useEffect(() => {
+        if (!visible) return;
+        const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+          onClose();
+          return true;
+        });
+        return () => sub.remove();
+      }, [visible, onClose]);
 
       const activeItems = useMemo(
         () => (activeTab === "history" ? history : bookmarks),

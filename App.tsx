@@ -591,16 +591,88 @@ function MoleculeExplorer() {
   }, [isMeasuring, structureFormat, moleculeData, handleCloseMeasure]);
 
   useEffect(() => {
-    if (!isMeasuring || showShareModal || showHistoryModal) return;
+    const canGoBack = Boolean(
+      showShareModal ||
+      showHistoryModal ||
+      showAboutModal ||
+      isMeasuring ||
+      showInfo ||
+      showDisplayOptions ||
+      !showControls ||
+      showSuggestions ||
+      moleculeData ||
+      isLoading,
+    );
+
+    if (!canGoBack) return;
+
     const subscription = BackHandler.addEventListener(
       "hardwareBackPress",
       () => {
-        handleCloseMeasure();
-        return true;
+        if (showShareModal) {
+          handleCloseShareModal();
+          return true;
+        }
+        if (showHistoryModal) {
+          handleCloseHistoryModal();
+          return true;
+        }
+        if (showAboutModal) {
+          handleCloseAboutModal();
+          return true;
+        }
+        if (isMeasuring) {
+          handleCloseMeasure();
+          return true;
+        }
+        if (showInfo) {
+          handleCloseInfo();
+          return true;
+        }
+        if (showDisplayOptions) {
+          setShowDisplayOptions(false);
+          return true;
+        }
+        if (!showControls) {
+          handleExitZenMode();
+          return true;
+        }
+        if (showSuggestions) {
+          searchInputRef.current?.blur();
+          Keyboard.dismiss();
+          setShowSuggestions(false);
+          return true;
+        }
+        if (moleculeData || isLoading) {
+          handleClearToShowcase();
+          return true;
+        }
+        return false;
       },
     );
+
     return () => subscription.remove();
-  }, [isMeasuring, showShareModal, showHistoryModal, handleCloseMeasure]);
+  }, [
+    showShareModal,
+    showHistoryModal,
+    showAboutModal,
+    isMeasuring,
+    showInfo,
+    showDisplayOptions,
+    showControls,
+    showSuggestions,
+    moleculeData,
+    isLoading,
+    handleCloseShareModal,
+    handleCloseHistoryModal,
+    handleCloseAboutModal,
+    handleCloseMeasure,
+    handleCloseInfo,
+    setShowDisplayOptions,
+    handleExitZenMode,
+    setShowSuggestions,
+    handleClearToShowcase,
+  ]);
 
   const handleSelectMeasurementMode = useCallback((mode: MeasurementMode) => {
     setMeasurementMode(mode);

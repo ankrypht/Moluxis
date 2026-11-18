@@ -1,6 +1,5 @@
 import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
-import { View } from "react-native";
 import { FloatingHeader } from "../FloatingHeader";
 import { getFloatingHeaderStyles } from "../FloatingHeader.styles";
 import { getStructureControlsStyles } from "../StructureControls.styles";
@@ -45,7 +44,11 @@ describe("FloatingHeader Component & Styles", () => {
     safety: {},
   };
 
-  const getCombinedStyles = (width: number, height: number, insets = dummyInsets) => {
+  const getCombinedStyles = (
+    width: number,
+    height: number,
+    insets = dummyInsets,
+  ) => {
     const metrics = getScaleMetrics(width, height, insets);
     return {
       ...getFloatingHeaderStyles(metrics),
