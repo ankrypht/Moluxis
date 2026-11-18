@@ -23,8 +23,8 @@ describe("updateNoticeService", () => {
   });
 
   describe("validateReleaseNotes", () => {
-    it("validates the bundled release notes against 2.1.1", () => {
-      const result = validateReleaseNotes(CURRENT_RELEASE_NOTES, "2.1.1");
+    it("validates the bundled release notes against 2.2.0", () => {
+      const result = validateReleaseNotes(CURRENT_RELEASE_NOTES, "2.2.0");
       expect(result.valid).toBe(true);
       expect(result.error).toBeUndefined();
     });
@@ -69,7 +69,7 @@ describe("updateNoticeService", () => {
       (AsyncStorage.getItem as jest.Mock).mockResolvedValue("2.0.4");
       const res = await checkVersionAndTriggerNotice();
       expect(res.shouldShowModal).toBe(true);
-      expect(res.releaseNotes.version).toBe("2.1.1");
+      expect(res.releaseNotes.version).toBe("2.2.0");
     });
 
     it("does not trigger modal when version matches lastSeenVersion", async () => {

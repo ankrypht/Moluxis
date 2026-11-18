@@ -1,18 +1,19 @@
 {
-  "version": "2.1.1",
-  "releaseDate": "October 2026",
+  "version": "2.2.0",
+  "releaseDate": "November 2026",
   "features": [
-    "Curated Featured Molecules showcase with persistent category filters",
-    "High-resolution 3D canvas snapshot export & compound sharing",
-    "Recent search history and offline-ready bookmarks"
+    "Interactive 3D Measurements: Tap atoms directly on the 3D model to measure bond distances and angles in real time",
+    "Weekly Molecule Spotlights: Discover fascinating featured molecules every week with optional notifications",
+    "In-App Update Alerts: Get notified right inside the app whenever a new version is available on Google Play",
+    "All-New About Screen: Explore project information, developer credits, and verified scientific source links"
   ],
   "improvements": [
-    "Bundled 3Dmol.js locally for instant offline 3D rendering",
-    "60 FPS throttled WebGL loop with automatic pause during input",
-    "Multi-tier in-memory and disk caching for compound lookups"
+    "Tablet UI: Improved UI for tablet users",
+    "Natural Back Navigation: The Android back button now smoothly steps through menus, measurements, and searches before exiting",
+    "Smoother 3D Graphics: Enhanced responsiveness, clearer atom highlighting, and satisfying tactile vibration feedback"
   ],
   "fixes": [
-    "Prevented redundant WebView re-initialization and duplicate dispatches",
-    "Fixed bookmark merging and search race conditions"
+    "Fixed layout adjustments when rotating between portrait and landscape modes",
+    "General stability improvements and visual polish across the app"
   ]
 }
