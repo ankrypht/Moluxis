@@ -1,14 +1,11 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   FlatList,
   Animated,
-  useAnimatedValue,
   Pressable,
-  useWindowDimensions,
-  BackHandler,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Alert } from "./CustomAlert";
@@ -22,6 +19,8 @@ import {
   triggerImpactLight,
   triggerWarningHaptic,
 } from "../utils/haptics";
+import { useModalBackHandler } from "../hooks/useModalBackHandler";
+import { useBottomSheetAnimation } from "../hooks/useModalAnimation";
 
 export interface HistoryBookmarksModalProps {
   visible: boolean;
@@ -75,39 +74,13 @@ export const HistoryBookmarksModal: React.FC<HistoryBookmarksModalProps> =
       const activeTab = userSelectedTab ?? initialTab;
       const setActiveTab = setUserSelectedTab;
 
-      const { width: windowWidth } = useWindowDimensions();
-      const sheetHeight = isLandscape ? height : Math.round(height * 0.75);
-      const slideDistance = isLandscape ? windowWidth : sheetHeight;
-      const slideAnim = useAnimatedValue(slideDistance);
-      const fadeAnim = useAnimatedValue(0);
+      const { slideAnim, fadeAnim, sheetHeight } = useBottomSheetAnimation({
+        visible,
+        height,
+        isLandscape,
+      });
 
-      useEffect(() => {
-        if (visible) {
-          Animated.parallel([
-            Animated.timing(fadeAnim, {
-              toValue: 1,
-              duration: 200,
-              useNativeDriver: true,
-            }),
-            Animated.spring(slideAnim, {
-              toValue: 0,
-              useNativeDriver: true,
-              friction: 9,
-              tension: 65,
-              overshootClamping: true,
-            }),
-          ]).start();
-        }
-      }, [visible, slideAnim, fadeAnim]);
-
-      useEffect(() => {
-        if (!visible) return;
-        const sub = BackHandler.addEventListener("hardwareBackPress", () => {
-          onClose();
-          return true;
-        });
-        return () => sub.remove();
-      }, [visible, onClose]);
+      useModalBackHandler(visible, onClose);
 
       const activeItems = useMemo(
         () => (activeTab === "history" ? history : bookmarks),

@@ -4,40 +4,27 @@ import {
   type TextInputInstance,
   Keyboard,
   useWindowDimensions,
-  ViewStyle,
-  Platform,
-  AppState,
-  BackHandler,
 } from "react-native";
 import {
   useSafeAreaInsets,
   SafeAreaProvider,
 } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
-import { NavigationBar } from "expo-navigation-bar";
 import * as SplashScreen from "expo-splash-screen";
 
-import {
-  MoleculeInfo,
-  VisualizationType,
-  MeasurementMode,
-  PickedAtom,
-  MeasurementData,
-} from "./src/types";
-import {
-  calculateDistance,
-  calculateAngle,
-  calculateDihedral,
-  formatMeasurement,
-  getRequiredAtomCount,
-} from "./src/utils/geometry";
-import { triggerMeasurementHaptic } from "./src/utils/haptics";
+import { VisualizationType } from "./src/types";
+import { getDefaultStructureFormat } from "./src/utils/structure";
 import { useMoleculeSearch } from "./src/hooks/useMoleculeSearch";
 import { useCompoundHistoryAndBookmarks } from "./src/hooks/useCompoundHistoryAndBookmarks";
 import {
   IS_DEV_TEST_ENABLED,
   useNotificationsAndUpdates,
 } from "./src/hooks/useNotificationsAndUpdates";
+import { useSystemUI } from "./src/hooks/useSystemUI";
+import { useSnapshotCapture } from "./src/hooks/useSnapshotCapture";
+import { useMeasurement } from "./src/hooks/useMeasurement";
+import { useAppLayoutStyles } from "./src/hooks/useAppLayoutStyles";
+import { useAppBackHandler } from "./src/hooks/useAppBackHandler";
 import { FeaturedCategoryKey } from "./src/constants/featuredMolecules";
 import { setSavedFeaturedCategory } from "./src/components/FeaturedMolecules";
 import { getStyles } from "./App.styles";
@@ -53,34 +40,10 @@ import { MeasurementPanel } from "./src/components/MeasurementPanel";
 import { MoleculeInfoSheet } from "./src/components/MoleculeInfoSheet";
 import { LandscapeNameOverlay } from "./src/components/LandscapeNameOverlay";
 import { ExitFullScreenButton } from "./src/components/ExitFullScreenButton";
-import { HistoryBookmarksModal } from "./src/components/HistoryBookmarksModal";
-import { ShareExportModal } from "./src/components/ShareExportModal";
-import { CustomAlertModal } from "./src/components/CustomAlert";
-import { UpdateAvailableModal } from "./src/components/UpdateAvailableModal";
-import { WhatsNewModal } from "./src/components/WhatsNewModal";
-import { DevTestModal } from "./src/components/DevTestModal";
-import { AboutModal } from "./src/components/AboutModal";
+import { AppModals } from "./src/components/AppModals";
 import { CURRENT_RELEASE_NOTES } from "./src/services/updates/updateNoticeService";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
-
-const EMPTY_MEASURE_PANEL_SIZE = {
-  width: 0,
-  height: 0,
-  isLandscape: false,
-};
-
-const has3dStructure = (data: MoleculeInfo | null | undefined): boolean =>
-  Boolean(data?.sdf3d || data?.useCif);
-
-const getDefaultStructureFormat = (
-  data: MoleculeInfo | null | undefined,
-): "3d" | "2d" => {
-  if (data && !has3dStructure(data) && data.sdf2d) {
-    return "2d";
-  }
-  return "3d";
-};
 
 export default function App() {
   useEffect(() => {
@@ -107,6 +70,7 @@ function MoleculeExplorer() {
     selectSuggestion,
     clearMolecule,
   } = useMoleculeSearch();
+
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
   const isLandscape = width > height;
@@ -123,9 +87,12 @@ function MoleculeExplorer() {
     isBookmarked,
   } = useCompoundHistoryAndBookmarks();
 
-  // Visualization State
+  const { isKeyboardVisible } = useSystemUI();
+
+  // Visualization & View State
   const searchInputRef = useRef<TextInputInstance>(null);
   const moleculeViewerRef = useRef<MoleculeViewerRef>(null);
+
   const [vizStyle, setVizStyle] = useState<VisualizationType>("ballStick");
   const [showLabels, setShowLabels] = useState(false);
   const [isAnimated, setIsAnimated] = useState(false);
@@ -134,13 +101,11 @@ function MoleculeExplorer() {
   const [structureFormat, setStructureFormat] = useState<"3d" | "2d">(() =>
     getDefaultStructureFormat(moleculeData),
   );
-  const [isMeasuring, setIsMeasuring] = useState(false);
-  const [measurementMode, setMeasurementMode] =
-    useState<MeasurementMode>("distance");
-  const [pickedAtoms, setPickedAtoms] = useState<PickedAtom[]>([]);
   const [prevMoleculeData, setPrevMoleculeData] = useState(moleculeData);
   const [showDisplayOptions, setShowDisplayOptions] = useState(false);
   const [headerHeight, setHeaderHeight] = useState(0);
+
+  // Modals State
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [historyModalTab, setHistoryModalTab] = useState<
     "history" | "bookmarks"
@@ -148,22 +113,45 @@ function MoleculeExplorer() {
   const [showShareModal, setShowShareModal] = useState(false);
   const [showAboutModal, setShowAboutModal] = useState(false);
   const [showDevTestModal, setShowDevTestModal] = useState(false);
-  const [snapshotUri, setSnapshotUri] = useState<string | null>(null);
-  const [isCapturingSnapshot, setIsCapturingSnapshot] = useState(false);
-  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
-  useEffect(() => {
-    const showSub = Keyboard.addListener("keyboardDidShow", () => {
-      setIsKeyboardVisible(true);
-    });
-    const hideSub = Keyboard.addListener("keyboardDidHide", () => {
-      setIsKeyboardVisible(false);
-    });
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
+  // Snapshots
+  const {
+    snapshotUri,
+    isCapturingSnapshot,
+    handleCaptureSnapshot,
+    handleSnapshotCaptured,
+    resetSnapshot,
+  } = useSnapshotCapture(moleculeViewerRef);
+
+  // Measurement
+  const handleStartMeasuring = useCallback(() => {
+    setIsAnimated(false);
+    setShowDisplayOptions(false);
+    setShowInfo(false);
   }, []);
+
+  const {
+    isMeasuring,
+    measurementMode,
+    pickedAtoms,
+    measurementData,
+    measurePanelSize,
+    handleMeasurePanelLayout,
+    handleCloseMeasure,
+    handleToggleMeasure,
+    handleSelectMeasurementMode,
+    handleRemoveAtom,
+    handleClearMeasurements,
+    handleAtomPicked,
+    resetMeasurement,
+  } = useMeasurement({
+    moleculeViewerRef,
+    moleculeData,
+    structureFormat,
+    setStructureFormat,
+    isLandscape,
+    onStartMeasuring: handleStartMeasuring,
+  });
 
   // Automatically record inspected compounds in search history
   const lastRecordedNameRef = useRef<string | null>(null);
@@ -196,118 +184,31 @@ function MoleculeExplorer() {
     [width, height, top, bottom, left, right],
   );
 
-  const [measurePanelSize, setMeasurePanelSize] = useState<{
-    width: number;
-    height: number;
-    isLandscape: boolean;
-  }>(EMPTY_MEASURE_PANEL_SIZE);
-
-  const handleMeasurePanelLayout = useCallback(
-    (size: { width: number; height: number }) => {
-      setMeasurePanelSize((prev) => {
-        if (
-          prev.width === size.width &&
-          prev.height === size.height &&
-          prev.isLandscape === isLandscape
-        ) {
-          return prev;
-        }
-        return { ...size, isLandscape };
-      });
-    },
-    [isLandscape],
-  );
-
-  const handleCloseMeasure = useCallback(() => {
-    setIsMeasuring(false);
-    setPickedAtoms([]);
-    setMeasurePanelSize(EMPTY_MEASURE_PANEL_SIZE);
-  }, []);
-
-  const dynamicViewerContainerStyle = useMemo<ViewStyle>(() => {
-    if (isMeasuring) {
-      const hasMatchingSize = measurePanelSize.isLandscape === isLandscape;
-      if (isLandscape) {
-        const panelWidth =
-          hasMatchingSize && measurePanelSize.width > 0
-            ? measurePanelSize.width
-            : "width" in styles.measurementPanelWrapper &&
-                typeof styles.measurementPanelWrapper.width === "number"
-              ? styles.measurementPanelWrapper.width
-              : 360;
-        return {
-          right: panelWidth,
-          bottom: 0,
-        };
-      }
-      const panelHeight =
-        hasMatchingSize && measurePanelSize.height > 0
-          ? measurePanelSize.height
-          : 210;
-      return {
-        bottom: panelHeight,
-        right: 0,
-      };
-    }
-    return {
-      right: isLandscape && showInfo ? "45%" : 0,
-      bottom: 0,
-    };
-  }, [
-    isMeasuring,
+  // Dynamic Layout Styles
+  const {
+    dynamicViewerContainerStyle,
+    dynamicHeaderContainerStyle,
+    dynamicDockContainerStyle,
+  } = useAppLayoutStyles({
     isLandscape,
+    isMeasuring,
     showInfo,
-    measurePanelSize.width,
-    measurePanelSize.height,
-    measurePanelSize.isLandscape,
-    styles.measurementPanelWrapper,
-  ]);
-  const dynamicHeaderContainerStyle = useMemo<ViewStyle>(
-    () => ({
-      right: isLandscape ? (showInfo ? "45%" : 0) : 0,
-    }),
-    [isLandscape, showInfo],
-  );
-  const dynamicDockContainerStyle = useMemo<ViewStyle>(
-    () => ({
-      ...(isLandscape
-        ? showInfo
-          ? { right: "45%" }
-          : showShareModal
-            ? { right: "52%" }
-            : {}
-        : { right: 0 }),
-      marginRight: isLandscape && (showInfo || showShareModal) ? 8 : 0,
-      zIndex: showDisplayOptions ? 150 : 50,
-    }),
-    [isLandscape, showInfo, showShareModal, showDisplayOptions],
-  );
+    showShareModal,
+    showDisplayOptions,
+    measurePanelSize,
+    measurementPanelWrapperStyle: styles.measurementPanelWrapper,
+  });
 
+  // Reset transient states when molecule changes
   if (moleculeData !== prevMoleculeData) {
     setPrevMoleculeData(moleculeData);
-    setSnapshotUri(null);
-    setIsCapturingSnapshot(false);
+    resetSnapshot();
     setIsAnimated(false);
-    setIsMeasuring(false);
-    setPickedAtoms([]);
-    setMeasurePanelSize(EMPTY_MEASURE_PANEL_SIZE);
+    resetMeasurement();
     if (moleculeData) {
       setStructureFormat(getDefaultStructureFormat(moleculeData));
     }
   }
-
-  useEffect(() => {
-    // Hide navigation bar on Android only and re-apply on app resume
-    if (Platform.OS === "android") {
-      NavigationBar.setHidden(true);
-      const subscription = AppState.addEventListener("change", (state) => {
-        if (state === "active") {
-          NavigationBar.setHidden(true);
-        }
-      });
-      return () => subscription.remove();
-    }
-  }, []);
 
   const toggleAnimation = useCallback(() => {
     const next = !isAnimated;
@@ -425,38 +326,6 @@ function MoleculeExplorer() {
     setShowLabels((prev) => !prev);
   }, []);
 
-  const snapshotTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (snapshotTimeoutRef.current) {
-        clearTimeout(snapshotTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  const handleCaptureSnapshot = useCallback(() => {
-    if (snapshotTimeoutRef.current) {
-      clearTimeout(snapshotTimeoutRef.current);
-    }
-    setIsCapturingSnapshot(true);
-    setSnapshotUri(null);
-    moleculeViewerRef.current?.captureSnapshot();
-
-    snapshotTimeoutRef.current = setTimeout(() => {
-      setIsCapturingSnapshot(false);
-    }, 4000);
-  }, []);
-
-  const handleSnapshotCaptured = useCallback((uri: string | null) => {
-    if (snapshotTimeoutRef.current) {
-      clearTimeout(snapshotTimeoutRef.current);
-      snapshotTimeoutRef.current = null;
-    }
-    setSnapshotUri(uri);
-    setIsCapturingSnapshot(false);
-  }, []);
-
   const handleOpenShareModal = useCallback(() => {
     searchInputRef.current?.blur();
     Keyboard.dismiss();
@@ -467,6 +336,24 @@ function MoleculeExplorer() {
     setShowAboutModal(false);
     handleCaptureSnapshot();
   }, [handleCaptureSnapshot]);
+
+  const handleCloseShareModal = useCallback(() => {
+    setShowShareModal(false);
+  }, []);
+
+  const handleEnterZenMode = useCallback(() => {
+    setShowControls(false);
+    setShowInfo(false);
+    setShowDisplayOptions(false);
+    setShowHistoryModal(false);
+    setShowShareModal(false);
+    setShowAboutModal(false);
+    handleCloseMeasure();
+  }, [handleCloseMeasure]);
+
+  const handleExitZenMode = useCallback(() => {
+    setShowControls(true);
+  }, []);
 
   const handleOpenBookmarksFromLink = useCallback(() => {
     handleOpenHistoryModal("bookmarks");
@@ -498,6 +385,24 @@ function MoleculeExplorer() {
     onOpenCategory: handleOpenCategoryFromLink,
   });
 
+  const handleOpenWhatsNewFromAbout = useCallback(() => {
+    openPreviewWhatsNewModal(CURRENT_RELEASE_NOTES);
+  }, [openPreviewWhatsNewModal]);
+
+  const handleCloseDisplayOptions = useCallback(() => {
+    setShowDisplayOptions(false);
+  }, []);
+
+  const handleCloseSuggestions = useCallback(() => {
+    searchInputRef.current?.blur();
+    Keyboard.dismiss();
+    setShowSuggestions(false);
+  }, [setShowSuggestions]);
+
+  const handleCloseDevTestModal = useCallback(() => {
+    setShowDevTestModal(false);
+  }, []);
+
   const isInteracting = Boolean(
     isKeyboardVisible ||
     showHistoryModal ||
@@ -509,208 +414,27 @@ function MoleculeExplorer() {
     showDevTestModal,
   );
 
-  const handleCloseShareModal = useCallback(() => {
-    setShowShareModal(false);
-  }, []);
-
-  const handleOpenWhatsNewFromAbout = useCallback(() => {
-    openPreviewWhatsNewModal(CURRENT_RELEASE_NOTES);
-  }, [openPreviewWhatsNewModal]);
-
-  const handleEnterZenMode = useCallback(() => {
-    setShowControls(false);
-    setShowInfo(false);
-    setShowDisplayOptions(false);
-    setShowHistoryModal(false);
-    setShowShareModal(false);
-    setShowAboutModal(false);
-    handleCloseMeasure();
-  }, [handleCloseMeasure]);
-
-  const handleExitZenMode = useCallback(() => {
-    setShowControls(true);
-  }, []);
-
-  const measurementData = useMemo<MeasurementData | null>(() => {
-    const count = getRequiredAtomCount(measurementMode);
-    if (pickedAtoms.length < count) return null;
-
-    let val = 0;
-    if (measurementMode === "distance" && pickedAtoms.length >= 2) {
-      val = calculateDistance(pickedAtoms[0], pickedAtoms[1]);
-    } else if (measurementMode === "angle" && pickedAtoms.length >= 3) {
-      val = calculateAngle(pickedAtoms[0], pickedAtoms[1], pickedAtoms[2]);
-    } else if (measurementMode === "dihedral" && pickedAtoms.length >= 4) {
-      val = calculateDihedral(
-        pickedAtoms[0],
-        pickedAtoms[1],
-        pickedAtoms[2],
-        pickedAtoms[3],
-      );
-    }
-
-    const formatted = formatMeasurement(val, measurementMode, pickedAtoms);
-    return {
-      mode: measurementMode,
-      value: val,
-      displayValue: formatted.displayValue,
-      designation: formatted.designation,
-      atoms: pickedAtoms,
-    };
-  }, [measurementMode, pickedAtoms]);
-
-  useEffect(() => {
-    if (!isMeasuring) {
-      moleculeViewerRef.current?.clearMeasurements();
-      return;
-    }
-
-    if (pickedAtoms.length > 0) {
-      moleculeViewerRef.current?.drawMeasurements(
-        measurementMode,
-        pickedAtoms,
-        measurementData ? measurementData.displayValue : undefined,
-      );
-    } else {
-      moleculeViewerRef.current?.clearMeasurements();
-    }
-  }, [isMeasuring, measurementMode, pickedAtoms, measurementData]);
-
-  const handleToggleMeasure = useCallback(() => {
-    if (isMeasuring) {
-      handleCloseMeasure();
-    } else {
-      if (structureFormat === "2d" && has3dStructure(moleculeData)) {
-        setStructureFormat("3d");
-      }
-      setIsMeasuring(true);
-      setIsAnimated(false);
-      setShowDisplayOptions(false);
-      setShowInfo(false);
-    }
-  }, [isMeasuring, structureFormat, moleculeData, handleCloseMeasure]);
-
-  useEffect(() => {
-    const canGoBack = Boolean(
-      showShareModal ||
-      showHistoryModal ||
-      showAboutModal ||
-      isMeasuring ||
-      showInfo ||
-      showDisplayOptions ||
-      !showControls ||
-      showSuggestions ||
-      moleculeData ||
-      isLoading,
-    );
-
-    if (!canGoBack) return;
-
-    const subscription = BackHandler.addEventListener(
-      "hardwareBackPress",
-      () => {
-        if (showShareModal) {
-          handleCloseShareModal();
-          return true;
-        }
-        if (showHistoryModal) {
-          handleCloseHistoryModal();
-          return true;
-        }
-        if (showAboutModal) {
-          handleCloseAboutModal();
-          return true;
-        }
-        if (isMeasuring) {
-          handleCloseMeasure();
-          return true;
-        }
-        if (showInfo) {
-          handleCloseInfo();
-          return true;
-        }
-        if (showDisplayOptions) {
-          setShowDisplayOptions(false);
-          return true;
-        }
-        if (!showControls) {
-          handleExitZenMode();
-          return true;
-        }
-        if (showSuggestions) {
-          searchInputRef.current?.blur();
-          Keyboard.dismiss();
-          setShowSuggestions(false);
-          return true;
-        }
-        if (moleculeData || isLoading) {
-          handleClearToShowcase();
-          return true;
-        }
-        return false;
-      },
-    );
-
-    return () => subscription.remove();
-  }, [
+  // Hardware Back Button Navigation
+  useAppBackHandler({
     showShareModal,
+    onCloseShareModal: handleCloseShareModal,
     showHistoryModal,
+    onCloseHistoryModal: handleCloseHistoryModal,
     showAboutModal,
+    onCloseAboutModal: handleCloseAboutModal,
     isMeasuring,
+    onCloseMeasure: handleCloseMeasure,
     showInfo,
+    onCloseInfo: handleCloseInfo,
     showDisplayOptions,
+    onCloseDisplayOptions: handleCloseDisplayOptions,
     showControls,
+    onExitZenMode: handleExitZenMode,
     showSuggestions,
-    moleculeData,
-    isLoading,
-    handleCloseShareModal,
-    handleCloseHistoryModal,
-    handleCloseAboutModal,
-    handleCloseMeasure,
-    handleCloseInfo,
-    setShowDisplayOptions,
-    handleExitZenMode,
-    setShowSuggestions,
-    handleClearToShowcase,
-  ]);
-
-  const handleSelectMeasurementMode = useCallback((mode: MeasurementMode) => {
-    setMeasurementMode(mode);
-    setPickedAtoms([]);
-  }, []);
-
-  const handleRemoveAtom = useCallback((index: number) => {
-    setPickedAtoms((prev) => prev.filter((_, i) => i !== index));
-  }, []);
-
-  const handleClearMeasurements = useCallback(() => {
-    setPickedAtoms([]);
-  }, []);
-
-  const handleAtomPicked = useCallback(
-    (atom: PickedAtom) => {
-      if (!isMeasuring) return;
-      triggerMeasurementHaptic();
-
-      setPickedAtoms((prev) => {
-        const existingIndex = prev.findIndex((a) =>
-          a.index !== undefined && atom.index !== undefined
-            ? a.index === atom.index
-            : a.serial !== undefined && a.serial === atom.serial,
-        );
-        if (existingIndex !== -1) {
-          return prev.filter((_, i) => i !== existingIndex);
-        }
-
-        const maxCount = getRequiredAtomCount(measurementMode);
-        if (prev.length >= maxCount) {
-          return [atom];
-        }
-        return [...prev, atom];
-      });
-    },
-    [isMeasuring, measurementMode],
-  );
+    onCloseSuggestions: handleCloseSuggestions,
+    canClearToShowcase: Boolean(moleculeData || isLoading),
+    onClearToShowcase: handleClearToShowcase,
+  });
 
   return (
     <View style={styles.container}>
@@ -875,10 +599,15 @@ function MoleculeExplorer() {
         <ExitFullScreenButton onPress={handleExitZenMode} styles={styles} />
       )}
 
-      {/* RECENT SEARCHES & FAVORITES MODAL */}
-      <HistoryBookmarksModal
-        visible={showHistoryModal}
-        onClose={handleCloseHistoryModal}
+      {/* ALL MODALS & DIALOGS */}
+      <AppModals
+        styles={styles}
+        insets={insets}
+        height={height}
+        isLandscape={isLandscape}
+        showHistoryModal={showHistoryModal}
+        historyModalTab={historyModalTab}
+        onCloseHistoryModal={handleCloseHistoryModal}
         onSelectCompound={handleSelectSuggestion}
         history={history}
         bookmarks={bookmarks}
@@ -888,68 +617,29 @@ function MoleculeExplorer() {
         onClearHistory={clearHistory}
         onClearBookmarks={clearBookmarks}
         isBookmarked={isBookmarked}
-        initialTab={historyModalTab}
-        styles={styles}
-        isLandscape={isLandscape}
-        height={height}
-      />
-
-      {/* SHARE & EXPORT MODAL */}
-      <ShareExportModal
-        visible={showShareModal}
-        onClose={handleCloseShareModal}
+        showShareModal={showShareModal}
+        onCloseShareModal={handleCloseShareModal}
         moleculeData={moleculeData}
         snapshotUri={snapshotUri}
         isCapturingSnapshot={isCapturingSnapshot}
         onRefreshSnapshot={handleCaptureSnapshot}
-        styles={styles}
-        isLandscape={isLandscape}
-        height={height}
-      />
-
-      {/* ABOUT MOLUXIS MODAL */}
-      <AboutModal
-        visible={showAboutModal}
-        onClose={handleCloseAboutModal}
+        showAboutModal={showAboutModal}
+        onCloseAboutModal={handleCloseAboutModal}
         onOpenWhatsNew={handleOpenWhatsNewFromAbout}
         onCheckForUpdates={runLiveUpdateCheck}
-        styles={styles}
-        isLandscape={isLandscape}
-        height={height}
-      />
-
-      {/* IN-APP UPDATE AVAILABLE MODAL */}
-      <UpdateAvailableModal
-        visible={showUpdateModal}
+        showUpdateModal={showUpdateModal}
         releaseInfo={releaseInfo}
-        onDismiss={dismissUpdateModal}
-        styles={styles}
+        dismissUpdateModal={dismissUpdateModal}
+        showWhatsNewModal={showWhatsNewModal}
+        whatsNewNotes={whatsNewNotes}
+        dismissWhatsNewModal={dismissWhatsNewModal}
+        showDevTestModal={showDevTestModal}
+        onCloseDevTestModal={handleCloseDevTestModal}
+        openPreviewUpdateModal={openPreviewUpdateModal}
+        openPreviewWhatsNewModal={openPreviewWhatsNewModal}
+        runLiveUpdateCheck={runLiveUpdateCheck}
+        refreshVersionNotice={refreshVersionNotice}
       />
-
-      {/* POST-UPDATE WHAT'S NEW MODAL */}
-      <WhatsNewModal
-        visible={showWhatsNewModal}
-        releaseNotes={whatsNewNotes}
-        onClose={dismissWhatsNewModal}
-        styles={styles}
-      />
-
-      {/* DEV-ONLY NOTIFICATIONS & UPDATES TEST LAB */}
-      {IS_DEV_TEST_ENABLED && (
-        <DevTestModal
-          visible={showDevTestModal}
-          onClose={() => setShowDevTestModal(false)}
-          styles={styles}
-          bookmarks={bookmarks}
-          onPreviewUpdateModal={openPreviewUpdateModal}
-          onPreviewWhatsNewModal={openPreviewWhatsNewModal}
-          onRunLiveUpdateCheck={runLiveUpdateCheck}
-          onRefreshVersionNotice={refreshVersionNotice}
-        />
-      )}
-
-      {/* THEMED CUSTOM ALERT POPUP */}
-      <CustomAlertModal styles={styles} insets={insets} />
     </View>
   );
 }

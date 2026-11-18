@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback } from "react";
+import React, { useCallback } from "react";
 import {
   View,
   Text,
@@ -6,7 +6,6 @@ import {
   ScrollView,
   Animated,
   Pressable,
-  BackHandler,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -17,6 +16,8 @@ import {
 import { COLORS } from "../constants/colors";
 import { triggerImpactLight } from "../utils/haptics";
 import { WhatsNewModalStyles } from "./WhatsNewModal.styles";
+import { useModalBackHandler } from "../hooks/useModalBackHandler";
+import { useDialogScaleAnimation } from "../hooks/useModalAnimation";
 
 export interface WhatsNewModalProps {
   visible: boolean;
@@ -28,27 +29,7 @@ export interface WhatsNewModalProps {
 export const WhatsNewModal: React.FC<WhatsNewModalProps> = React.memo(
   ({ visible, releaseNotes, onClose, styles }) => {
     const notes = releaseNotes || CURRENT_RELEASE_NOTES;
-    const fadeAnim = useRef(new Animated.Value(0)).current;
-    const scaleAnim = useRef(new Animated.Value(0.94)).current;
-
-    useEffect(() => {
-      if (!visible) return;
-      fadeAnim.setValue(0);
-      scaleAnim.setValue(0.94);
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 180,
-          useNativeDriver: true,
-        }),
-        Animated.spring(scaleAnim, {
-          toValue: 1,
-          friction: 8,
-          tension: 80,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }, [visible, fadeAnim, scaleAnim]);
+    const { fadeAnim, scaleAnim } = useDialogScaleAnimation(visible);
 
     const handleDismiss = useCallback(async () => {
       triggerImpactLight();
@@ -56,14 +37,7 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = React.memo(
       onClose();
     }, [notes.version, onClose]);
 
-    useEffect(() => {
-      if (!visible) return;
-      const sub = BackHandler.addEventListener("hardwareBackPress", () => {
-        handleDismiss();
-        return true;
-      });
-      return () => sub.remove();
-    }, [visible, handleDismiss]);
+    useModalBackHandler(visible, handleDismiss);
 
     if (!visible) {
       return null;

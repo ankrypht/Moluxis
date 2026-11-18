@@ -11,7 +11,6 @@ import {
   TouchableOpacity,
   Pressable,
   Animated,
-  BackHandler,
   Keyboard,
   useWindowDimensions,
   StyleSheet,
@@ -21,97 +20,28 @@ import { Ionicons } from "@expo/vector-icons";
 import { COLORS, addOpacity } from "../constants/colors";
 import { triggerSelectionHaptic, triggerWarningHaptic } from "../utils/haptics";
 import { getCustomAlertStyles, CustomAlertStyles } from "./CustomAlert.styles";
+import { useModalBackHandler } from "../hooks/useModalBackHandler";
+import {
+  AlertButtonStyle,
+  CustomAlertButton,
+  CustomAlertType,
+  CustomAlertOptions,
+  CustomAlertPayload,
+  AlertListener,
+  CustomAlertManagerClass,
+  customAlertManager,
+  Alert,
+} from "../services/alert/customAlertManager";
 
-export type AlertButtonStyle = "default" | "cancel" | "destructive";
-
-export interface CustomAlertButton {
-  text?: string;
-  onPress?: () => void;
-  style?: AlertButtonStyle;
-}
-
-export type CustomAlertType =
-  "default" | "info" | "warning" | "error" | "destructive" | "success";
-
-export interface CustomAlertOptions {
-  cancelable?: boolean;
-  onDismiss?: () => void;
-  type?: CustomAlertType;
-  icon?: keyof typeof Ionicons.glyphMap;
-}
-
-export interface CustomAlertPayload {
-  id: string;
-  title: string;
-  message?: string;
-  buttons: CustomAlertButton[];
-  options?: CustomAlertOptions;
-}
-
-type AlertListener = (alert: CustomAlertPayload | null) => void;
-
-class CustomAlertManagerClass {
-  private listeners: Set<AlertListener> = new Set();
-  private currentAlert: CustomAlertPayload | null = null;
-
-  subscribe(listener: AlertListener): () => void {
-    this.listeners.add(listener);
-    if (this.currentAlert) {
-      listener(this.currentAlert);
-    }
-    return () => {
-      this.listeners.delete(listener);
-    };
-  }
-
-  alert = (
-    title: string,
-    message?: string,
-    buttons?: CustomAlertButton[],
-    options?: CustomAlertOptions,
-  ): void => {
-    const resolvedButtons: CustomAlertButton[] =
-      buttons && buttons.length > 0
-        ? buttons
-        : [{ text: "OK", style: "default" }];
-
-    const payload: CustomAlertPayload = {
-      id: Math.random().toString(36).substring(2, 9),
-      title,
-      message,
-      buttons: resolvedButtons,
-      options,
-    };
-    this.currentAlert = payload;
-    this.listeners.forEach((listener) => listener(payload));
-  };
-
-  dismiss = (): void => {
-    if (!this.currentAlert) return;
-    this.currentAlert = null;
-    this.listeners.forEach((listener) => listener(null));
-  };
-
-  getCurrentAlert = (): CustomAlertPayload | null => {
-    return this.currentAlert;
-  };
-}
-
-export const customAlertManager = new CustomAlertManagerClass();
-
-export const Alert = {
-  alert: (
-    title: string,
-    message?: string,
-    buttons?: CustomAlertButton[],
-    options?: CustomAlertOptions,
-  ): void => {
-    customAlertManager.alert(title, message, buttons, options);
-  },
-  dismiss: (): void => {
-    customAlertManager.dismiss();
-  },
+export type {
+  AlertButtonStyle,
+  CustomAlertButton,
+  CustomAlertType,
+  CustomAlertOptions,
+  CustomAlertPayload,
+  AlertListener,
 };
+export { CustomAlertManagerClass, customAlertManager, Alert };
 
 interface ResolvedTheme {
   iconName: keyof typeof Ionicons.glyphMap;
@@ -342,21 +272,7 @@ export const CustomAlertModal: React.FC<CustomAlertModalProps> = React.memo(
       [handleDismissAnimation],
     );
 
-    useEffect(() => {
-      if (!alertData) return;
-
-      const backHandler = BackHandler.addEventListener(
-        "hardwareBackPress",
-        () => {
-          if (alertData.options?.cancelable !== false) {
-            handleBackdropPress();
-          }
-          return true;
-        },
-      );
-
-      return () => backHandler.remove();
-    }, [alertData, handleBackdropPress]);
+    useModalBackHandler(Boolean(alertData), handleBackdropPress);
 
     if (!alertData) {
       return null;

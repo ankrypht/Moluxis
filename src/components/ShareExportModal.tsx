@@ -5,13 +5,10 @@ import {
   TouchableOpacity,
   ScrollView,
   Animated,
-  useAnimatedValue,
   Pressable,
   Image,
   ActivityIndicator,
-  useWindowDimensions,
   StyleSheet,
-  BackHandler,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { MoleculeInfo } from "../types";
@@ -31,6 +28,8 @@ import {
   triggerSelectionHaptic,
 } from "../utils/haptics";
 import { formatSubscriptFormula } from "../utils/formula";
+import { useModalBackHandler } from "../hooks/useModalBackHandler";
+import { useBottomSheetAnimation } from "../hooks/useModalAnimation";
 
 export interface ShareExportModalProps {
   visible: boolean;
@@ -56,37 +55,23 @@ export const ShareExportModal: React.FC<ShareExportModalProps> = React.memo(
     isLandscape = false,
     height = 700,
   }) => {
-    const { width: windowWidth } = useWindowDimensions();
-    const sheetHeight = isLandscape ? height : Math.round(height * 0.75);
-    const slideDistance = isLandscape ? windowWidth : sheetHeight;
-    const slideAnim = useAnimatedValue(slideDistance);
+    const { slideAnim, sheetHeight } = useBottomSheetAnimation({
+      visible,
+      height,
+      isLandscape,
+      heightRatio: 0.75,
+    });
 
     const [isSharingImage, setIsSharingImage] = useState(false);
     const [pendingShareSnapshot, setPendingShareSnapshot] = useState(false);
 
-    // Run animations when visibility changes
     useEffect(() => {
       if (visible) {
         setPendingShareSnapshot(false);
-        Animated.spring(slideAnim, {
-          toValue: 0,
-          useNativeDriver: true,
-          friction: 9,
-          tension: 65,
-          overshootClamping: true,
-        }).start();
       }
-    }, [visible, slideAnim]);
+    }, [visible]);
 
-    // Dismiss on hardware back press
-    useEffect(() => {
-      if (!visible) return;
-      const sub = BackHandler.addEventListener("hardwareBackPress", () => {
-        onClose();
-        return true;
-      });
-      return () => sub.remove();
-    }, [visible, onClose]);
+    useModalBackHandler(visible, onClose);
 
     // Auto-request snapshot if not yet captured when modal is visible
     useEffect(() => {

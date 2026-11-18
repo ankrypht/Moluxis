@@ -1054,12 +1054,13 @@ describe("Hardware Back Press Navigation", () => {
 
       expect(handled).toBe(true);
       expect(mockClearMolecule).toHaveBeenCalled();
+      await act(async () => {});
     } finally {
       backSpy.mockRestore();
     }
   });
 
-  it("does not intercept hardware back press on home screen with nothing open", () => {
+  it("does not intercept hardware back press on home screen with nothing open", async () => {
     mockMoleculeData = null;
     const backSpy = jest.spyOn(BackHandler, "addEventListener");
 
@@ -1070,6 +1071,7 @@ describe("Hardware Back Press Navigation", () => {
         ([event]) => event === "hardwareBackPress",
       );
       expect(backCalls.length).toBe(0);
+      await act(async () => {});
     } finally {
       backSpy.mockRestore();
     }

@@ -1,11 +1,10 @@
-import React, { useEffect, useRef, useCallback } from "react";
+import React, { useCallback } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   Animated,
   Pressable,
-  BackHandler,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { AppReleaseInfo } from "../constants/distributions";
@@ -16,6 +15,8 @@ import {
 import { COLORS } from "../constants/colors";
 import { triggerImpactLight, triggerSelectionHaptic } from "../utils/haptics";
 import { UpdateAvailableModalStyles } from "./UpdateAvailableModal.styles";
+import { useModalBackHandler } from "../hooks/useModalBackHandler";
+import { useDialogScaleAnimation } from "../hooks/useModalAnimation";
 
 export interface UpdateAvailableModalProps {
   visible: boolean;
@@ -26,42 +27,15 @@ export interface UpdateAvailableModalProps {
 
 export const UpdateAvailableModal: React.FC<UpdateAvailableModalProps> =
   React.memo(({ visible, releaseInfo, onDismiss, styles }) => {
-    const fadeAnim = useRef(new Animated.Value(0)).current;
-    const scaleAnim = useRef(new Animated.Value(0.94)).current;
+    const { fadeAnim, scaleAnim } = useDialogScaleAnimation(visible);
 
-    useEffect(() => {
-      if (!visible) return;
-      fadeAnim.setValue(0);
-      scaleAnim.setValue(0.94);
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 180,
-          useNativeDriver: true,
-        }),
-        Animated.spring(scaleAnim, {
-          toValue: 1,
-          friction: 8,
-          tension: 80,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }, [visible, fadeAnim, scaleAnim]);
+    useModalBackHandler(visible, onDismiss);
 
     const handleRemindLater = useCallback(async () => {
       triggerSelectionHaptic();
       await snoozeUpdatePrompt(24);
       onDismiss();
     }, [onDismiss]);
-
-    useEffect(() => {
-      if (!visible) return;
-      const sub = BackHandler.addEventListener("hardwareBackPress", () => {
-        onDismiss();
-        return true;
-      });
-      return () => sub.remove();
-    }, [visible, onDismiss]);
 
     const handleUpdate = useCallback(async () => {
       if (!releaseInfo) return;

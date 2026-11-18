@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SavedCompoundItem } from "../../types";
+import { normalizeCompoundName } from "../../utils/compound";
 
 export const HISTORY_STORAGE_KEY = "@moluxis_recent_history_v1";
 export const BOOKMARKS_STORAGE_KEY = "@moluxis_bookmarks_v1";
@@ -25,7 +26,7 @@ export async function getRecentHistory(): Promise<SavedCompoundItem[]> {
     );
     const seen = new Set<string>();
     return valid.filter((entry) => {
-      const key = entry.name.trim().toLowerCase();
+      const key = normalizeCompoundName(entry.name);
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
@@ -50,11 +51,11 @@ export async function addRecentHistory(
   let current: SavedCompoundItem[] = [];
   try {
     current = await getRecentHistory();
-    const normalizedName = item.name.trim().toLowerCase();
+    const normalizedName = normalizeCompoundName(item.name);
 
     // Check if an existing entry has more details like formula/cid
     const existing = current.find(
-      (entry) => entry.name.trim().toLowerCase() === normalizedName,
+      (entry) => normalizeCompoundName(entry.name) === normalizedName,
     );
 
     const mergedItem: SavedCompoundItem = {
@@ -67,7 +68,7 @@ export async function addRecentHistory(
 
     // Filter out previous entry of the same compound
     const filtered = current.filter(
-      (entry) => entry.name.trim().toLowerCase() !== normalizedName,
+      (entry) => normalizeCompoundName(entry.name) !== normalizedName,
     );
 
     // Insert at front and limit to MAX_HISTORY_ITEMS
@@ -93,9 +94,9 @@ export async function removeRecentHistory(
   let current: SavedCompoundItem[] = [];
   try {
     current = await getRecentHistory();
-    const normalizedName = name.trim().toLowerCase();
+    const normalizedName = normalizeCompoundName(name);
     const updated = current.filter(
-      (entry) => entry.name.trim().toLowerCase() !== normalizedName,
+      (entry) => normalizeCompoundName(entry.name) !== normalizedName,
     );
     await AsyncStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(updated));
     return updated;
@@ -135,7 +136,7 @@ export async function getBookmarks(): Promise<SavedCompoundItem[]> {
     );
     const seen = new Set<string>();
     return valid.filter((entry) => {
-      const key = entry.name.trim().toLowerCase();
+      const key = normalizeCompoundName(entry.name);
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
@@ -159,10 +160,10 @@ export async function addBookmark(
   let current: SavedCompoundItem[] = [];
   try {
     current = await getBookmarks();
-    const normalizedName = item.name.trim().toLowerCase();
+    const normalizedName = normalizeCompoundName(item.name);
 
     const existing = current.find(
-      (entry) => entry.name.trim().toLowerCase() === normalizedName,
+      (entry) => normalizeCompoundName(entry.name) === normalizedName,
     );
 
     const mergedItem: SavedCompoundItem = {
@@ -174,7 +175,7 @@ export async function addBookmark(
     };
 
     const filtered = current.filter(
-      (entry) => entry.name.trim().toLowerCase() !== normalizedName,
+      (entry) => normalizeCompoundName(entry.name) !== normalizedName,
     );
 
     const updated = [mergedItem, ...filtered].slice(0, MAX_BOOKMARKS_ITEMS);
@@ -199,9 +200,9 @@ export async function removeBookmark(
   let current: SavedCompoundItem[] = [];
   try {
     current = await getBookmarks();
-    const normalizedName = name.trim().toLowerCase();
+    const normalizedName = normalizeCompoundName(name);
     const updated = current.filter(
-      (entry) => entry.name.trim().toLowerCase() !== normalizedName,
+      (entry) => normalizeCompoundName(entry.name) !== normalizedName,
     );
     await AsyncStorage.setItem(BOOKMARKS_STORAGE_KEY, JSON.stringify(updated));
     return updated;
@@ -225,14 +226,14 @@ export async function toggleBookmark(
   let current: SavedCompoundItem[] = [];
   try {
     current = await getBookmarks();
-    const normalizedName = item.name.trim().toLowerCase();
+    const normalizedName = normalizeCompoundName(item.name);
     const exists = current.some(
-      (entry) => entry.name.trim().toLowerCase() === normalizedName,
+      (entry) => normalizeCompoundName(entry.name) === normalizedName,
     );
 
     if (exists) {
       const updated = current.filter(
-        (entry) => entry.name.trim().toLowerCase() !== normalizedName,
+        (entry) => normalizeCompoundName(entry.name) !== normalizedName,
       );
       await AsyncStorage.setItem(
         BOOKMARKS_STORAGE_KEY,

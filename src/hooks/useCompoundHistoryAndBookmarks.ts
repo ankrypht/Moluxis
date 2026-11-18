@@ -11,6 +11,7 @@ import {
   clearBookmarks,
 } from "../services/storage/compoundStorage";
 import { setMoleculePinned } from "../services/storage/moleculeDiskCache";
+import { normalizeCompoundName } from "../utils/compound";
 
 export interface UseCompoundHistoryAndBookmarksReturn {
   history: SavedCompoundItem[];
@@ -36,6 +37,7 @@ export const useCompoundHistoryAndBookmarks =
     const [bookmarks, setBookmarks] = useState<SavedCompoundItem[]>([]);
     const [isLoadingStorage, setIsLoadingStorage] = useState(true);
     const mutationVersionRef = useRef(0);
+    const isMountedRef = useRef(true);
 
     const refresh = useCallback(async () => {
       const currentVersion = ++mutationVersionRef.current;
@@ -44,21 +46,27 @@ export const useCompoundHistoryAndBookmarks =
           getRecentHistory(),
           getBookmarks(),
         ]);
-        if (currentVersion === mutationVersionRef.current) {
+        if (
+          isMountedRef.current &&
+          currentVersion === mutationVersionRef.current
+        ) {
           setHistory(savedHistory);
           setBookmarks(savedBookmarks);
         }
       } catch (error) {
         console.warn("Error refreshing history and bookmarks:", error);
       } finally {
-        if (currentVersion === mutationVersionRef.current) {
+        if (
+          isMountedRef.current &&
+          currentVersion === mutationVersionRef.current
+        ) {
           setIsLoadingStorage(false);
         }
       }
     }, []);
 
     useEffect(() => {
-      let isMounted = true;
+      isMountedRef.current = true;
       const currentVersion = mutationVersionRef.current;
       const load = async () => {
         try {
@@ -66,21 +74,27 @@ export const useCompoundHistoryAndBookmarks =
             getRecentHistory(),
             getBookmarks(),
           ]);
-          if (isMounted && currentVersion === mutationVersionRef.current) {
+          if (
+            isMountedRef.current &&
+            currentVersion === mutationVersionRef.current
+          ) {
             setHistory(savedHistory);
             setBookmarks(savedBookmarks);
             setIsLoadingStorage(false);
           }
         } catch (error) {
           console.warn("Error refreshing history and bookmarks:", error);
-          if (isMounted && currentVersion === mutationVersionRef.current) {
+          if (
+            isMountedRef.current &&
+            currentVersion === mutationVersionRef.current
+          ) {
             setIsLoadingStorage(false);
           }
         }
       };
       load();
       return () => {
-        isMounted = false;
+        isMountedRef.current = false;
       };
     }, []);
 
@@ -92,7 +106,9 @@ export const useCompoundHistoryAndBookmarks =
         mutationVersionRef.current++;
         try {
           const updated = await addRecentHistory(item);
-          setHistory(updated);
+          if (isMountedRef.current) {
+            setHistory(updated);
+          }
         } catch (error) {
           console.warn("Failed to add to history:", error);
         }
@@ -104,7 +120,9 @@ export const useCompoundHistoryAndBookmarks =
       mutationVersionRef.current++;
       try {
         const updated = await removeRecentHistory(name);
-        setHistory(updated);
+        if (isMountedRef.current) {
+          setHistory(updated);
+        }
       } catch (error) {
         console.warn("Failed to remove history item:", error);
       }
@@ -114,7 +132,9 @@ export const useCompoundHistoryAndBookmarks =
       mutationVersionRef.current++;
       try {
         await clearRecentHistory();
-        setHistory([]);
+        if (isMountedRef.current) {
+          setHistory([]);
+        }
       } catch (error) {
         console.warn("Failed to clear history:", error);
       }
@@ -128,7 +148,9 @@ export const useCompoundHistoryAndBookmarks =
         mutationVersionRef.current++;
         try {
           const result = await toggleBookmark(item);
-          setBookmarks(result.bookmarks);
+          if (isMountedRef.current) {
+            setBookmarks(result.bookmarks);
+          }
           setMoleculePinned(item.name, result.isBookmarked).catch(() => {});
           return result.isBookmarked;
         } catch (error) {
@@ -143,7 +165,9 @@ export const useCompoundHistoryAndBookmarks =
       mutationVersionRef.current++;
       try {
         const updated = await removeBookmark(name);
-        setBookmarks(updated);
+        if (isMountedRef.current) {
+          setBookmarks(updated);
+        }
         setMoleculePinned(name, false).catch(() => {});
       } catch (error) {
         console.warn("Failed to remove bookmark:", error);
@@ -154,7 +178,9 @@ export const useCompoundHistoryAndBookmarks =
       mutationVersionRef.current++;
       try {
         await clearBookmarks();
-        setBookmarks([]);
+        if (isMountedRef.current) {
+          setBookmarks([]);
+        }
       } catch (error) {
         console.warn("Failed to clear bookmarks:", error);
       }
@@ -163,15 +189,17 @@ export const useCompoundHistoryAndBookmarks =
     const bookmarkedNamesSet = useMemo(() => {
       const set = new Set<string>();
       for (const item of bookmarks) {
-        set.add(item.name.trim().toLowerCase());
+        const norm = normalizeCompoundName(item.name);
+        if (norm) set.add(norm);
       }
       return set;
     }, [bookmarks]);
 
     const isBookmarked = useCallback(
       (name?: string | null): boolean => {
-        if (!name || !name.trim()) return false;
-        return bookmarkedNamesSet.has(name.trim().toLowerCase());
+        const norm = normalizeCompoundName(name);
+        if (!norm) return false;
+        return bookmarkedNamesSet.has(norm);
       },
       [bookmarkedNamesSet],
     );

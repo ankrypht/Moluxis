@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   ScrollView,
   Pressable,
-  BackHandler,
   Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -14,6 +13,7 @@ import * as Notifications from "expo-notifications";
 import { COLORS } from "../constants/colors";
 import { SavedCompoundItem } from "../types";
 import { triggerImpactLight, triggerSelectionHaptic } from "../utils/haptics";
+import { useModalBackHandler } from "../hooks/useModalBackHandler";
 import {
   NOTIFICATION_CHANNEL_IDS,
   NOTIF_PERMISSION_ASKED_KEY,
@@ -135,14 +135,7 @@ export const DevTestModal: React.FC<DevTestModalProps> = React.memo(
       }
     }, [visible, refreshDiagnostics]);
 
-    useEffect(() => {
-      if (!visible) return;
-      const sub = BackHandler.addEventListener("hardwareBackPress", () => {
-        onClose();
-        return true;
-      });
-      return () => sub.remove();
-    }, [visible, onClose]);
+    useModalBackHandler(visible, onClose);
 
     const runAction = useCallback(
       async (label: string, fn: () => Promise<void> | void) => {

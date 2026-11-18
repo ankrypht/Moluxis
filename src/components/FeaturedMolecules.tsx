@@ -34,6 +34,7 @@ import {
 import { SavedCompoundItem } from "../types";
 import { ChemicalFormula } from "./ChemicalFormula";
 import { triggerSelectionHaptic, triggerImpactLight } from "../utils/haptics";
+import { normalizeCompoundName } from "../utils/compound";
 
 let savedShowcaseScrollOffset = 0;
 let savedFeaturedCategory: FeaturedCategoryKey = "biochemicals";
@@ -155,7 +156,7 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
 
       for (const item of history || []) {
         if (!item?.name) continue;
-        const lower = item.name.trim().toLowerCase();
+        const lower = normalizeCompoundName(item.name);
         if (
           !itemMap.has(lower) ||
           (item.timestamp &&
@@ -167,7 +168,7 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
 
       for (const item of bookmarks || []) {
         if (!item?.name) continue;
-        const lower = item.name.trim().toLowerCase();
+        const lower = normalizeCompoundName(item.name);
         if (
           !itemMap.has(lower) ||
           (item.timestamp &&
@@ -185,7 +186,8 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
     const bookmarkNamesSet = useMemo(() => {
       const set = new Set<string>();
       for (const item of bookmarks || []) {
-        if (item?.name) set.add(item.name.trim().toLowerCase());
+        const norm = normalizeCompoundName(item?.name);
+        if (norm) set.add(norm);
       }
       return set;
     }, [bookmarks]);
