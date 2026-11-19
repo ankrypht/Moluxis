@@ -423,7 +423,20 @@ export const MoleculeViewer = React.memo(
       const onWebViewMessage = useCallback(
         (event: any) => {
           try {
-            const data = JSON.parse(event.nativeEvent.data);
+            const rawData = event?.nativeEvent?.data;
+
+            // Fast path for SNAPSHOT_RESULT to avoid expensive JSON.parse on multi-megabyte payloads
+            if (typeof rawData === "string") {
+              const prefix = '{"type":"SNAPSHOT_RESULT","dataUri":"';
+              if (rawData.startsWith(prefix) && rawData.endsWith('"}')) {
+                const dataUri = rawData.slice(prefix.length, -2);
+                onSnapshotCaptured?.(dataUri);
+                return;
+              }
+            }
+
+            const data =
+              typeof rawData === "string" ? JSON.parse(rawData) : rawData;
             if (
               data &&
               data.type === "SNAPSHOT_RESULT" &&

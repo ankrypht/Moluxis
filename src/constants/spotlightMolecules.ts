@@ -1,5 +1,3 @@
-import { formatSubscriptFormula } from "../utils/formula";
-
 export interface SpotlightMolecule {
   id: string;
   name: string;
@@ -11,18 +9,13 @@ export interface SpotlightMolecule {
   category: string;
 }
 
-interface RawSpotlightMolecule {
-  id: string;
-  name: string;
-  query: string;
-  formula: string;
-  formattedFormula?: string;
-  tag: string;
-  description: string;
-  category: string;
-}
-
-const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
+/**
+ * Curated catalog of 100 diverse molecules for Spotlight Notifications.
+ * Rather than bloating the JS bundle with 3D SDF coordinate data for all 100 compounds,
+ * these spotlight entries contain lightweight metadata (formula, tags, descriptions).
+ * Tapping any notification fetches the 3D structure from PubChem and caches it on disk!
+ */
+export const SPOTLIGHT_MOLECULES: SpotlightMolecule[] = [
   // =========================================================================
   // 1. Biochemicals & Neurotransmitters
   // =========================================================================
@@ -31,6 +24,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Caffeine",
     query: "Caffeine",
     formula: "C8H10N4O2",
+    formattedFormula: "C₈H₁₀N₄O₂",
     tag: "Stimulant",
     category: "Biochemicals & Neurotransmitters",
     description:
@@ -41,6 +35,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Dopamine",
     query: "Dopamine",
     formula: "C8H11NO2",
+    formattedFormula: "C₈H₁₁NO₂",
     tag: "Neurotransmitter",
     category: "Biochemicals & Neurotransmitters",
     description:
@@ -51,6 +46,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Serotonin",
     query: "Serotonin",
     formula: "C10H12N2O",
+    formattedFormula: "C₁₀H₁₂N₂O",
     tag: "Mood Regulator",
     category: "Biochemicals & Neurotransmitters",
     description:
@@ -61,6 +57,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Adenine",
     query: "Adenine",
     formula: "C5H5N5",
+    formattedFormula: "C₅H₅N₅",
     tag: "DNA Base",
     category: "Biochemicals & Neurotransmitters",
     description:
@@ -71,6 +68,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Epinephrine",
     query: "Epinephrine",
     formula: "C9H13NO3",
+    formattedFormula: "C₉H₁₃NO₃",
     tag: "Fight-or-Flight Hormone",
     category: "Biochemicals & Neurotransmitters",
     description:
@@ -81,6 +79,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Norepinephrine",
     query: "Norepinephrine",
     formula: "C8H11NO3",
+    formattedFormula: "C₈H₁₁NO₃",
     tag: "Neurotransmitter",
     category: "Biochemicals & Neurotransmitters",
     description:
@@ -91,6 +90,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Melatonin",
     query: "Melatonin",
     formula: "C13H16N2O2",
+    formattedFormula: "C₁₃H₁₆N₂O₂",
     tag: "Sleep Hormone",
     category: "Biochemicals & Neurotransmitters",
     description:
@@ -101,6 +101,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "GABA",
     query: "GABA",
     formula: "C4H9NO2",
+    formattedFormula: "C₄H₉NO₂",
     tag: "Inhibitory Neurotransmitter",
     category: "Biochemicals & Neurotransmitters",
     description:
@@ -111,6 +112,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Oxytocin",
     query: "Oxytocin",
     formula: "C43H66N12O12S2",
+    formattedFormula: "C₄₃H₆₆N₁₂O₁₂S₂",
     tag: "Neuropeptide Hormone",
     category: "Biochemicals & Neurotransmitters",
     description:
@@ -121,6 +123,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Acetylcholine",
     query: "Acetylcholine",
     formula: "C7H16NO2",
+    formattedFormula: "C₇H₁₆NO₂",
     tag: "Neurotransmitter",
     category: "Biochemicals & Neurotransmitters",
     description:
@@ -131,6 +134,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Histamine",
     query: "Histamine",
     formula: "C5H9N3",
+    formattedFormula: "C₅H₉N₃",
     tag: "Immune Mediator",
     category: "Biochemicals & Neurotransmitters",
     description:
@@ -141,6 +145,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Anandamide",
     query: "Anandamide",
     formula: "C22H37NO2",
+    formattedFormula: "C₂₂H₃₇NO₂",
     tag: "Endocannabinoid",
     category: "Biochemicals & Neurotransmitters",
     description:
@@ -151,6 +156,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Cortisol",
     query: "Cortisol",
     formula: "C21H30O5",
+    formattedFormula: "C₂₁H₃₀O₅",
     tag: "Stress Hormone",
     category: "Biochemicals & Neurotransmitters",
     description:
@@ -161,6 +167,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Testosterone",
     query: "Testosterone",
     formula: "C19H28O2",
+    formattedFormula: "C₁₉H₂₈O₂",
     tag: "Steroid Hormone",
     category: "Biochemicals & Neurotransmitters",
     description:
@@ -171,6 +178,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Estradiol",
     query: "Estradiol",
     formula: "C18H24O2",
+    formattedFormula: "C₁₈H₂₄O₂",
     tag: "Estrogen Hormone",
     category: "Biochemicals & Neurotransmitters",
     description:
@@ -181,6 +189,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Progesterone",
     query: "Progesterone",
     formula: "C21H30O2",
+    formattedFormula: "C₂₁H₃₀O₂",
     tag: "Steroid Hormone",
     category: "Biochemicals & Neurotransmitters",
     description:
@@ -191,6 +200,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Thyroxine",
     query: "Thyroxine",
     formula: "C15H11I4NO4",
+    formattedFormula: "C₁₅H₁₁I₄NO₄",
     tag: "Thyroid Hormone",
     category: "Biochemicals & Neurotransmitters",
     description:
@@ -205,6 +215,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Aspirin",
     query: "Aspirin",
     formula: "C9H8O4",
+    formattedFormula: "C₉H₈O₄",
     tag: "Analgesic",
     category: "Medicinal & Pharmaceuticals",
     description:
@@ -215,6 +226,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Penicillin",
     query: "Penicillin",
     formula: "C16H18N2O4S",
+    formattedFormula: "C₁₆H₁₈N₂O₄S",
     tag: "Antibiotic",
     category: "Medicinal & Pharmaceuticals",
     description:
@@ -225,6 +237,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Ibuprofen",
     query: "Ibuprofen",
     formula: "C13H18O2",
+    formattedFormula: "C₁₃H₁₈O₂",
     tag: "Anti-inflammatory",
     category: "Medicinal & Pharmaceuticals",
     description:
@@ -235,6 +248,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Paracetamol",
     query: "Paracetamol",
     formula: "C8H9NO2",
+    formattedFormula: "C₈H₉NO₂",
     tag: "Pain & Fever Relief",
     category: "Medicinal & Pharmaceuticals",
     description:
@@ -245,6 +259,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Amoxicillin",
     query: "Amoxicillin",
     formula: "C16H19N3O5S",
+    formattedFormula: "C₁₆H₁₉N₃O₅S",
     tag: "Beta-Lactam Antibiotic",
     category: "Medicinal & Pharmaceuticals",
     description:
@@ -255,6 +270,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Metformin",
     query: "Metformin",
     formula: "C4H11N5",
+    formattedFormula: "C₄H₁₁N₅",
     tag: "Antidiabetic",
     category: "Medicinal & Pharmaceuticals",
     description:
@@ -265,6 +281,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Atorvastatin",
     query: "Atorvastatin",
     formula: "C33H35FN2O5",
+    formattedFormula: "C₃₃H₃₅FN₂O₅",
     tag: "Statin Medication",
     category: "Medicinal & Pharmaceuticals",
     description:
@@ -275,6 +292,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Omeprazole",
     query: "Omeprazole",
     formula: "C17H19N3O3S",
+    formattedFormula: "C₁₇H₁₉N₃O₃S",
     tag: "Proton Pump Inhibitor",
     category: "Medicinal & Pharmaceuticals",
     description:
@@ -285,6 +303,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Morphine",
     query: "Morphine",
     formula: "C17H19NO3",
+    formattedFormula: "C₁₇H₁₉NO₃",
     tag: "Opioid Analgesic",
     category: "Medicinal & Pharmaceuticals",
     description:
@@ -295,6 +314,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Codeine",
     query: "Codeine",
     formula: "C18H21NO3",
+    formattedFormula: "C₁₈H₂₁NO₃",
     tag: "Analgesic & Antitussive",
     category: "Medicinal & Pharmaceuticals",
     description:
@@ -305,6 +325,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Salbutamol",
     query: "Salbutamol",
     formula: "C13H21NO3",
+    formattedFormula: "C₁₃H₂₁NO₃",
     tag: "Bronchodilator",
     category: "Medicinal & Pharmaceuticals",
     description:
@@ -315,6 +336,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Dexamethasone",
     query: "Dexamethasone",
     formula: "C22H29FO5",
+    formattedFormula: "C₂₂H₂₉FO₅",
     tag: "Corticosteroid",
     category: "Medicinal & Pharmaceuticals",
     description:
@@ -325,6 +347,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Ciprofloxacin",
     query: "Ciprofloxacin",
     formula: "C17H18FN3O3",
+    formattedFormula: "C₁₇H₁₈FN₃O₃",
     tag: "Fluoroquinolone",
     category: "Medicinal & Pharmaceuticals",
     description:
@@ -335,6 +358,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Diazepam",
     query: "Diazepam",
     formula: "C16H13ClN2O",
+    formattedFormula: "C₁₆H₁₃ClN₂O",
     tag: "Benzodiazepine",
     category: "Medicinal & Pharmaceuticals",
     description:
@@ -345,6 +369,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Sildenafil",
     query: "Sildenafil",
     formula: "C22H30N6O4S",
+    formattedFormula: "C₂₂H₃₀N₆O₄S",
     tag: "PDE5 Inhibitor",
     category: "Medicinal & Pharmaceuticals",
     description:
@@ -355,6 +380,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Artemisinin",
     query: "Artemisinin",
     formula: "C15H22O5",
+    formattedFormula: "C₁₅H₂₂O₅",
     tag: "Antimalarial",
     category: "Medicinal & Pharmaceuticals",
     description:
@@ -365,6 +391,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Warfarin",
     query: "Warfarin",
     formula: "C19H16O4",
+    formattedFormula: "C₁₉H₁₆O₄",
     tag: "Anticoagulant",
     category: "Medicinal & Pharmaceuticals",
     description:
@@ -375,6 +402,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Methotrexate",
     query: "Methotrexate",
     formula: "C20H22N8O5",
+    formattedFormula: "C₂₀H₂₂N₈O₅",
     tag: "Antifolate Chemotherapy",
     category: "Medicinal & Pharmaceuticals",
     description:
@@ -385,6 +413,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Cisplatin",
     query: "Cisplatin",
     formula: "Cl2H6N2Pt",
+    formattedFormula: "Cl₂H₆N₂Pt",
     tag: "Platinum Chemotherapy",
     category: "Medicinal & Pharmaceuticals",
     description:
@@ -395,6 +424,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Paclitaxel",
     query: "Paclitaxel",
     formula: "C47H51NO14",
+    formattedFormula: "C₄₇H₅₁NO₁₄",
     tag: "Taxane Chemotherapy",
     category: "Medicinal & Pharmaceuticals",
     description:
@@ -405,6 +435,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Losartan",
     query: "Losartan",
     formula: "C22H23ClN6O",
+    formattedFormula: "C₂₂H₂₃ClN₆O",
     tag: "Antihypertensive",
     category: "Medicinal & Pharmaceuticals",
     description:
@@ -419,6 +450,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Ascorbic Acid",
     query: "Ascorbic Acid",
     formula: "C6H8O6",
+    formattedFormula: "C₆H₈O₆",
     tag: "Vitamin C",
     category: "Vitamins & Essential Nutrients",
     description:
@@ -429,6 +461,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Retinol",
     query: "Retinol",
     formula: "C20H30O",
+    formattedFormula: "C₂₀H₃₀O",
     tag: "Vitamin A",
     category: "Vitamins & Essential Nutrients",
     description:
@@ -439,6 +472,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Cholecalciferol",
     query: "Cholecalciferol",
     formula: "C27H44O",
+    formattedFormula: "C₂₇H₄₄O",
     tag: "Vitamin D3",
     category: "Vitamins & Essential Nutrients",
     description:
@@ -449,6 +483,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Alpha-Tocopherol",
     query: "alpha-tocopherol",
     formula: "C29H50O2",
+    formattedFormula: "C₂₉H₅₀O₂",
     tag: "Vitamin E",
     category: "Vitamins & Essential Nutrients",
     description:
@@ -459,6 +494,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Phylloquinone",
     query: "Phylloquinone",
     formula: "C31H46O2",
+    formattedFormula: "C₃₁H₄₆O₂",
     tag: "Vitamin K1",
     category: "Vitamins & Essential Nutrients",
     description:
@@ -469,6 +505,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Thiamine",
     query: "Thiamine",
     formula: "C12H17N4OS",
+    formattedFormula: "C₁₂H₁₇N₄OS",
     tag: "Vitamin B1",
     category: "Vitamins & Essential Nutrients",
     description:
@@ -479,6 +516,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Riboflavin",
     query: "Riboflavin",
     formula: "C17H20N4O6",
+    formattedFormula: "C₁₇H₂₀N₄O₆",
     tag: "Vitamin B2",
     category: "Vitamins & Essential Nutrients",
     description:
@@ -489,6 +527,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Niacin",
     query: "Niacin",
     formula: "C6H5NO2",
+    formattedFormula: "C₆H₅NO₂",
     tag: "Vitamin B3",
     category: "Vitamins & Essential Nutrients",
     description:
@@ -499,6 +538,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Pantothenic Acid",
     query: "Pantothenic Acid",
     formula: "C9H17NO5",
+    formattedFormula: "C₉H₁₇NO₅",
     tag: "Vitamin B5",
     category: "Vitamins & Essential Nutrients",
     description:
@@ -509,6 +549,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Pyridoxine",
     query: "Pyridoxine",
     formula: "C8H11NO3",
+    formattedFormula: "C₈H₁₁NO₃",
     tag: "Vitamin B6",
     category: "Vitamins & Essential Nutrients",
     description:
@@ -519,6 +560,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Biotin",
     query: "Biotin",
     formula: "C10H16N2O3S",
+    formattedFormula: "C₁₀H₁₆N₂O₃S",
     tag: "Vitamin B7",
     category: "Vitamins & Essential Nutrients",
     description:
@@ -529,6 +571,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Folic Acid",
     query: "Folic Acid",
     formula: "C19H19N7O6",
+    formattedFormula: "C₁₉H₁₉N₇O₆",
     tag: "Vitamin B9",
     category: "Vitamins & Essential Nutrients",
     description:
@@ -539,6 +582,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Cyanocobalamin",
     query: "Cyanocobalamin",
     formula: "C63H88CoN14O14P",
+    formattedFormula: "C₆₃H₈₈CoN₁₄O₁₄P",
     tag: "Vitamin B12",
     category: "Vitamins & Essential Nutrients",
     description:
@@ -553,6 +597,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Vanillin",
     query: "Vanillin",
     formula: "C8H8O3",
+    formattedFormula: "C₈H₈O₃",
     tag: "Flavor Compound",
     category: "Aromas, Flavors & Phytochemicals",
     description:
@@ -563,6 +608,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Menthol",
     query: "Menthol",
     formula: "C10H20O",
+    formattedFormula: "C₁₀H₂₀O",
     tag: "Cooling Terpenoid",
     category: "Aromas, Flavors & Phytochemicals",
     description:
@@ -573,6 +619,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Cinnamaldehyde",
     query: "Cinnamaldehyde",
     formula: "C9H8O",
+    formattedFormula: "C₉H₈O",
     tag: "Spice Aroma",
     category: "Aromas, Flavors & Phytochemicals",
     description:
@@ -583,6 +630,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Capsaicin",
     query: "Capsaicin",
     formula: "C18H27NO3",
+    formattedFormula: "C₁₈H₂₇NO₃",
     tag: "Spicy Capsaicinoid",
     category: "Aromas, Flavors & Phytochemicals",
     description:
@@ -593,6 +641,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Eugenol",
     query: "Eugenol",
     formula: "C10H12O2",
+    formattedFormula: "C₁₀H₁₂O₂",
     tag: "Clove Phenol",
     category: "Aromas, Flavors & Phytochemicals",
     description:
@@ -603,6 +652,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Limonene",
     query: "Limonene",
     formula: "C10H16",
+    formattedFormula: "C₁₀H₁₆",
     tag: "Citrus Terpene",
     category: "Aromas, Flavors & Phytochemicals",
     description:
@@ -613,6 +663,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Linalool",
     query: "Linalool",
     formula: "C10H18O",
+    formattedFormula: "C₁₀H₁₈O",
     tag: "Floral Terpenoid",
     category: "Aromas, Flavors & Phytochemicals",
     description:
@@ -623,6 +674,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Resveratrol",
     query: "Resveratrol",
     formula: "C14H12O3",
+    formattedFormula: "C₁₄H₁₂O₃",
     tag: "Red Wine Polyphenol",
     category: "Aromas, Flavors & Phytochemicals",
     description:
@@ -633,6 +685,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Curcumin",
     query: "Curcumin",
     formula: "C21H20O6",
+    formattedFormula: "C₂₁H₂₀O₆",
     tag: "Turmeric Antioxidant",
     category: "Aromas, Flavors & Phytochemicals",
     description:
@@ -643,6 +696,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Quercetin",
     query: "Quercetin",
     formula: "C15H10O7",
+    formattedFormula: "C₁₅H₁₀O₇",
     tag: "Plant Flavonoid",
     category: "Aromas, Flavors & Phytochemicals",
     description:
@@ -653,6 +707,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Cannabidiol",
     query: "Cannabidiol",
     formula: "C21H30O2",
+    formattedFormula: "C₂₁H₃₀O₂",
     tag: "Phytocannabinoid",
     category: "Aromas, Flavors & Phytochemicals",
     description:
@@ -663,6 +718,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Allicin",
     query: "Allicin",
     formula: "C6H10OS2",
+    formattedFormula: "C₆H₁₀OS₂",
     tag: "Garlic Thiosulfinate",
     category: "Aromas, Flavors & Phytochemicals",
     description:
@@ -673,6 +729,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Piperine",
     query: "Piperine",
     formula: "C17H19NO3",
+    formattedFormula: "C₁₇H₁₉NO₃",
     tag: "Black Pepper Alkaloid",
     category: "Aromas, Flavors & Phytochemicals",
     description:
@@ -683,6 +740,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Anethole",
     query: "Anethole",
     formula: "C10H12O",
+    formattedFormula: "C₁₀H₁₂O",
     tag: "Anise & Fennel Flavor",
     category: "Aromas, Flavors & Phytochemicals",
     description:
@@ -693,6 +751,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Carvone",
     query: "Carvone",
     formula: "C10H14O",
+    formattedFormula: "C₁₀H₁₄O",
     tag: "Spearmint Terpenoid",
     category: "Aromas, Flavors & Phytochemicals",
     description:
@@ -703,6 +762,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Zingiberene",
     query: "Zingiberene",
     formula: "C15H24",
+    formattedFormula: "C₁₅H₂₄",
     tag: "Ginger Sesquiterpene",
     category: "Aromas, Flavors & Phytochemicals",
     description:
@@ -713,6 +773,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Geraniol",
     query: "Geraniol",
     formula: "C10H18O",
+    formattedFormula: "C₁₀H₁₈O",
     tag: "Rose Terpenoid",
     category: "Aromas, Flavors & Phytochemicals",
     description:
@@ -727,6 +788,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Guanine",
     query: "Guanine",
     formula: "C5H5N5O",
+    formattedFormula: "C₅H₅N₅O",
     tag: "DNA/RNA Base",
     category: "Nucleic Acids & Biomolecules",
     description:
@@ -737,6 +799,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Cytosine",
     query: "Cytosine",
     formula: "C4H5N3O",
+    formattedFormula: "C₄H₅N₃O",
     tag: "DNA/RNA Base",
     category: "Nucleic Acids & Biomolecules",
     description:
@@ -747,6 +810,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Thymine",
     query: "Thymine",
     formula: "C5H6N2O2",
+    formattedFormula: "C₅H₆N₂O₂",
     tag: "DNA Base",
     category: "Nucleic Acids & Biomolecules",
     description:
@@ -757,6 +821,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Uracil",
     query: "Uracil",
     formula: "C4H4N2O2",
+    formattedFormula: "C₄H₄N₂O₂",
     tag: "RNA Base",
     category: "Nucleic Acids & Biomolecules",
     description:
@@ -767,6 +832,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "ATP",
     query: "Adenosine triphosphate",
     formula: "C10H16N5O13P3",
+    formattedFormula: "C₁₀H₁₆N₅O₁₃P₃",
     tag: "Cellular Energy Currency",
     category: "Nucleic Acids & Biomolecules",
     description:
@@ -777,6 +843,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Glucose",
     query: "Glucose",
     formula: "C6H12O6",
+    formattedFormula: "C₆H₁₂O₆",
     tag: "Primary Sugar",
     category: "Nucleic Acids & Biomolecules",
     description:
@@ -787,6 +854,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Fructose",
     query: "Fructose",
     formula: "C6H12O6",
+    formattedFormula: "C₆H₁₂O₆",
     tag: "Fruit Sugar",
     category: "Nucleic Acids & Biomolecules",
     description:
@@ -797,6 +865,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Sucrose",
     query: "Sucrose",
     formula: "C12H22O11",
+    formattedFormula: "C₁₂H₂₂O₁₁",
     tag: "Table Sugar",
     category: "Nucleic Acids & Biomolecules",
     description:
@@ -807,6 +876,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Cholesterol",
     query: "Cholesterol",
     formula: "C27H46O",
+    formattedFormula: "C₂₇H₄₆O",
     tag: "Sterol Lipid",
     category: "Nucleic Acids & Biomolecules",
     description:
@@ -817,6 +887,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Chlorophyll a",
     query: "Chlorophyll a",
     formula: "C55H72MgN4O5",
+    formattedFormula: "C₅₅H₇₂MgN₄O₅",
     tag: "Photosynthetic Pigment",
     category: "Nucleic Acids & Biomolecules",
     description:
@@ -827,6 +898,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Heme",
     query: "Heme",
     formula: "C34H32FeN4O4",
+    formattedFormula: "C₃₄H₃₂FeN₄O₄",
     tag: "Oxygen-Carrying Porphyrin",
     category: "Nucleic Acids & Biomolecules",
     description:
@@ -837,6 +909,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Glutathione",
     query: "Glutathione",
     formula: "C10H17N3O6S",
+    formattedFormula: "C₁₀H₁₇N₃O₆S",
     tag: "Master Antioxidant",
     category: "Nucleic Acids & Biomolecules",
     description:
@@ -847,6 +920,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Creatine",
     query: "Creatine",
     formula: "C4H9N3O2",
+    formattedFormula: "C₄H₉N₃O₂",
     tag: "Muscle Energy Buffer",
     category: "Nucleic Acids & Biomolecules",
     description:
@@ -857,6 +931,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Taurine",
     query: "Taurine",
     formula: "C2H7NO3S",
+    formattedFormula: "C₂H₇NO₃S",
     tag: "Amino Sulfonic Acid",
     category: "Nucleic Acids & Biomolecules",
     description:
@@ -871,6 +946,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Water",
     query: "Water",
     formula: "H2O",
+    formattedFormula: "H₂O",
     tag: "Universal Solvent",
     category: "Everyday & Industrial Chemistry",
     description:
@@ -881,6 +957,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Carbon Dioxide",
     query: "Carbon Dioxide",
     formula: "CO2",
+    formattedFormula: "CO₂",
     tag: "Atmospheric Gas",
     category: "Everyday & Industrial Chemistry",
     description:
@@ -891,6 +968,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Ethanol",
     query: "Ethanol",
     formula: "C2H6O",
+    formattedFormula: "C₂H₆O",
     tag: "Alcohol",
     category: "Everyday & Industrial Chemistry",
     description:
@@ -901,6 +979,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Acetic Acid",
     query: "Acetic Acid",
     formula: "C2H4O2",
+    formattedFormula: "C₂H₄O₂",
     tag: "Carboxylic Acid",
     category: "Everyday & Industrial Chemistry",
     description:
@@ -911,6 +990,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Citric Acid",
     query: "Citric Acid",
     formula: "C6H8O7",
+    formattedFormula: "C₆H₈O₇",
     tag: "Citrus Acid",
     category: "Everyday & Industrial Chemistry",
     description:
@@ -921,6 +1001,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Methane",
     query: "Methane",
     formula: "CH4",
+    formattedFormula: "CH₄",
     tag: "Simple Hydrocarbon",
     category: "Everyday & Industrial Chemistry",
     description:
@@ -931,6 +1012,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Ammonia",
     query: "Ammonia",
     formula: "NH3",
+    formattedFormula: "NH₃",
     tag: "Inorganic Hydride",
     category: "Everyday & Industrial Chemistry",
     description:
@@ -941,6 +1023,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Nicotine",
     query: "Nicotine",
     formula: "C10H14N2",
+    formattedFormula: "C₁₀H₁₄N₂",
     tag: "Tobacco Alkaloid",
     category: "Everyday & Industrial Chemistry",
     description:
@@ -951,6 +1034,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Theobromine",
     query: "Theobromine",
     formula: "C7H8N4O2",
+    formattedFormula: "C₇H₈N₄O₂",
     tag: "Cocoa Alkaloid",
     category: "Everyday & Industrial Chemistry",
     description:
@@ -961,6 +1045,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Urea",
     query: "Urea",
     formula: "CH4N2O",
+    formattedFormula: "CH₄N₂O",
     tag: "Organic Diamide",
     category: "Everyday & Industrial Chemistry",
     description:
@@ -971,6 +1056,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Lactic Acid",
     query: "Lactic Acid",
     formula: "C3H6O3",
+    formattedFormula: "C₃H₆O₃",
     tag: "Alpha-Hydroxy Acid",
     category: "Everyday & Industrial Chemistry",
     description:
@@ -981,6 +1067,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Benzene",
     query: "Benzene",
     formula: "C6H6",
+    formattedFormula: "C₆H₆",
     tag: "Aromatic Hydrocarbon",
     category: "Everyday & Industrial Chemistry",
     description:
@@ -995,6 +1082,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Fluorite",
     query: "Fluorite",
     formula: "CaF2",
+    formattedFormula: "CaF₂",
     tag: "Fluorspar / Halide",
     category: "Crystals, Minerals & Inorganics",
     description:
@@ -1005,6 +1093,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Sodium Chloride",
     query: "Sodium Chloride",
     formula: "NaCl",
+    formattedFormula: "NaCl",
     tag: "Halite / Table Salt",
     category: "Crystals, Minerals & Inorganics",
     description:
@@ -1015,6 +1104,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Quartz",
     query: "Quartz",
     formula: "SiO2",
+    formattedFormula: "SiO₂",
     tag: "Silicon Dioxide",
     category: "Crystals, Minerals & Inorganics",
     description:
@@ -1025,6 +1115,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Calcite",
     query: "Calcite",
     formula: "CaCO3",
+    formattedFormula: "CaCO₃",
     tag: "Calcium Carbonate",
     category: "Crystals, Minerals & Inorganics",
     description:
@@ -1035,6 +1126,7 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Pyrite",
     query: "Pyrite",
     formula: "FeS2",
+    formattedFormula: "FeS₂",
     tag: "Iron Sulfide",
     category: "Crystals, Minerals & Inorganics",
     description:
@@ -1045,31 +1137,13 @@ const RAW_SPOTLIGHT_MOLECULES: RawSpotlightMolecule[] = [
     name: "Rutile",
     query: "Rutile",
     formula: "TiO2",
+    formattedFormula: "TiO₂",
     tag: "Titanium Oxide",
     category: "Crystals, Minerals & Inorganics",
     description:
       "A titanium dioxide mineral possessing one of the highest refractive indices of any known crystal.",
   },
 ];
-
-/**
- * Curated catalog of 100 diverse molecules for Spotlight Notifications.
- * Rather than bloating the JS bundle with 3D SDF coordinate data for all 100 compounds,
- * these spotlight entries contain lightweight metadata (formula, tags, descriptions).
- * Tapping any notification fetches the 3D structure from PubChem and caches it on disk!
- */
-export const SPOTLIGHT_MOLECULES: SpotlightMolecule[] =
-  RAW_SPOTLIGHT_MOLECULES.map((item) => ({
-    id: item.id,
-    name: item.name,
-    query: item.query,
-    formula: item.formula,
-    formattedFormula:
-      item.formattedFormula || formatSubscriptFormula(item.formula),
-    tag: item.tag,
-    description: item.description,
-    category: item.category,
-  }));
 
 /**
  * Get a random molecule from the spotlight catalog.

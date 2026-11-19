@@ -30,6 +30,17 @@ ${THREE_DMOL_SCRIPT}
     let measurementShapes = [];
     let measurementLabels = [];
     let elementLabels = [];
+    let labelGeneration = 0;
+    let labelAnimationFrameId = null;
+    const LABEL_CHUNK_SIZE = 40;
+
+    function cancelLabelBatch() {
+      labelGeneration++;
+      if (labelAnimationFrameId !== null) {
+        window.cancelAnimationFrame(labelAnimationFrameId);
+        labelAnimationFrameId = null;
+      }
+    }
 
     let animationFrameId = null;
     let lastFrameTime = 0;
@@ -179,6 +190,8 @@ ${THREE_DMOL_SCRIPT}
 
         viewer.setStyle({}, styleObj);
         
+        cancelLabelBatch();
+
         // Remove only element labels, preserving any active measurement labels
         for (let i = 0; i < elementLabels.length; i++) {
           try {
@@ -187,22 +200,47 @@ ${THREE_DMOL_SCRIPT}
         }
         elementLabels = [];
 
-        if (showLabels) {
+        if (showLabels && currentModel) {
           let atoms = currentModel.selectedAtoms({});
           let maxLabels = Math.min(atoms.length, 300);
-          for (let i = 0; i < maxLabels; i++) {
-            let atom = atoms[i];
-            let lbl = viewer.addLabel(atom.elem, {
-              position: atom,
-              backgroundColor: '${COLORS.surface}', 
-              backgroundOpacity: 0.85,
-              fontColor: '${COLORS.textPrimary}', 
-              fontSize: 14,
-              inFront: true,
-              borderThickness: 1,
-              borderColor: '${COLORS.border}'
-            });
-            if (lbl) elementLabels.push(lbl);
+          if (maxLabels > 0) {
+            let currentBatchId = labelGeneration;
+            let currentIndex = 0;
+
+            function processLabelBatch() {
+              if (currentBatchId !== labelGeneration || !viewer || !currentModel) {
+                labelAnimationFrameId = null;
+                return;
+              }
+
+              let chunkEnd = Math.min(currentIndex + LABEL_CHUNK_SIZE, maxLabels);
+              for (let i = currentIndex; i < chunkEnd; i++) {
+                let atom = atoms[i];
+                if (!atom) continue;
+                let lbl = viewer.addLabel(atom.elem, {
+                  position: atom,
+                  backgroundColor: '${COLORS.surface}', 
+                  backgroundOpacity: 0.85,
+                  fontColor: '${COLORS.textPrimary}', 
+                  fontSize: 14,
+                  inFront: true,
+                  borderThickness: 1,
+                  borderColor: '${COLORS.border}'
+                });
+                if (lbl) elementLabels.push(lbl);
+              }
+
+              currentIndex = chunkEnd;
+              viewer.render();
+
+              if (currentIndex < maxLabels) {
+                labelAnimationFrameId = window.requestAnimationFrame(processLabelBatch);
+              } else {
+                labelAnimationFrameId = null;
+              }
+            }
+
+            processLabelBatch();
           }
         }
         
@@ -215,11 +253,19 @@ ${THREE_DMOL_SCRIPT}
       }
     }
 
+    let lastAtomPickTime = 0;
+    const ATOM_PICK_COOLDOWN_MS = 100;
+
     function setupAtomPicking() {
       if (!viewer) return;
       try {
         viewer.setClickable({}, isMeasurementMode, function(atom) {
           if (!isMeasurementMode || !atom) return;
+          var now = Date.now();
+          if (now - lastAtomPickTime < ATOM_PICK_COOLDOWN_MS) {
+            return;
+          }
+          lastAtomPickTime = now;
           if (window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === 'function') {
             window.ReactNativeWebView.postMessage(JSON.stringify({
               type: 'ATOM_PICKED',
@@ -414,6 +460,7 @@ ${THREE_DMOL_SCRIPT}
       
       try {
         stopAnimation();
+        cancelLabelBatch();
         clearMeasurementVisuals();
         elementLabels = [];
         viewer.clear();
@@ -472,7 +519,42 @@ ${THREE_DMOL_SCRIPT}
           try {
             if (viewer) {
               viewer.render();
-              var dataUri = viewer.pngURI();
+              var dataUri = null;
+              try {
+                var sourceCanvas = (typeof viewer.getCanvas === 'function')
+                  ? viewer.getCanvas()
+                  : document.querySelector('#container canvas');
+
+                if (sourceCanvas && sourceCanvas.width > 0 && sourceCanvas.height > 0) {
+                  var maxDim = 1440;
+                  var srcW = sourceCanvas.width;
+                  var srcH = sourceCanvas.height;
+                  var longest = Math.max(srcW, srcH);
+
+                  if (longest > maxDim) {
+                    var scale = maxDim / longest;
+                    var destW = Math.max(1, Math.round(srcW * scale));
+                    var destH = Math.max(1, Math.round(srcH * scale));
+                    var offscreenCanvas = document.createElement('canvas');
+                    offscreenCanvas.width = destW;
+                    offscreenCanvas.height = destH;
+                    var ctx = offscreenCanvas.getContext('2d');
+                    if (ctx) {
+                      ctx.imageSmoothingEnabled = true;
+                      ctx.imageSmoothingQuality = 'high';
+                      ctx.drawImage(sourceCanvas, 0, 0, destW, destH);
+                      dataUri = offscreenCanvas.toDataURL('image/png');
+                    }
+                  }
+                }
+              } catch (scaleErr) {
+                console.warn('Canvas downscaling warning:', scaleErr);
+              }
+
+              if (!dataUri) {
+                dataUri = viewer.pngURI();
+              }
+
               if (window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === 'function') {
                 window.ReactNativeWebView.postMessage(JSON.stringify({
                   type: 'SNAPSHOT_RESULT',

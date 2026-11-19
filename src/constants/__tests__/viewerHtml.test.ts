@@ -72,10 +72,28 @@ describe("VIEWER_HTML", () => {
     expect(VIEWER_HTML).toContain("startAnimation()");
   });
 
-  it("should handle CAPTURE_SNAPSHOT messages and post SNAPSHOT_RESULT", () => {
+  it("should handle CAPTURE_SNAPSHOT messages with offscreen canvas downscaling capped to 1440px", () => {
     expect(VIEWER_HTML).toContain("message.type === 'CAPTURE_SNAPSHOT'");
+    expect(VIEWER_HTML).toContain("var maxDim = 1440");
+    expect(VIEWER_HTML).toContain("imageSmoothingQuality = 'high'");
+    expect(VIEWER_HTML).toContain("offscreenCanvas.toDataURL('image/png')");
     expect(VIEWER_HTML).toContain("viewer.pngURI()");
     expect(VIEWER_HTML).toContain("type: 'SNAPSHOT_RESULT'");
+  });
+
+  it("should batch label creation across requestAnimationFrame with cancellation token", () => {
+    expect(VIEWER_HTML).toContain("const LABEL_CHUNK_SIZE = 40");
+    expect(VIEWER_HTML).toContain("let labelGeneration = 0");
+    expect(VIEWER_HTML).toContain("function cancelLabelBatch()");
+    expect(VIEWER_HTML).toContain("processLabelBatch()");
+    expect(VIEWER_HTML).toContain("currentBatchId !== labelGeneration");
+  });
+
+  it("should throttle rapid atom picking with a 100ms cooldown", () => {
+    expect(VIEWER_HTML).toContain("const ATOM_PICK_COOLDOWN_MS = 100");
+    expect(VIEWER_HTML).toContain(
+      "now - lastAtomPickTime < ATOM_PICK_COOLDOWN_MS",
+    );
   });
 
   it("should support interactive atom picking and measurement messages with isolated labels and 3D struts", () => {

@@ -386,6 +386,38 @@ describe("MoleculeViewer", () => {
     );
   });
 
+  it("handles SNAPSHOT_RESULT via fallback JSON parse when payload has non-standard key ordering", () => {
+    const onSnapshotCaptured = jest.fn();
+    const { getByTestId } = render(
+      <MoleculeViewer
+        moleculeData={sampleMolecule}
+        isLoading={false}
+        structureFormat="3d"
+        vizStyle="ballStick"
+        showLabels={false}
+        isAnimated={true}
+        styles={mockStyles}
+        onSnapshotCaptured={onSnapshotCaptured}
+      />,
+    );
+
+    const webview = getByTestId("molecule-webview");
+    act(() => {
+      webview.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            dataUri: "data:image/png;base64,fallback-format",
+            type: "SNAPSHOT_RESULT",
+          }),
+        },
+      });
+    });
+
+    expect(onSnapshotCaptured).toHaveBeenCalledWith(
+      "data:image/png;base64,fallback-format",
+    );
+  });
+
   it("calls onSnapshotCaptured with null when SNAPSHOT_ERROR is received", () => {
     const onSnapshotCaptured = jest.fn();
     const { getByTestId } = render(

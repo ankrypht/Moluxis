@@ -61,6 +61,9 @@ export function useMeasurement({
     isLandscape: boolean;
   }>(EMPTY_MEASURE_PANEL_SIZE);
 
+  const lastAtomPickTimeRef = useRef<number>(0);
+  const ATOM_PICK_COOLDOWN_MS = 100;
+
   // Scoped to the active molecule: immediately resolves to false/empty when molecule changes
   const isCurrentMolecule =
     currentMoleculeKey !== null && measuringMoleculeKey === currentMoleculeKey;
@@ -90,6 +93,7 @@ export function useMeasurement({
   );
 
   const handleCloseMeasure = useCallback(() => {
+    lastAtomPickTimeRef.current = 0;
     setMeasuringMoleculeKey(null);
     setIsMeasuringState(false);
     setPickedAtomsState([]);
@@ -188,6 +192,11 @@ export function useMeasurement({
   const handleAtomPicked = useCallback(
     (atom: PickedAtom) => {
       if (!isMeasuring) return;
+      const now = Date.now();
+      if (now - lastAtomPickTimeRef.current < ATOM_PICK_COOLDOWN_MS) {
+        return;
+      }
+      lastAtomPickTimeRef.current = now;
       triggerMeasurementHaptic();
       setMeasuringMoleculeKey(currentMoleculeKey);
 
@@ -212,6 +221,7 @@ export function useMeasurement({
   );
 
   const resetMeasurement = useCallback(() => {
+    lastAtomPickTimeRef.current = 0;
     setMeasuringMoleculeKey(null);
     setIsMeasuringState(false);
     setPickedAtomsState([]);

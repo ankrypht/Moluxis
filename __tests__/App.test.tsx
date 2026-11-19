@@ -794,6 +794,10 @@ describe("Interactive Atom Picking and Measurement Mode", () => {
     expect(getByText("O")).toBeTruthy();
     expect(queryByText("#1")).toBeNull();
 
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 110));
+    });
+
     // Pick Atom 2 (Hydrogen at distance 0.96 Angstroms)
     act(() => {
       webview.props.onMessage({
@@ -858,6 +862,9 @@ describe("Interactive Atom Picking and Measurement Mode", () => {
         },
       });
     });
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 110));
+    });
     act(() => {
       webview.props.onMessage({
         nativeEvent: {
@@ -867,6 +874,9 @@ describe("Interactive Atom Picking and Measurement Mode", () => {
           }),
         },
       });
+    });
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 110));
     });
     act(() => {
       webview.props.onMessage({

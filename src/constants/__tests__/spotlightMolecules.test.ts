@@ -4,6 +4,7 @@ import {
   getSpotlightMolecule,
 } from "../spotlightMolecules";
 import { FEATURED_MOLECULES } from "../featuredMolecules";
+import { formatSubscriptFormula } from "../../utils/formula";
 
 describe("spotlightMolecules", () => {
   it("contains 100 curated spotlight compounds", () => {
@@ -30,6 +31,7 @@ describe("spotlightMolecules", () => {
       expect(mol.query).toBeTruthy();
       expect(mol.formula).toBeTruthy();
       expect(mol.formattedFormula).toBeTruthy();
+      expect(mol.formattedFormula).toBe(formatSubscriptFormula(mol.formula));
       expect(mol.tag).toBeTruthy();
       expect(mol.description).toBeTruthy();
       expect(mol.description.length).toBeGreaterThan(15);
