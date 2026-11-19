@@ -43,6 +43,7 @@ import { ExitFullScreenButton } from "./src/components/ExitFullScreenButton";
 import { AppModals } from "./src/components/AppModals";
 import { Alert, useActiveAlert } from "./src/components/CustomAlert";
 import { CURRENT_RELEASE_NOTES } from "./src/services/updates/updateNoticeService";
+import { ErrorBoundary } from "./src/components/ErrorBoundary";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -53,7 +54,9 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <MoleculeExplorer />
+      <ErrorBoundary>
+        <MoleculeExplorer />
+      </ErrorBoundary>
     </SafeAreaProvider>
   );
 }
@@ -96,13 +99,55 @@ function MoleculeExplorer() {
 
   const [vizStyle, setVizStyle] = useState<VisualizationType>("ballStick");
   const [showLabels, setShowLabels] = useState(false);
-  const [isAnimated, setIsAnimated] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
   const [showControls, setShowControls] = useState(true);
-  const [structureFormat, setStructureFormat] = useState<"3d" | "2d">(() =>
-    getDefaultStructureFormat(moleculeData),
+
+  // Keyed derived state: immediately defaults cleanly on molecule change without render-phase setters
+  const currentMoleculeKey = moleculeData?.cid || moleculeData?.name || null;
+
+  const [userFormatSelection, setUserFormatSelection] = useState<{
+    moleculeKey: string | null;
+    format: "3d" | "2d";
+  } | null>(null);
+
+  const structureFormat: "3d" | "2d" =
+    userFormatSelection &&
+    userFormatSelection.moleculeKey === currentMoleculeKey
+      ? userFormatSelection.format
+      : getDefaultStructureFormat(moleculeData);
+
+  const setStructureFormat = useCallback(
+    (format: "3d" | "2d") => {
+      setUserFormatSelection({ moleculeKey: currentMoleculeKey, format });
+    },
+    [currentMoleculeKey],
   );
-  const [prevMoleculeData, setPrevMoleculeData] = useState(moleculeData);
+
+  const [userAnimatedSelection, setUserAnimatedSelection] = useState<{
+    moleculeKey: string | null;
+    isAnimated: boolean;
+  } | null>(null);
+
+  const isAnimated: boolean =
+    userAnimatedSelection &&
+    userAnimatedSelection.moleculeKey === currentMoleculeKey
+      ? userAnimatedSelection.isAnimated
+      : false;
+
+  const setIsAnimated = useCallback(
+    (next: boolean | ((prev: boolean) => boolean)) => {
+      setUserAnimatedSelection((prev) => {
+        const current =
+          prev && prev.moleculeKey === currentMoleculeKey
+            ? prev.isAnimated
+            : false;
+        const resolved = typeof next === "function" ? next(current) : next;
+        return { moleculeKey: currentMoleculeKey, isAnimated: resolved };
+      });
+    },
+    [currentMoleculeKey],
+  );
+
   const [showDisplayOptions, setShowDisplayOptions] = useState(false);
   const [headerHeight, setHeaderHeight] = useState(0);
 
@@ -122,14 +167,14 @@ function MoleculeExplorer() {
     handleCaptureSnapshot,
     handleSnapshotCaptured,
     resetSnapshot,
-  } = useSnapshotCapture(moleculeViewerRef);
+  } = useSnapshotCapture(moleculeViewerRef, currentMoleculeKey);
 
   // Measurement
   const handleStartMeasuring = useCallback(() => {
     setIsAnimated(false);
     setShowDisplayOptions(false);
     setShowInfo(false);
-  }, []);
+  }, [setIsAnimated]);
 
   const {
     isMeasuring,
@@ -144,7 +189,6 @@ function MoleculeExplorer() {
     handleRemoveAtom,
     handleClearMeasurements,
     handleAtomPicked,
-    resetMeasurement,
   } = useMeasurement({
     moleculeViewerRef,
     moleculeData,
@@ -200,31 +244,20 @@ function MoleculeExplorer() {
     measurementPanelWrapperStyle: styles.measurementPanelWrapper,
   });
 
-  // Reset transient states when molecule changes
-  if (moleculeData !== prevMoleculeData) {
-    setPrevMoleculeData(moleculeData);
-    resetSnapshot();
-    setIsAnimated(false);
-    resetMeasurement();
-    if (moleculeData) {
-      setStructureFormat(getDefaultStructureFormat(moleculeData));
-    }
-  }
-
   const toggleAnimation = useCallback(() => {
     const next = !isAnimated;
     setIsAnimated(next);
     if (next) {
       handleCloseMeasure();
     }
-  }, [isAnimated, handleCloseMeasure]);
+  }, [isAnimated, setIsAnimated, handleCloseMeasure]);
 
   const handleSelectFormat = useCallback(
     (format: "2d" | "3d") => {
       setStructureFormat(format);
       handleCloseMeasure();
     },
-    [handleCloseMeasure],
+    [setStructureFormat, handleCloseMeasure],
   );
 
   const handleSearch = useCallback(
@@ -234,7 +267,7 @@ function MoleculeExplorer() {
       setIsAnimated(false);
       searchMolecule(query);
     },
-    [searchMolecule],
+    [searchMolecule, setIsAnimated],
   );
 
   const handleSelectSuggestion = useCallback(
@@ -244,7 +277,7 @@ function MoleculeExplorer() {
       setIsAnimated(false);
       selectSuggestion(item);
     },
-    [selectSuggestion],
+    [selectSuggestion, setIsAnimated],
   );
 
   const handleClearToShowcase = useCallback(() => {
@@ -258,7 +291,7 @@ function MoleculeExplorer() {
     setShowShareModal(false);
     setShowAboutModal(false);
     clearMolecule();
-  }, [clearMolecule, handleCloseMeasure]);
+  }, [clearMolecule, handleCloseMeasure, setIsAnimated]);
 
   const handleToggleCurrentBookmark = useCallback(() => {
     if (moleculeData?.name) {

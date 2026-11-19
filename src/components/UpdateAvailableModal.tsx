@@ -15,7 +15,6 @@ import {
 import { COLORS } from "../constants/colors";
 import { triggerImpactLight, triggerSelectionHaptic } from "../utils/haptics";
 import { UpdateAvailableModalStyles } from "./UpdateAvailableModal.styles";
-import { useModalBackHandler } from "../hooks/useModalBackHandler";
 import { useDialogScaleAnimation } from "../hooks/useModalAnimation";
 
 export interface UpdateAvailableModalProps {
@@ -28,8 +27,6 @@ export interface UpdateAvailableModalProps {
 export const UpdateAvailableModal: React.FC<UpdateAvailableModalProps> =
   React.memo(({ visible, releaseInfo, onDismiss, styles }) => {
     const { fadeAnim, scaleAnim } = useDialogScaleAnimation(visible);
-
-    useModalBackHandler(visible, onDismiss);
 
     const handleRemindLater = useCallback(async () => {
       triggerSelectionHaptic();

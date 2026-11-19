@@ -107,8 +107,52 @@ export async function shareNameAndFormula(
   }
 }
 
+export const SHARE_SNAPSHOT_PREFIX = "moluxis-share-";
+export const SHARE_SNAPSHOT_MAX_AGE_MS = 10 * 60 * 1000; // 10 minutes
+
+/**
+ * Safely removes temporary moluxis-share-* files older than 10 minutes.
+ * Non-blocking: errors are silently caught so sharing never fails due to cleanup.
+ */
+export async function cleanupOldShareSnapshots(
+  dirUri: string,
+  maxAgeMs = SHARE_SNAPSHOT_MAX_AGE_MS,
+): Promise<void> {
+  try {
+    if (!dirUri) return;
+    const files = await FileSystem.readDirectoryAsync(dirUri);
+    const now = Date.now();
+
+    for (const file of files) {
+      if (file.startsWith(SHARE_SNAPSHOT_PREFIX)) {
+        const fileUri = `${dirUri}${file}`;
+        try {
+          const match = file.match(/^moluxis-share-(\d+)-/);
+          let fileTime = match ? parseInt(match[1], 10) : 0;
+          if (!fileTime) {
+            const info = await FileSystem.getInfoAsync(fileUri);
+            if (info.exists && !info.isDirectory && info.modificationTime) {
+              fileTime = info.modificationTime * 1000;
+            }
+          }
+
+          if (fileTime && now - fileTime > maxAgeMs) {
+            await FileSystem.deleteAsync(fileUri, { idempotent: true });
+          }
+        } catch {
+          // Ignore individual file deletion errors
+        }
+      }
+    }
+  } catch {
+    // Ignore directory read errors
+  }
+}
+
 /**
  * Writes the base64 snapshot to a local temporary file and opens the native share dialog.
+ * Does NOT delete the file in a finally block to ensure asynchronous reader apps (WhatsApp, Drive, Gmail)
+ * can access the URI without race conditions. Older files are cleaned up on subsequent exports.
  */
 export async function shareSnapshotImage(
   dataUri: string,
@@ -119,13 +163,17 @@ export async function shareSnapshotImage(
       throw new Error("Invalid image data URI");
     }
 
-    const base64Data = dataUri.split("base64,")[1];
-    const safeName = moleculeName.replace(/[^a-zA-Z0-9_-]/g, "_").toLowerCase();
-    const filename = `moluxis_${safeName || "compound"}_snapshot.png`;
     const baseDir =
       FileSystem.cacheDirectory || FileSystem.documentDirectory || "";
     const normalizedDir =
       baseDir && !baseDir.endsWith("/") ? `${baseDir}/` : baseDir;
+
+    // Clean up temporary snapshots older than 10 minutes in a non-blocking sweep
+    await cleanupOldShareSnapshots(normalizedDir);
+
+    const base64Data = dataUri.split("base64,")[1];
+    const safeName = moleculeName.replace(/[^a-zA-Z0-9_-]/g, "_").toLowerCase();
+    const filename = `${SHARE_SNAPSHOT_PREFIX}${Date.now()}-${safeName || "compound"}.png`;
     const fileUri = `${normalizedDir}${filename}`;
 
     await FileSystem.writeAsStringAsync(fileUri, base64Data, {

@@ -16,7 +16,6 @@ import {
 import { COLORS } from "../constants/colors";
 import { triggerImpactLight } from "../utils/haptics";
 import { WhatsNewModalStyles } from "./WhatsNewModal.styles";
-import { useModalBackHandler } from "../hooks/useModalBackHandler";
 import { useDialogScaleAnimation } from "../hooks/useModalAnimation";
 
 export interface WhatsNewModalProps {
@@ -36,8 +35,6 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = React.memo(
       await markCurrentVersionSeen(notes.version);
       onClose();
     }, [notes.version, onClose]);
-
-    useModalBackHandler(visible, handleDismiss);
 
     if (!visible) {
       return null;

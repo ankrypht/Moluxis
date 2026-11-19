@@ -34,7 +34,6 @@ import {
   triggerSelectionHaptic,
 } from "../utils/haptics";
 import { formatSubscriptFormula } from "../utils/formula";
-import { useModalBackHandler } from "../hooks/useModalBackHandler";
 import { useBottomSheetAnimation } from "../hooks/useModalAnimation";
 
 export interface ShareExportModalProps {
@@ -88,8 +87,6 @@ export const ShareExportModal: React.FC<ShareExportModalProps> = React.memo(
         hasAttemptedCaptureRef.current = false;
       }
     }, [visible]);
-
-    useModalBackHandler(visible, onClose);
 
     // Auto-request snapshot if not yet captured when modal is visible (once per session)
     useEffect(() => {

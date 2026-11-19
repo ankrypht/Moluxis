@@ -1,5 +1,5 @@
 import { render, fireEvent, act, waitFor } from "@testing-library/react-native";
-import { BackHandler, Linking, Share } from "react-native";
+import { Linking, Share } from "react-native";
 import { AboutModal } from "../AboutModal";
 import { getAboutModalStyles } from "../AboutModal.styles";
 import { getScaleMetrics } from "../../utils/scaling";
@@ -218,15 +218,7 @@ describe("AboutModal Component", () => {
     });
   });
 
-  it("dismisses via close button, backdrop press, and Android hardware back press", async () => {
-    let backHandlerCb: (() => boolean | null | undefined) | undefined;
-    const backSpy = jest
-      .spyOn(BackHandler, "addEventListener")
-      .mockImplementation((_event, cb) => {
-        backHandlerCb = () => (cb as () => boolean | null | undefined)();
-        return { remove: jest.fn() } as never;
-      });
-
+  it("dismisses via close button and backdrop press", async () => {
     const onClose = jest.fn();
     const { getByTestId } = render(
       <AboutModal
@@ -247,12 +239,5 @@ describe("AboutModal Component", () => {
       fireEvent.press(getByTestId("about-modal-backdrop"));
     });
     expect(onClose).toHaveBeenCalledTimes(2);
-
-    act(() => {
-      expect(backHandlerCb?.()).toBe(true);
-    });
-    expect(onClose).toHaveBeenCalledTimes(3);
-
-    backSpy.mockRestore();
   });
 });

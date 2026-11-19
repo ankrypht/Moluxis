@@ -3,6 +3,7 @@ import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
 import {
   buildCompoundShareText,
+  cleanupOldShareSnapshots,
   getCompoundPubChemUrl,
   shareCompoundDetails,
   sharePubChemLink,
@@ -15,6 +16,13 @@ jest.mock("expo-file-system/legacy", () => ({
   cacheDirectory: "file:///mock-cache/",
   documentDirectory: "file:///mock-docs/",
   writeAsStringAsync: jest.fn().mockResolvedValue(undefined),
+  readDirectoryAsync: jest.fn().mockResolvedValue([]),
+  getInfoAsync: jest.fn().mockResolvedValue({
+    exists: true,
+    isDirectory: false,
+    modificationTime: 0,
+  }),
+  deleteAsync: jest.fn().mockResolvedValue(undefined),
   EncodingType: {
     Base64: "base64",
   },
@@ -148,18 +156,61 @@ describe("shareService", () => {
     });
   });
 
+  describe("cleanupOldShareSnapshots", () => {
+    it("deletes files starting with moluxis-share- that are older than maxAge", async () => {
+      const now = Date.now();
+      const oldTime = now - 15 * 60 * 1000; // 15 mins ago
+      const recentTime = now - 2 * 60 * 1000; // 2 mins ago
+
+      (FileSystem.readDirectoryAsync as jest.Mock).mockResolvedValueOnce([
+        `moluxis-share-${oldTime}-aspirin.png`,
+        `moluxis-share-${recentTime}-caffeine.png`,
+        "other-cache-file.tmp",
+      ]);
+
+      await cleanupOldShareSnapshots("file:///mock-cache/");
+
+      expect(FileSystem.deleteAsync).toHaveBeenCalledWith(
+        `file:///mock-cache/moluxis-share-${oldTime}-aspirin.png`,
+        { idempotent: true },
+      );
+      expect(FileSystem.deleteAsync).not.toHaveBeenCalledWith(
+        `file:///mock-cache/moluxis-share-${recentTime}-caffeine.png`,
+        expect.anything(),
+      );
+      expect(FileSystem.deleteAsync).not.toHaveBeenCalledWith(
+        "file:///mock-cache/other-cache-file.tmp",
+        expect.anything(),
+      );
+    });
+
+    it("handles filesystem errors gracefully without throwing", async () => {
+      (FileSystem.readDirectoryAsync as jest.Mock).mockRejectedValueOnce(
+        new Error("FS error"),
+      );
+
+      await expect(
+        cleanupOldShareSnapshots("file:///mock-cache/"),
+      ).resolves.toBeUndefined();
+    });
+  });
+
   describe("shareSnapshotImage", () => {
-    it("writes base64 file to cache and calls Sharing.shareAsync", async () => {
+    it("writes base64 file with dedicated prefix to cache and calls Sharing.shareAsync", async () => {
       const mockUri = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA";
       const result = await shareSnapshotImage(mockUri, "Caffeine");
       expect(result).toBe(true);
       expect(FileSystem.writeAsStringAsync).toHaveBeenCalledWith(
-        "file:///mock-cache/moluxis_caffeine_snapshot.png",
+        expect.stringMatching(
+          /^file:\/\/\/mock-cache\/moluxis-share-\d+-caffeine\.png$/,
+        ),
         "iVBORw0KGgoAAAANSUhEUgAA",
         { encoding: "base64" },
       );
       expect(Sharing.shareAsync).toHaveBeenCalledWith(
-        "file:///mock-cache/moluxis_caffeine_snapshot.png",
+        expect.stringMatching(
+          /^file:\/\/\/mock-cache\/moluxis-share-\d+-caffeine\.png$/,
+        ),
         expect.objectContaining({
           mimeType: "image/png",
           dialogTitle: "Share Caffeine 3D Snapshot",

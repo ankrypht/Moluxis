@@ -35,7 +35,6 @@ import {
   triggerSelectionHaptic,
   triggerSuccessHaptic,
 } from "../utils/haptics";
-import { useModalBackHandler } from "../hooks/useModalBackHandler";
 import { useBottomSheetAnimation } from "../hooks/useModalAnimation";
 import { AboutModalStyles } from "./AboutModal.styles";
 
@@ -94,8 +93,6 @@ export const AboutModal: React.FC<AboutModalProps> = React.memo(
       triggerImpactLight();
       onClose();
     }, [onClose]);
-
-    useModalBackHandler(visible, onClose);
 
     const handleOpenLink = useCallback((url: string) => {
       triggerSelectionHaptic();

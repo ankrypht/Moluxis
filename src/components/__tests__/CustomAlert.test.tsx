@@ -4,7 +4,6 @@ import {
   renderHook,
   act,
 } from "@testing-library/react-native";
-import { BackHandler } from "react-native";
 import {
   CustomAlertModal,
   Alert,
@@ -246,8 +245,7 @@ describe("CustomAlert Component & Service", () => {
       expect(customAlertManager.getCurrentAlert()).toBeNull();
     });
 
-    it("handles Android hardware back button when active", () => {
-      const backPressSpy = jest.spyOn(BackHandler, "addEventListener");
+    it("handles Android hardware back button via Alert.handleBackPress when active", () => {
       const onCancelMock = jest.fn();
 
       render(<CustomAlertModal />);
@@ -258,22 +256,13 @@ describe("CustomAlert Component & Service", () => {
         ]);
       });
 
-      expect(backPressSpy).toHaveBeenCalledWith(
-        "hardwareBackPress",
-        expect.any(Function),
-      );
-
-      // Invoke the back press handler registered
-      const registeredHandler = backPressSpy.mock.calls[0][1];
       let handledResult;
       act(() => {
-        handledResult = registeredHandler({} as any);
+        handledResult = Alert.handleBackPress();
       });
 
       expect(handledResult).toBe(true);
       expect(onCancelMock).toHaveBeenCalledTimes(1);
-
-      backPressSpy.mockRestore();
     });
 
     it("handles Alert.handleBackPress correctly for active, cancelable, and non-cancelable alerts", () => {

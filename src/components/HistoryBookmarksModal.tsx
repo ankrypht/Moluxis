@@ -19,7 +19,6 @@ import {
   triggerImpactLight,
   triggerWarningHaptic,
 } from "../utils/haptics";
-import { useModalBackHandler } from "../hooks/useModalBackHandler";
 import { useBottomSheetAnimation } from "../hooks/useModalAnimation";
 
 export interface HistoryBookmarksModalProps {
@@ -79,8 +78,6 @@ export const HistoryBookmarksModal: React.FC<HistoryBookmarksModalProps> =
         height,
         isLandscape,
       });
-
-      useModalBackHandler(visible, onClose);
 
       const activeItems = useMemo(
         () => (activeTab === "history" ? history : bookmarks),

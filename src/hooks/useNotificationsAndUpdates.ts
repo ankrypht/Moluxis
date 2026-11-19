@@ -20,6 +20,7 @@ import { registerBackgroundUpdateTask } from "../services/updates/backgroundUpda
 import {
   ReleaseHighlight,
   checkVersionAndTriggerNotice,
+  markCurrentVersionSeen,
 } from "../services/updates/updateNoticeService";
 
 export const IS_DEV_TEST_ENABLED =
@@ -175,16 +176,21 @@ export function useNotificationsAndUpdates({
   // Startup initialization: channels, permission, spotlight, What's New, and update check
   useEffect(() => {
     let isMounted = true;
+    let updateTimer: ReturnType<typeof setTimeout> | null = null;
 
     const initialize = async () => {
-      await setupNotificationChannels();
-      const granted = await requestNotificationPermission();
+      // Setup channels, background update task, and request permissions concurrently
+      const [, , granted] = await Promise.all([
+        setupNotificationChannels(),
+        registerBackgroundUpdateTask(),
+        requestNotificationPermission(),
+      ]);
+
+      if (!isMounted) return;
+
       if (granted) {
         await scheduleWeeklyMoleculeSpotlight();
-        await scheduleBookmarkRetentionReminder(bookmarksRef.current);
       }
-
-      await registerBackgroundUpdateTask();
 
       const notice = await checkVersionAndTriggerNotice();
       if (!isMounted) return;
@@ -194,19 +200,27 @@ export function useNotificationsAndUpdates({
         setShowWhatsNewModal(true);
       }
 
-      const updateInfo = await checkForAppUpdate();
-      if (!isMounted || !updateInfo) return;
+      // Defer network-bound update check so startup and initial render are never blocked
+      updateTimer = setTimeout(async () => {
+        if (!isMounted) return;
+        try {
+          const updateInfo = await checkForAppUpdate();
+          if (!isMounted || !updateInfo) return;
 
-      setReleaseInfo(updateInfo);
+          setReleaseInfo(updateInfo);
 
-      if (granted) {
-        await notifyUpdateAvailable(updateInfo);
-      }
+          if (granted) {
+            await notifyUpdateAvailable(updateInfo);
+          }
 
-      // Avoid stacking two modals on first launch after upgrade
-      if (!notice.shouldShowModal) {
-        setShowUpdateModal(true);
-      }
+          // Avoid stacking two modals on first launch after upgrade
+          if (!notice.shouldShowModal) {
+            setShowUpdateModal(true);
+          }
+        } catch (error) {
+          console.warn("Deferred update check failed:", error);
+        }
+      }, 800);
     };
 
     initialize().catch((error) => {
@@ -215,6 +229,9 @@ export function useNotificationsAndUpdates({
 
     return () => {
       isMounted = false;
+      if (updateTimer) {
+        clearTimeout(updateTimer);
+      }
     };
   }, []);
 
@@ -302,8 +319,11 @@ export function useNotificationsAndUpdates({
   }, []);
 
   const dismissWhatsNewModal = useCallback(() => {
+    if (whatsNewNotes?.version) {
+      markCurrentVersionSeen(whatsNewNotes.version).catch(() => {});
+    }
     setShowWhatsNewModal(false);
-  }, []);
+  }, [whatsNewNotes]);
 
   return {
     releaseInfo,

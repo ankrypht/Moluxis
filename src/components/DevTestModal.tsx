@@ -13,7 +13,6 @@ import * as Notifications from "expo-notifications";
 import { COLORS } from "../constants/colors";
 import { SavedCompoundItem } from "../types";
 import { triggerImpactLight, triggerSelectionHaptic } from "../utils/haptics";
-import { useModalBackHandler } from "../hooks/useModalBackHandler";
 import {
   NOTIFICATION_CHANNEL_IDS,
   NOTIF_PERMISSION_ASKED_KEY,
@@ -134,8 +133,6 @@ export const DevTestModal: React.FC<DevTestModalProps> = React.memo(
         refreshDiagnostics();
       }
     }, [visible, refreshDiagnostics]);
-
-    useModalBackHandler(visible, onClose);
 
     const runAction = useCallback(
       async (label: string, fn: () => Promise<void> | void) => {

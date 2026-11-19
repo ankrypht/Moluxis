@@ -46,19 +46,36 @@ export function useMeasurement({
   isLandscape,
   onStartMeasuring,
 }: UseMeasurementOptions) {
-  const [isMeasuring, setIsMeasuring] = useState(false);
+  const currentMoleculeKey = moleculeData?.cid || moleculeData?.name || null;
+  const [measuringMoleculeKey, setMeasuringMoleculeKey] = useState<
+    string | null
+  >(null);
+
+  const [isMeasuringState, setIsMeasuringState] = useState(false);
   const [measurementMode, setMeasurementMode] =
     useState<MeasurementMode>("distance");
-  const [pickedAtoms, setPickedAtoms] = useState<PickedAtom[]>([]);
-  const [measurePanelSize, setMeasurePanelSize] = useState<{
+  const [pickedAtomsState, setPickedAtomsState] = useState<PickedAtom[]>([]);
+  const [measurePanelSizeState, setMeasurePanelSizeState] = useState<{
     width: number;
     height: number;
     isLandscape: boolean;
   }>(EMPTY_MEASURE_PANEL_SIZE);
 
+  // Scoped to the active molecule: immediately resolves to false/empty when molecule changes
+  const isCurrentMolecule =
+    currentMoleculeKey !== null && measuringMoleculeKey === currentMoleculeKey;
+  const isMeasuring = isCurrentMolecule ? isMeasuringState : false;
+  const pickedAtoms = useMemo(
+    () => (isCurrentMolecule ? pickedAtomsState : []),
+    [isCurrentMolecule, pickedAtomsState],
+  );
+  const measurePanelSize = isCurrentMolecule
+    ? measurePanelSizeState
+    : EMPTY_MEASURE_PANEL_SIZE;
+
   const handleMeasurePanelLayout = useCallback(
     (size: { width: number; height: number }) => {
-      setMeasurePanelSize((prev) => {
+      setMeasurePanelSizeState((prev) => {
         if (
           prev.width === size.width &&
           prev.height === size.height &&
@@ -73,9 +90,10 @@ export function useMeasurement({
   );
 
   const handleCloseMeasure = useCallback(() => {
-    setIsMeasuring(false);
-    setPickedAtoms([]);
-    setMeasurePanelSize(EMPTY_MEASURE_PANEL_SIZE);
+    setMeasuringMoleculeKey(null);
+    setIsMeasuringState(false);
+    setPickedAtomsState([]);
+    setMeasurePanelSizeState(EMPTY_MEASURE_PANEL_SIZE);
   }, []);
 
   const measurementData = useMemo<MeasurementData | null>(() => {
@@ -141,7 +159,8 @@ export function useMeasurement({
       if (structureFormat === "2d" && has3dStructure(moleculeData)) {
         setStructureFormat("3d");
       }
-      setIsMeasuring(true);
+      setMeasuringMoleculeKey(currentMoleculeKey);
+      setIsMeasuringState(true);
       onStartMeasuringRef.current?.();
     }
   }, [
@@ -150,27 +169,29 @@ export function useMeasurement({
     moleculeData,
     handleCloseMeasure,
     setStructureFormat,
+    currentMoleculeKey,
   ]);
 
   const handleSelectMeasurementMode = useCallback((mode: MeasurementMode) => {
     setMeasurementMode(mode);
-    setPickedAtoms([]);
+    setPickedAtomsState([]);
   }, []);
 
   const handleRemoveAtom = useCallback((index: number) => {
-    setPickedAtoms((prev) => prev.filter((_, i) => i !== index));
+    setPickedAtomsState((prev) => prev.filter((_, i) => i !== index));
   }, []);
 
   const handleClearMeasurements = useCallback(() => {
-    setPickedAtoms([]);
+    setPickedAtomsState([]);
   }, []);
 
   const handleAtomPicked = useCallback(
     (atom: PickedAtom) => {
       if (!isMeasuring) return;
       triggerMeasurementHaptic();
+      setMeasuringMoleculeKey(currentMoleculeKey);
 
-      setPickedAtoms((prev) => {
+      setPickedAtomsState((prev) => {
         const existingIndex = prev.findIndex((a) =>
           a.index !== undefined && atom.index !== undefined
             ? a.index === atom.index
@@ -187,13 +208,14 @@ export function useMeasurement({
         return [...prev, atom];
       });
     },
-    [isMeasuring, measurementMode],
+    [isMeasuring, measurementMode, currentMoleculeKey],
   );
 
   const resetMeasurement = useCallback(() => {
-    setIsMeasuring(false);
-    setPickedAtoms([]);
-    setMeasurePanelSize(EMPTY_MEASURE_PANEL_SIZE);
+    setMeasuringMoleculeKey(null);
+    setIsMeasuringState(false);
+    setPickedAtomsState([]);
+    setMeasurePanelSizeState(EMPTY_MEASURE_PANEL_SIZE);
   }, []);
 
   return {

@@ -1,5 +1,4 @@
 import { render, fireEvent, act } from "@testing-library/react-native";
-import { BackHandler } from "react-native";
 import { ShareExportModal } from "../ShareExportModal";
 import { getShareExportModalStyles } from "../ShareExportModal.styles";
 import { getScaleMetrics } from "../../utils/scaling";
@@ -401,25 +400,5 @@ describe("ShareExportModal", () => {
 
     expect(onRefreshSnapshot).toHaveBeenCalled();
     expect(mockTriggerSelectionHaptic).toHaveBeenCalled();
-  });
-
-  it("dismisses on hardware back press when visible", () => {
-    let backHandlerCb: (() => boolean | null | undefined) | undefined;
-    const backSpy = jest
-      .spyOn(BackHandler, "addEventListener")
-      .mockImplementation((_event, cb) => {
-        backHandlerCb = () => (cb as () => boolean | null | undefined)();
-        return { remove: jest.fn() } as never;
-      });
-
-    const onClose = jest.fn();
-    render(<ShareExportModal {...defaultProps} onClose={onClose} />);
-
-    act(() => {
-      expect(backHandlerCb?.()).toBe(true);
-    });
-    expect(onClose).toHaveBeenCalledTimes(1);
-
-    backSpy.mockRestore();
   });
 });

@@ -20,7 +20,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { COLORS, addOpacity } from "../constants/colors";
 import { triggerSelectionHaptic, triggerWarningHaptic } from "../utils/haptics";
 import { getCustomAlertStyles, CustomAlertStyles } from "./CustomAlert.styles";
-import { useModalBackHandler } from "../hooks/useModalBackHandler";
 import {
   AlertButtonStyle,
   CustomAlertButton,
@@ -324,8 +323,6 @@ export const CustomAlertModal: React.FC<CustomAlertModalProps> = React.memo(
       },
       [alertData, handleDismissAnimation],
     );
-
-    useModalBackHandler(Boolean(alertData), handleBackdropPress);
 
     if (!alertData) {
       return null;
