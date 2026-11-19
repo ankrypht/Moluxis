@@ -39,12 +39,16 @@ ${THREE_DMOL_SCRIPT}
     let isUserDragging = false;
     let isReadyNotified = false;
 
+    let notifyReadyRetries = 0;
+    const MAX_NOTIFY_READY_RETRIES = 100;
+
     function notifyReady() {
       if (isReadyNotified) return;
       if (window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === 'function') {
         isReadyNotified = true;
         window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'WEBVIEW_READY' }));
-      } else {
+      } else if (notifyReadyRetries < MAX_NOTIFY_READY_RETRIES) {
+        notifyReadyRetries++;
         setTimeout(notifyReady, 50);
       }
     }

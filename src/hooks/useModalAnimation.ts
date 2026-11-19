@@ -77,7 +77,7 @@ export function useDialogScaleAnimation(visible: boolean) {
     if (!visible) return;
     fadeAnim.setValue(0);
     scaleAnim.setValue(0.94);
-    Animated.parallel([
+    const animation = Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 180,
@@ -89,7 +89,11 @@ export function useDialogScaleAnimation(visible: boolean) {
         tension: 80,
         useNativeDriver: true,
       }),
-    ]).start();
+    ]);
+    animation.start();
+    return () => {
+      animation.stop();
+    };
   }, [visible, fadeAnim, scaleAnim]);
 
   return {

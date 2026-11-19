@@ -536,6 +536,10 @@ export const MoleculeViewer = React.memo(
                   "WebView render process gone, didCrash:",
                   didCrash,
                 );
+                if (fallbackTimerRef.current) {
+                  clearTimeout(fallbackTimerRef.current);
+                  fallbackTimerRef.current = null;
+                }
                 isWebViewReadyRef.current = false;
                 setIsViewerReady(false);
                 lastLoadedSignatureRef.current = null;

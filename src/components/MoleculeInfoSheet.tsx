@@ -58,13 +58,17 @@ export const MoleculeInfoSheet: React.FC<MoleculeInfoSheetProps> = React.memo(
     );
 
     useEffect(() => {
-      Animated.spring(slideAnim, {
+      const animation = Animated.spring(slideAnim, {
         toValue: showInfo ? 0 : sheetHeight,
         useNativeDriver: true,
         friction: 9,
         tension: 65,
         overshootClamping: true,
-      }).start();
+      });
+      animation.start();
+      return () => {
+        animation.stop();
+      };
     }, [showInfo, sheetHeight, slideAnim]);
 
     const signalWords = useMemo(() => {

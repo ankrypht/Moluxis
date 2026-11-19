@@ -340,7 +340,8 @@ function MoleculeExplorer() {
 
   const handleCloseShareModal = useCallback(() => {
     setShowShareModal(false);
-  }, []);
+    resetSnapshot();
+  }, [resetSnapshot]);
 
   const handleEnterZenMode = useCallback(() => {
     setShowControls(false);

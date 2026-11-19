@@ -96,6 +96,16 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
     const isPhoneLandscape = isLandscape && height < 600;
     const scrollViewRef = useRef<ScrollViewInstance>(null);
     const hasRestoredScrollRef = useRef(false);
+    const restoreScrollRafRef = useRef<number | null>(null);
+
+    useEffect(() => {
+      return () => {
+        if (restoreScrollRafRef.current !== null) {
+          cancelAnimationFrame(restoreScrollRafRef.current);
+          restoreScrollRafRef.current = null;
+        }
+      };
+    }, []);
 
     const [selectedCategory, setSelectedCategory] =
       useState<FeaturedCategoryKey>(
@@ -140,7 +150,8 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
           contentHeight > 0
         ) {
           hasRestoredScrollRef.current = true;
-          requestAnimationFrame(() => {
+          restoreScrollRafRef.current = requestAnimationFrame(() => {
+            restoreScrollRafRef.current = null;
             scrollViewRef.current?.scrollTo({
               y: initialScrollOffset,
               animated: false,
@@ -345,7 +356,7 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
               : undefined
           }
           onScroll={handleScroll}
-          scrollEventThrottle={16}
+          scrollEventThrottle={64}
           onContentSizeChange={handleContentSizeChange}
           contentContainerStyle={[
             styles.featuredScrollContent,

@@ -25,6 +25,10 @@ describe("VIEWER_HTML", () => {
     expect(VIEWER_HTML).toContain("let isReadyNotified = false");
     expect(VIEWER_HTML).toContain("if (isReadyNotified) return");
     expect(VIEWER_HTML).toContain("if (viewer) return");
+    expect(VIEWER_HTML).toContain("const MAX_NOTIFY_READY_RETRIES = 100");
+    expect(VIEWER_HTML).toContain(
+      "else if (notifyReadyRetries < MAX_NOTIFY_READY_RETRIES)",
+    );
   });
 
   it("should include the bundled 3Dmol.js script", () => {

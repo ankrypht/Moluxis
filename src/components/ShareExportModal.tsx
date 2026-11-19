@@ -71,10 +71,13 @@ export const ShareExportModal: React.FC<ShareExportModalProps> = React.memo(
     const [isSharingImage, setIsSharingImage] = useState(false);
     const [pendingShareSnapshot, setPendingShareSnapshot] = useState(false);
     const hasAttemptedCaptureRef = useRef(false);
-    const prevCidRef = useRef<string | undefined>(moleculeData?.cid);
+    const moleculeKey = moleculeData
+      ? `${moleculeData.cid || ""}:${moleculeData.codId || ""}:${moleculeData.name || ""}`
+      : null;
+    const prevMoleculeKeyRef = useRef<string | null>(moleculeKey);
 
-    if (moleculeData?.cid !== prevCidRef.current) {
-      prevCidRef.current = moleculeData?.cid;
+    if (moleculeKey !== prevMoleculeKeyRef.current) {
+      prevMoleculeKeyRef.current = moleculeKey;
       hasAttemptedCaptureRef.current = false;
     }
 
@@ -104,7 +107,7 @@ export const ShareExportModal: React.FC<ShareExportModalProps> = React.memo(
       snapshotUri,
       isCapturingSnapshot,
       onRefreshSnapshot,
-      moleculeData?.cid,
+      moleculeKey,
     ]);
 
     // If user tapped share snapshot while it was capturing, share once ready

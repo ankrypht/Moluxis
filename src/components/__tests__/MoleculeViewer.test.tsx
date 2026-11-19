@@ -607,6 +607,32 @@ describe("MoleculeViewer", () => {
       expect(queryByTestId("render-fallback-card")).toBeNull();
     });
 
+    it("clears pending fallback timer on onRenderProcessGone crash", () => {
+      const clearTimeoutSpy = jest.spyOn(global, "clearTimeout");
+      const { getByTestId } = render(
+        <MoleculeViewer
+          moleculeData={sampleMolecule}
+          isLoading={false}
+          structureFormat="3d"
+          vizStyle="ballStick"
+          showLabels={false}
+          isAnimated={true}
+          styles={mockStyles}
+        />,
+      );
+
+      const webview = getByTestId("molecule-webview");
+
+      act(() => {
+        webview.props.onRenderProcessGone({
+          nativeEvent: { didCrash: true },
+        });
+      });
+
+      expect(clearTimeoutSpy).toHaveBeenCalled();
+      clearTimeoutSpy.mockRestore();
+    });
+
     it("stops retrying and renders graceful fallback card on second onRenderProcessGone crash", () => {
       const { getByTestId, queryByTestId, getByText, queryByText } = render(
         <MoleculeViewer

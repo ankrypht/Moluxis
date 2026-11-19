@@ -243,6 +243,27 @@ describe("FeaturedMolecules Component", () => {
 
     const scrollView = getByTestId("featured-molecules-scroll");
     expect(scrollView.props.contentOffset).toEqual({ x: 0, y: 350 });
+    expect(scrollView.props.scrollEventThrottle).toBe(64);
+  });
+
+  it("cancels pending scroll restoration requestAnimationFrame on unmount", () => {
+    const cancelRafSpy = jest.spyOn(global, "cancelAnimationFrame");
+    const { getByTestId, unmount } = render(
+      <FeaturedMolecules
+        onSelectMolecule={jest.fn()}
+        styles={styles}
+        initialScrollOffset={300}
+      />,
+    );
+
+    const scrollView = getByTestId("featured-molecules-scroll");
+    act(() => {
+      scrollView.props.onContentSizeChange(390, 2000);
+    });
+
+    unmount();
+    expect(cancelRafSpy).toHaveBeenCalled();
+    cancelRafSpy.mockRestore();
   });
 
   it("renders correctly on wider tablet screens", () => {

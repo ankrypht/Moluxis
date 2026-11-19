@@ -1,4 +1,5 @@
 import { render, fireEvent } from "@testing-library/react-native";
+import { Animated } from "react-native";
 import { MoleculeInfoSheet } from "../MoleculeInfoSheet";
 import { getMoleculeInfoSheetStyles } from "../MoleculeInfoSheet.styles";
 import { getScaleMetrics } from "../../utils/scaling";
@@ -74,5 +75,31 @@ describe("MoleculeInfoSheet Component", () => {
     const shareBtn = getByTestId("sheet-share-button");
     fireEvent.press(shareBtn);
     expect(handleOpenShare).toHaveBeenCalledTimes(1);
+  });
+
+  it("stops entrance/exit spring animation on unmount", () => {
+    const stopMock = jest.fn();
+    const springSpy = jest.spyOn(Animated, "spring").mockReturnValue({
+      start: jest.fn(),
+      stop: stopMock,
+      reset: jest.fn(),
+    });
+
+    const { unmount } = render(
+      <MoleculeInfoSheet
+        moleculeData={mockMoleculeData}
+        showInfo={true}
+        isLandscape={false}
+        width={390}
+        height={844}
+        insets={insets}
+        styles={styles}
+        onClose={jest.fn()}
+      />,
+    );
+
+    unmount();
+    expect(stopMock).toHaveBeenCalled();
+    springSpy.mockRestore();
   });
 });

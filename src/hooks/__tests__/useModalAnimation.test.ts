@@ -234,5 +234,19 @@ describe("useModalAnimation", () => {
         }),
       );
     });
+
+    it("stops animation on unmount when visible is true", () => {
+      const stopMock = jest.fn();
+      parallelSpy.mockReturnValue({
+        start: jest.fn(),
+        stop: stopMock,
+        reset: jest.fn(),
+      });
+
+      const { unmount } = renderHook(() => useDialogScaleAnimation(true));
+
+      unmount();
+      expect(stopMock).toHaveBeenCalled();
+    });
   });
 });

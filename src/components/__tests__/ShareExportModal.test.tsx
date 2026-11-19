@@ -243,6 +243,49 @@ describe("ShareExportModal", () => {
     expect(onRefreshSnapshot).toHaveBeenCalledTimes(2);
   });
 
+  it("resets capture attempt when switching between non-CID structures", () => {
+    const onRefreshSnapshot = jest.fn();
+    const nonCidMoleculeA: MoleculeInfo = {
+      ...sampleMolecule,
+      cid: "",
+      name: "NonCidA",
+      codId: "10001",
+    };
+    const nonCidMoleculeB: MoleculeInfo = {
+      ...sampleMolecule,
+      cid: "",
+      name: "NonCidB",
+      codId: "10002",
+    };
+
+    const { rerender } = render(
+      <ShareExportModal
+        {...defaultProps}
+        visible={true}
+        moleculeData={nonCidMoleculeA}
+        snapshotUri={null}
+        isCapturingSnapshot={false}
+        onRefreshSnapshot={onRefreshSnapshot}
+      />,
+    );
+
+    expect(onRefreshSnapshot).toHaveBeenCalledTimes(1);
+
+    // Switch to another non-CID structure
+    rerender(
+      <ShareExportModal
+        {...defaultProps}
+        visible={true}
+        moleculeData={nonCidMoleculeB}
+        snapshotUri={null}
+        isCapturingSnapshot={false}
+        onRefreshSnapshot={onRefreshSnapshot}
+      />,
+    );
+
+    expect(onRefreshSnapshot).toHaveBeenCalledTimes(2);
+  });
+
   it("shares 3D snapshot image when share button is tapped", async () => {
     const { getByTestId } = render(<ShareExportModal {...defaultProps} />);
 
