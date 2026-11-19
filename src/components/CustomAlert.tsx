@@ -16,7 +16,7 @@ import {
   StyleSheet,
 } from "react-native";
 import { Insets, getScaleMetrics } from "../utils/scaling";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { COLORS, addOpacity } from "../constants/colors";
 import { triggerSelectionHaptic, triggerWarningHaptic } from "../utils/haptics";
 import { getCustomAlertStyles, CustomAlertStyles } from "./CustomAlert.styles";

@@ -14,6 +14,8 @@ import {
 export const SNOOZE_UPDATE_KEY = "@moluxis_update_snooze_until_v1";
 export const NOTIFIED_UPDATE_VERSION_KEY =
   "@moluxis_notified_update_version_v1";
+export const LAST_UPDATE_CHECK_KEY = "@moluxis_last_update_check_timestamp_v1";
+export const UPDATE_CHECK_COOLDOWN_MS = 6 * 60 * 60 * 1000; // 6 hours
 
 const UPDATE_FETCH_TIMEOUT_MS = 8000;
 
@@ -55,6 +57,8 @@ export function isUpdateCheckDisabled(): boolean {
 
 export interface CheckForUpdateOptions {
   bypassSnooze?: boolean;
+  bypassCooldown?: boolean;
+  signal?: AbortSignal;
 }
 
 /**
@@ -67,7 +71,24 @@ export async function checkForAppUpdate(
     return null;
   }
 
+  if (options.signal?.aborted) {
+    return null;
+  }
+
   try {
+    if (!options.bypassCooldown) {
+      const lastCheck = await AsyncStorage.getItem(LAST_UPDATE_CHECK_KEY);
+      if (lastCheck) {
+        const parsed = parseInt(lastCheck, 10);
+        if (
+          Number.isFinite(parsed) &&
+          Date.now() - parsed < UPDATE_CHECK_COOLDOWN_MS
+        ) {
+          return null;
+        }
+      }
+    }
+
     if (!options.bypassSnooze) {
       const snoozedUntil = await AsyncStorage.getItem(SNOOZE_UPDATE_KEY);
       if (snoozedUntil) {
@@ -79,6 +100,10 @@ export async function checkForAppUpdate(
     }
 
     const controller = new AbortController();
+    const onParentAbort = () => controller.abort(options.signal?.reason);
+    if (options.signal) {
+      options.signal.addEventListener("abort", onParentAbort);
+    }
     const timeoutId = setTimeout(
       () => controller.abort(),
       UPDATE_FETCH_TIMEOUT_MS,
@@ -95,7 +120,13 @@ export async function checkForAppUpdate(
       );
     } finally {
       clearTimeout(timeoutId);
+      if (options.signal) {
+        options.signal.removeEventListener("abort", onParentAbort);
+      }
     }
+
+    // Record check timestamp so future startup checks respect the cooldown
+    await AsyncStorage.setItem(LAST_UPDATE_CHECK_KEY, Date.now().toString());
 
     if (!response.ok) return null;
 
@@ -119,7 +150,10 @@ export async function checkForAppUpdate(
         `https://github.com/${GITHUB_REPO}/releases/latest`,
       isNewer: true,
     };
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.name === "AbortError" || options.signal?.aborted) {
+      return null;
+    }
     console.warn("Update check failed:", error);
     return null;
   }

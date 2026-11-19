@@ -24,18 +24,15 @@ export const ChemicalFormula: React.FC<ChemicalFormulaProps> = React.memo(
       return formatSubscriptFormula(formula);
     }, [formula]);
 
+    const computedStyle = useMemo(() => {
+      const fontSize = getResponsiveSize(18, width, height);
+      return style
+        ? [styles.statValue, { fontSize }, style]
+        : [styles.statValue, { fontSize }];
+    }, [width, height, style]);
+
     return (
-      <Text
-        allowFontScaling={false}
-        testID={testID}
-        style={
-          [
-            styles.statValue,
-            { fontSize: getResponsiveSize(18, width, height) },
-            style,
-          ].filter(Boolean) as StyleProp<TextStyle>
-        }
-      >
+      <Text allowFontScaling={false} testID={testID} style={computedStyle}>
         {formattedFormula}
       </Text>
     );

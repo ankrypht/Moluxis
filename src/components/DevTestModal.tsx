@@ -7,7 +7,7 @@ import {
   Pressable,
   Platform,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
 import { COLORS } from "../constants/colors";

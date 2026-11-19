@@ -7,7 +7,7 @@ import {
   Animated,
   Pressable,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { Alert } from "./CustomAlert";
 import { SavedCompoundItem } from "../types";
 import { COLORS } from "../constants/colors";
@@ -38,6 +38,124 @@ export interface HistoryBookmarksModalProps {
   isLandscape?: boolean;
   height?: number;
 }
+
+interface HistoryBookmarkRowItemProps {
+  item: SavedCompoundItem;
+  bookmarked: boolean;
+  isHistoryTab: boolean;
+  styles: HistoryBookmarksModalStyles;
+  onSelect: (name: string) => void;
+  onToggleBookmark: (item: SavedCompoundItem) => void;
+  onRemoveItem: (name: string, isHistory: boolean) => void;
+}
+
+const HistoryBookmarkRowItem = React.memo<HistoryBookmarkRowItemProps>(
+  ({
+    item,
+    bookmarked,
+    isHistoryTab,
+    styles,
+    onSelect,
+    onToggleBookmark,
+    onRemoveItem,
+  }) => {
+    const handlePress = useCallback(() => {
+      onSelect(item.name);
+    }, [onSelect, item.name]);
+
+    const handleToggle = useCallback(() => {
+      triggerImpactLight();
+      onToggleBookmark(item);
+    }, [onToggleBookmark, item]);
+
+    const handleRemove = useCallback(() => {
+      triggerImpactLight();
+      onRemoveItem(item.name, isHistoryTab);
+    }, [onRemoveItem, item.name, isHistoryTab]);
+
+    return (
+      <View style={styles.itemCard}>
+        <TouchableOpacity
+          style={styles.itemLeftSection}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel={`Revisit ${item.name}`}
+          onPress={handlePress}
+        >
+          <View
+            style={[
+              styles.iconBadge,
+              !isHistoryTab && styles.iconBadgeFavorite,
+            ]}
+          >
+            <Ionicons
+              name={isHistoryTab ? "time-outline" : "bookmark"}
+              size={20}
+              color={isHistoryTab ? COLORS.primary : COLORS.warning}
+            />
+          </View>
+
+          <View style={styles.itemDetails}>
+            <Text
+              allowFontScaling={false}
+              style={styles.itemName}
+              numberOfLines={1}
+            >
+              {item.name}
+            </Text>
+            <View style={styles.itemMetaRow}>
+              {item.formula ? (
+                <ChemicalFormula
+                  formula={item.formula}
+                  style={styles.itemFormulaText}
+                />
+              ) : null}
+              {item.timestamp ? (
+                <Text allowFontScaling={false} style={styles.itemTimeText}>
+                  • {formatRelativeTime(item.timestamp)}
+                </Text>
+              ) : null}
+            </View>
+          </View>
+        </TouchableOpacity>
+
+        <View style={styles.itemRightSection}>
+          <TouchableOpacity
+            testID={`bookmark-toggle-${item.name.toLowerCase()}`}
+            accessibilityRole="button"
+            accessibilityLabel={
+              bookmarked
+                ? `Remove ${item.name} from bookmarks`
+                : `Bookmark ${item.name}`
+            }
+            style={styles.actionIconButton}
+            onPress={handleToggle}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Ionicons
+              name={bookmarked ? "bookmark" : "bookmark-outline"}
+              size={20}
+              color={bookmarked ? COLORS.warning : COLORS.textSecondary}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            testID={`remove-item-${item.name.toLowerCase()}`}
+            accessibilityRole="button"
+            accessibilityLabel={`Delete ${item.name} from list`}
+            style={styles.actionIconButton}
+            onPress={handleRemove}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Ionicons name="trash-outline" size={17} color={COLORS.textMuted} />
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  },
+);
+
+HistoryBookmarkRowItem.displayName = "HistoryBookmarkRowItem";
 
 export const HistoryBookmarksModal: React.FC<HistoryBookmarksModalProps> =
   React.memo(
@@ -116,117 +234,45 @@ export const HistoryBookmarksModal: React.FC<HistoryBookmarksModalProps> =
         [onSelectCompound, onClose],
       );
 
-      const renderItem = useCallback(
-        ({ item }: { item: SavedCompoundItem }) => {
-          const bookmarked = isBookmarked(item.name);
-          const isHistoryTab = activeTab === "history";
-
-          return (
-            <View style={styles.itemCard}>
-              <TouchableOpacity
-                style={styles.itemLeftSection}
-                activeOpacity={0.7}
-                accessibilityRole="button"
-                accessibilityLabel={`Revisit ${item.name}`}
-                onPress={() => handleSelectItem(item.name)}
-              >
-                <View
-                  style={[
-                    styles.iconBadge,
-                    !isHistoryTab && styles.iconBadgeFavorite,
-                  ]}
-                >
-                  <Ionicons
-                    name={isHistoryTab ? "time-outline" : "bookmark"}
-                    size={20}
-                    color={isHistoryTab ? COLORS.primary : COLORS.warning}
-                  />
-                </View>
-
-                <View style={styles.itemDetails}>
-                  <Text
-                    allowFontScaling={false}
-                    style={styles.itemName}
-                    numberOfLines={1}
-                  >
-                    {item.name}
-                  </Text>
-                  <View style={styles.itemMetaRow}>
-                    {item.formula ? (
-                      <ChemicalFormula
-                        formula={item.formula}
-                        style={styles.itemFormulaText}
-                      />
-                    ) : null}
-                    {item.timestamp ? (
-                      <Text
-                        allowFontScaling={false}
-                        style={styles.itemTimeText}
-                      >
-                        • {formatRelativeTime(item.timestamp)}
-                      </Text>
-                    ) : null}
-                  </View>
-                </View>
-              </TouchableOpacity>
-
-              <View style={styles.itemRightSection}>
-                <TouchableOpacity
-                  testID={`bookmark-toggle-${item.name.toLowerCase()}`}
-                  accessibilityRole="button"
-                  accessibilityLabel={
-                    bookmarked
-                      ? `Remove ${item.name} from bookmarks`
-                      : `Bookmark ${item.name}`
-                  }
-                  style={styles.actionIconButton}
-                  onPress={() => {
-                    triggerImpactLight();
-                    onToggleBookmark(item);
-                  }}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                >
-                  <Ionicons
-                    name={bookmarked ? "bookmark" : "bookmark-outline"}
-                    size={20}
-                    color={bookmarked ? COLORS.warning : COLORS.textSecondary}
-                  />
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  testID={`remove-item-${item.name.toLowerCase()}`}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Delete ${item.name} from list`}
-                  style={styles.actionIconButton}
-                  onPress={() => {
-                    triggerImpactLight();
-                    if (isHistoryTab) {
-                      onRemoveHistoryItem(item.name);
-                    } else {
-                      onRemoveBookmarkItem(item.name);
-                    }
-                  }}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                >
-                  <Ionicons
-                    name="trash-outline"
-                    size={17}
-                    color={COLORS.textMuted}
-                  />
-                </TouchableOpacity>
-              </View>
-            </View>
-          );
+      const handleRemoveItem = useCallback(
+        (name: string, isHistory: boolean) => {
+          if (isHistory) {
+            onRemoveHistoryItem(name);
+          } else {
+            onRemoveBookmarkItem(name);
+          }
         },
+        [onRemoveHistoryItem, onRemoveBookmarkItem],
+      );
+
+      const renderItem = useCallback(
+        ({ item }: { item: SavedCompoundItem }) => (
+          <HistoryBookmarkRowItem
+            item={item}
+            bookmarked={isBookmarked(item.name)}
+            isHistoryTab={activeTab === "history"}
+            styles={styles}
+            onSelect={handleSelectItem}
+            onToggleBookmark={onToggleBookmark}
+            onRemoveItem={handleRemoveItem}
+          />
+        ),
         [
           activeTab,
           isBookmarked,
-          onToggleBookmark,
-          onRemoveHistoryItem,
-          onRemoveBookmarkItem,
-          handleSelectItem,
           styles,
+          handleSelectItem,
+          onToggleBookmark,
+          handleRemoveItem,
         ],
+      );
+
+      const keyExtractor = useCallback(
+        (item: SavedCompoundItem) =>
+          item.cid
+            ? `cid-${item.cid}`
+            : `name-${item.name.trim().toLowerCase()}`,
+        [],
       );
 
       const renderEmptyState = useCallback(() => {
@@ -448,14 +494,15 @@ export const HistoryBookmarksModal: React.FC<HistoryBookmarksModalProps> =
             {/* List of Compounds */}
             <FlatList
               data={activeItems}
-              keyExtractor={(item, index) =>
-                `${activeTab}-${item.name.trim().toLowerCase()}-${index}`
-              }
+              keyExtractor={keyExtractor}
               renderItem={renderItem}
               ListEmptyComponent={renderEmptyState}
               contentContainerStyle={styles.listContent}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
+              windowSize={5}
+              maxToRenderPerBatch={8}
+              removeClippedSubviews={true}
             />
           </Animated.View>
         </Animated.View>

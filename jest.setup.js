@@ -6,6 +6,7 @@ jest.mock("@expo/vector-icons", () => {
   const createMockIcon = (name) => {
     const MockIcon = (props) => React.createElement(View, props);
     MockIcon.displayName = `MockIcon(${name})`;
+    MockIcon.glyphMap = {};
     return MockIcon;
   };
 
@@ -17,6 +18,18 @@ jest.mock("@expo/vector-icons", () => {
     AntDesign: createMockIcon("AntDesign"),
     Entypo: createMockIcon("Entypo"),
     MaterialCommunityIcons: createMockIcon("MaterialCommunityIcons"),
+  };
+});
+
+jest.mock("@expo/vector-icons/Ionicons", () => {
+  const React = require("react");
+  const { View } = require("react-native");
+  const MockIcon = (props) => React.createElement(View, props);
+  MockIcon.displayName = "MockIcon(Ionicons)";
+  MockIcon.glyphMap = {};
+  return {
+    __esModule: true,
+    default: MockIcon,
   };
 });
 

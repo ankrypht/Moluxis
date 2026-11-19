@@ -3,6 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from "expo-constants";
 import * as distributions from "../../../constants/distributions";
 import {
+  LAST_UPDATE_CHECK_KEY,
   NOTIFIED_UPDATE_VERSION_KEY,
   SNOOZE_UPDATE_KEY,
   checkForAppUpdate,
@@ -74,6 +75,48 @@ describe("appUpdateChecker", () => {
       global.fetch = jest.fn();
       expect(await checkForAppUpdate()).toBeNull();
       expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    it("respects 6h cooldown unless bypassCooldown is true", async () => {
+      const recentCheck = String(Date.now() - 30 * 60 * 1000); // 30 minutes ago
+      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) =>
+        key === LAST_UPDATE_CHECK_KEY
+          ? Promise.resolve(recentCheck)
+          : Promise.resolve(null),
+      );
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ tag_name: "v2.5.0", assets: [] }),
+      });
+
+      expect(await checkForAppUpdate()).toBeNull();
+      expect(global.fetch).not.toHaveBeenCalled();
+
+      const bypassed = await checkForAppUpdate({ bypassCooldown: true });
+      expect(bypassed?.version).toBe("2.5.0");
+      expect(global.fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it("cancels cleanly when an aborted signal is provided", async () => {
+      const controller = new AbortController();
+      controller.abort();
+      global.fetch = jest.fn();
+
+      expect(await checkForAppUpdate({ signal: controller.signal })).toBeNull();
+      expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    it("persists check timestamp on check attempt", async () => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ tag_name: "v2.1.1" }),
+      });
+
+      await checkForAppUpdate();
+      expect(AsyncStorage.setItem).toHaveBeenCalledWith(
+        LAST_UPDATE_CHECK_KEY,
+        expect.any(String),
+      );
     });
 
     it("respects 24h snooze unless bypassSnooze is true", async () => {

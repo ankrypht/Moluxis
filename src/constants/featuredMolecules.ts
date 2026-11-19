@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { formatSubscriptFormula } from "../utils/formula";
 
 export type FeaturedCategoryKey = "biochemicals" | "medicinal" | "crystals";

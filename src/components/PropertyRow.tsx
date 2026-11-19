@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, StyleSheet, useWindowDimensions } from "react-native";
 import { getResponsiveSize } from "../utils/responsive";
 import { COLORS } from "../constants/colors";
@@ -12,27 +12,24 @@ export const PropertyRow: React.FC<PropertyRowProps> = React.memo(
   ({ label, value }) => {
     const { width, height } = useWindowDimensions();
 
+    const computedStyles = useMemo(() => {
+      const fontSize = getResponsiveSize(14, width, height);
+      const paddingVertical = getResponsiveSize(8, width, height);
+      return {
+        row: [styles.propertyRow, { paddingVertical }],
+        label: [styles.propertyLabel, { fontSize }],
+        value: [styles.propertyValue, { fontSize }],
+      };
+    }, [width, height]);
+
     if (!value || value === "N/A") return null;
 
-    const responsiveFontSize = getResponsiveSize(14, width, height);
-
     return (
-      <View
-        style={[
-          styles.propertyRow,
-          { paddingVertical: getResponsiveSize(8, width, height) },
-        ]}
-      >
-        <Text
-          allowFontScaling={false}
-          style={[styles.propertyLabel, { fontSize: responsiveFontSize }]}
-        >
+      <View style={computedStyles.row}>
+        <Text allowFontScaling={false} style={computedStyles.label}>
           {label}
         </Text>
-        <Text
-          allowFontScaling={false}
-          style={[styles.propertyValue, { fontSize: responsiveFontSize }]}
-        >
+        <Text allowFontScaling={false} style={computedStyles.value}>
           {value}
         </Text>
       </View>

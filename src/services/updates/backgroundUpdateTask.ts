@@ -28,20 +28,23 @@ export const BACKGROUND_UPDATE_INTERVAL_MINUTES = 12 * 60; // 12 hours
  */
 export async function executeBackgroundUpdateCheck(): Promise<BackgroundTask.BackgroundTaskResult> {
   try {
-    // 1. Guarantee Android notification channels exist in headless runtime
+    // 1. Return early if notifications are not permitted, preventing radio wakeups
+    const permissionStatus = await getNotificationPermissionStatus();
+    if (permissionStatus !== "granted") {
+      return BackgroundTask.BackgroundTaskResult.Success;
+    }
+
+    // 2. Guarantee Android notification channels exist in headless runtime
     await setupNotificationChannels();
 
-    // 2. Fetch latest release semver from GitHub and compare to installed version
+    // 3. Fetch latest release semver from GitHub and compare to installed version
     const updateInfo = await checkForAppUpdate();
     if (!updateInfo || !updateInfo.isNewer) {
       return BackgroundTask.BackgroundTaskResult.Success;
     }
 
-    // 3. Post notification if user has granted notification permissions
-    const permissionStatus = await getNotificationPermissionStatus();
-    if (permissionStatus === "granted") {
-      await notifyUpdateAvailable(updateInfo);
-    }
+    // 4. Post notification
+    await notifyUpdateAvailable(updateInfo);
 
     return BackgroundTask.BackgroundTaskResult.Success;
   } catch (error) {

@@ -15,7 +15,7 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import {
   FeaturedMolecule,
   FeaturedCategoryKey,
@@ -415,7 +415,7 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
                 <Ionicons
                   name="open-outline"
                   size={isPhoneLandscape ? 9 : 10}
-                  color={COLORS.textMuted}
+                  color={COLORS.primary}
                 />
               </TouchableOpacity>
             </View>

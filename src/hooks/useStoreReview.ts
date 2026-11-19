@@ -5,6 +5,12 @@ import { useCallback, useRef } from "react";
 export const SEARCH_COUNT_KEY = "@moluxis_search_count";
 export const PROMPT_THRESHOLDS = [3, 10, 30, 100]; // Logarithmic thresholds to avoid excessive prompting
 
+let cachedSearchCount: number | null = null;
+
+export function _resetSearchCountCacheForTesting(): void {
+  cachedSearchCount = null;
+}
+
 /**
  * Hook to manage in-app review requests following Google Play guidelines.
  */
@@ -12,16 +18,30 @@ export const useStoreReview = () => {
   const isProcessingRef = useRef(false);
 
   const incrementSearchCountAndReview = useCallback(async () => {
+    // Short-circuit immediately if review thresholds have all been passed
+    if (cachedSearchCount !== null && cachedSearchCount >= 100) {
+      return;
+    }
+
     // Prevent overlapping concurrent executions
     if (isProcessingRef.current) return;
     isProcessingRef.current = true;
 
     try {
-      // Get current count of successful searches
-      const currentCountStr = await AsyncStorage.getItem(SEARCH_COUNT_KEY);
-      const parsed = currentCountStr ? parseInt(currentCountStr, 10) : 0;
-      const currentCount = Number.isFinite(parsed) ? parsed : 0;
-      const nextCount = currentCount + 1;
+      // Initialize in-memory cache from storage on first search
+      if (cachedSearchCount === null) {
+        const currentCountStr = await AsyncStorage.getItem(SEARCH_COUNT_KEY);
+        const parsed = currentCountStr ? parseInt(currentCountStr, 10) : 0;
+        cachedSearchCount = Number.isFinite(parsed) ? parsed : 0;
+      }
+
+      // Short-circuit if stored count already satisfies all thresholds
+      if (cachedSearchCount >= 100) {
+        return;
+      }
+
+      cachedSearchCount += 1;
+      const nextCount = cachedSearchCount;
 
       // Persist the new count
       await AsyncStorage.setItem(SEARCH_COUNT_KEY, nextCount.toString());

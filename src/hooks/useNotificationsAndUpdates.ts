@@ -104,7 +104,7 @@ export function useNotificationsAndUpdates({
           if (releaseInfoRef.current) {
             setShowUpdateModal(true);
           } else {
-            checkForAppUpdate({ bypassSnooze: true })
+            checkForAppUpdate({ bypassSnooze: true, bypassCooldown: true })
               .then((info) => {
                 if (info) {
                   setReleaseInfo(info);
@@ -177,6 +177,7 @@ export function useNotificationsAndUpdates({
   useEffect(() => {
     let isMounted = true;
     let updateTimer: ReturnType<typeof setTimeout> | null = null;
+    const abortController = new AbortController();
 
     const initialize = async () => {
       // Setup channels, background update task, and request permissions concurrently
@@ -204,7 +205,9 @@ export function useNotificationsAndUpdates({
       updateTimer = setTimeout(async () => {
         if (!isMounted) return;
         try {
-          const updateInfo = await checkForAppUpdate();
+          const updateInfo = await checkForAppUpdate({
+            signal: abortController.signal,
+          });
           if (!isMounted || !updateInfo) return;
 
           setReleaseInfo(updateInfo);
@@ -229,6 +232,7 @@ export function useNotificationsAndUpdates({
 
     return () => {
       isMounted = false;
+      abortController.abort();
       if (updateTimer) {
         clearTimeout(updateTimer);
       }
@@ -297,7 +301,10 @@ export function useNotificationsAndUpdates({
   }, []);
 
   const runLiveUpdateCheck = useCallback(async () => {
-    const info = await checkForAppUpdate({ bypassSnooze: true });
+    const info = await checkForAppUpdate({
+      bypassSnooze: true,
+      bypassCooldown: true,
+    });
     if (info) {
       setReleaseInfo(info);
       setShowUpdateModal(true);

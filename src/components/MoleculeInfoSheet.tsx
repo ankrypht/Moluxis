@@ -9,7 +9,7 @@ import {
   Animated,
   useAnimatedValue,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 import { MoleculeInfo } from "../types";
 import { COLORS, addOpacity } from "../constants/colors";

@@ -1,7 +1,10 @@
 import { renderHook, act } from "@testing-library/react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as StoreReview from "expo-store-review";
-import { useStoreReview } from "../useStoreReview";
+import {
+  useStoreReview,
+  _resetSearchCountCacheForTesting,
+} from "../useStoreReview";
 
 // Mock dependencies
 jest.mock("@react-native-async-storage/async-storage", () => ({
@@ -18,6 +21,7 @@ jest.mock("expo-store-review", () => ({
 describe("useStoreReview", () => {
   beforeEach(() => {
     jest.resetAllMocks();
+    _resetSearchCountCacheForTesting();
     (StoreReview.isAvailableAsync as jest.Mock).mockResolvedValue(true);
     (StoreReview.hasAction as jest.Mock).mockResolvedValue(true);
   });
@@ -125,5 +129,56 @@ describe("useStoreReview", () => {
       "@moluxis_search_count",
       "1",
     );
+  });
+
+  it("should cache count in memory and not re-read AsyncStorage on subsequent searches", async () => {
+    (AsyncStorage.getItem as jest.Mock).mockResolvedValueOnce("5");
+
+    const { result } = renderHook(() => useStoreReview());
+
+    await act(async () => {
+      await result.current.incrementSearchCountAndReview();
+    });
+
+    expect(AsyncStorage.getItem).toHaveBeenCalledTimes(1);
+    expect(AsyncStorage.setItem).toHaveBeenCalledWith(
+      "@moluxis_search_count",
+      "6",
+    );
+
+    await act(async () => {
+      await result.current.incrementSearchCountAndReview();
+    });
+
+    // Should NOT have called getItem again
+    expect(AsyncStorage.getItem).toHaveBeenCalledTimes(1);
+    expect(AsyncStorage.setItem).toHaveBeenCalledWith(
+      "@moluxis_search_count",
+      "7",
+    );
+  });
+
+  it("should short-circuit and avoid AsyncStorage reads and writes once search count reaches 100", async () => {
+    (AsyncStorage.getItem as jest.Mock).mockResolvedValueOnce("100");
+
+    const { result } = renderHook(() => useStoreReview());
+
+    await act(async () => {
+      await result.current.incrementSearchCountAndReview();
+    });
+
+    // Initial read finds 100, no setItem or review prompt triggered
+    expect(AsyncStorage.getItem).toHaveBeenCalledTimes(1);
+    expect(AsyncStorage.setItem).not.toHaveBeenCalled();
+    expect(StoreReview.requestReview).not.toHaveBeenCalled();
+
+    // Subsequent search should short-circuit immediately without reading or writing
+    await act(async () => {
+      await result.current.incrementSearchCountAndReview();
+    });
+
+    expect(AsyncStorage.getItem).toHaveBeenCalledTimes(1);
+    expect(AsyncStorage.setItem).not.toHaveBeenCalled();
+    expect(StoreReview.requestReview).not.toHaveBeenCalled();
   });
 });

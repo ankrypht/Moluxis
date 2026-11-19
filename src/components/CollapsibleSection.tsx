@@ -7,7 +7,7 @@ import {
   useWindowDimensions,
   LayoutAnimation,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { getResponsiveSize } from "../utils/responsive";
 import { COLORS, addOpacity } from "../constants/colors";
 import { triggerSelectionHaptic } from "../utils/haptics";

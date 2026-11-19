@@ -6,7 +6,7 @@ import {
   StyleProp,
   ViewStyle,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 import { VisualizationType } from "../types";
 import { COLORS, addOpacity } from "../constants/colors";

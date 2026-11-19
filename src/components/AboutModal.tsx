@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
   Share,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { COLORS, addOpacity } from "../constants/colors";
 import {
   APP_AUTHOR,
@@ -38,7 +38,7 @@ import {
 import { useBottomSheetAnimation } from "../hooks/useModalAnimation";
 import { AboutModalStyles } from "./AboutModal.styles";
 
-const APP_ICON = require("../../assets/icon.png");
+const APP_ICON = require("../../assets/about-icon.png");
 
 export interface AboutModalProps {
   visible: boolean;
@@ -303,11 +303,7 @@ export const AboutModal: React.FC<AboutModalProps> = React.memo(
                 testID="about-github-row"
                 accessibilityRole="button"
                 accessibilityLabel="Open Source on GitHub"
-                style={[
-                  styles.aboutRow,
-                  styles.aboutRowDivider,
-                  styles.aboutRowGithubHighlight,
-                ]}
+                style={[styles.aboutRow, styles.aboutRowDivider]}
                 onPress={() => handleOpenLink(GITHUB_REPO_URL)}
                 activeOpacity={0.75}
               >

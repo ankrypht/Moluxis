@@ -17,7 +17,7 @@ import {
   AppState,
   AppStateStatus,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { WebView } from "react-native-webview";
 import type { WebViewRenderProcessGoneEvent } from "react-native-webview/lib/WebViewTypes";
 

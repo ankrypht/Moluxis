@@ -115,7 +115,7 @@ export const getAboutModalStyles = ({
         : Math.max(insets.bottom, scaleSize(20)) + scaleSize(24),
     },
     aboutHeroCard: {
-      backgroundColor: addOpacity(COLORS.surfaceElevated, 0.8),
+      backgroundColor: addOpacity(COLORS.surfaceElevated, 0.55),
       borderRadius: scaleSize(20),
       borderWidth: 1,
       borderColor: addOpacity(COLORS.border, 0.7),
@@ -137,8 +137,8 @@ export const getAboutModalStyles = ({
       height: scaleSize(54),
       borderRadius: scaleSize(15),
       backgroundColor: COLORS.background,
-      borderWidth: 1,
-      borderColor: addOpacity(COLORS.primary, 0.35),
+      borderWidth: 3,
+      borderColor: addOpacity(COLORS.surfaceElevated, 0.35),
       overflow: "hidden",
       justifyContent: "center",
       alignItems: "center",
@@ -254,9 +254,6 @@ export const getAboutModalStyles = ({
     aboutRowDivider: {
       borderBottomWidth: 1,
       borderBottomColor: addOpacity(COLORS.border, 0.35),
-    },
-    aboutRowGithubHighlight: {
-      backgroundColor: addOpacity(COLORS.textPrimary, 0.04),
     },
     aboutRowLeft: {
       flexDirection: "row",

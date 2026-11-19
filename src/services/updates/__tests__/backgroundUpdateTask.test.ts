@@ -108,7 +108,7 @@ describe("backgroundUpdateTask", () => {
       );
     });
 
-    it("does not post notification if permission status is not granted", async () => {
+    it("returns early without waking radio or checking network if permission is not granted", async () => {
       const mockRelease: appUpdateChecker.AppReleaseInfo = {
         version: "2.3.0",
         releaseTitle: "Moluxis v2.3.0",
@@ -126,6 +126,10 @@ describe("backgroundUpdateTask", () => {
       const result = await executeBackgroundUpdateCheck();
 
       expect(result).toBe(BackgroundTask.BackgroundTaskResult.Success);
+      expect(
+        notificationService.setupNotificationChannels,
+      ).not.toHaveBeenCalled();
+      expect(appUpdateChecker.checkForAppUpdate).not.toHaveBeenCalled();
       expect(appUpdateChecker.notifyUpdateAvailable).not.toHaveBeenCalled();
     });
 
