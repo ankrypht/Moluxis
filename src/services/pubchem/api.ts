@@ -169,20 +169,20 @@ export const fetchMoleculeDetails = async (
   cid: number,
   signal?: AbortSignal,
 ) => {
-  // Stage 1: Fetch primary attributes, 3D SDF, and 2D SDF (so user can switch between 3D and 2D)
-  const [propsJson, ghsJson, synonymsJson, descJson, sdfText3d, sdfText2d] =
+  // Stage 1: Fetch primary attributes and 3D SDF (2D SDF is deferred to on-demand)
+  const [propsJson, ghsJson, synonymsJson, descJson, sdfText3d] =
     await Promise.all([
       fetchPugView(cid, "Chemical and Physical Properties", signal),
       fetchPugView(cid, "GHS Classification", signal),
       fetchPugInformation(cid, "synonyms", signal),
       fetchPugInformation(cid, "description", signal),
       fetchSdf(cid, true, signal),
-      fetchSdf(cid, false, signal),
     ]);
 
   let useCif = false;
   let cifText = "";
   let codId: string | null = null;
+  let sdfText2d = "";
 
   // Stage 2: Fallback logic ONLY if 3D SDF is absent.
   // If 3D SDF exists, fetching Structures PUG View (and external CIF) is completely skipped.
@@ -197,6 +197,11 @@ export const fetchMoleculeDetails = async (
       if (cifText) {
         useCif = true;
       }
+    }
+
+    // Automatic fallback when 3D SDF and CIF are unavailable: fetch 2D SDF
+    if (!sdfText3d && !useCif) {
+      sdfText2d = await fetchSdf(cid, false, signal);
     }
   }
 

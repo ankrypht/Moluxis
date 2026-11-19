@@ -9,37 +9,109 @@ import { useStoreReview } from "./useStoreReview";
 import {
   getCachedMolecule,
   saveCachedMolecule,
+  _resetDiskCacheMemoryStateForTests,
 } from "../services/storage/moleculeDiskCache";
 import { PubChemThrottledError } from "../services/pubchem/circuitBreaker";
-import {
-  BUNDLED_MOLECULES,
-  BUNDLED_MOLECULES_BY_CID,
-} from "../constants/bundledMoleculeData";
 
-const MAX_MOLECULE_CACHE_SIZE = 50;
+const MAX_MOLECULE_CACHE_SIZE = 12;
 
-// Tier 1: Global in-memory RAM cache for fast, synchronous retrieval
-const moleculeCache = new Map<string, MoleculeInfo>();
+// Tier 1: Global in-memory RAM cache for fast, synchronous retrieval with clean LRU eviction.
+// Stores single payload per compound under canonical key (avoiding dual-key duplication of full SDF strings)
+const moleculePayloadCache = new Map<string, MoleculeInfo>();
+const aliasToCanonicalMap = new Map<string, string>();
 
 export const clearMoleculeCache = () => {
-  moleculeCache.clear();
+  moleculePayloadCache.clear();
+  aliasToCanonicalMap.clear();
+  _resetDiskCacheMemoryStateForTests();
 };
 
-const cacheMoleculeInRam = (term: string, molecule: MoleculeInfo) => {
-  while (moleculeCache.size >= MAX_MOLECULE_CACHE_SIZE) {
-    const oldestKey = moleculeCache.keys().next().value;
-    if (oldestKey) moleculeCache.delete(oldestKey);
-    else break;
-  }
-  moleculeCache.set(term, molecule);
-  if (molecule.cid) {
-    if (moleculeCache.size >= MAX_MOLECULE_CACHE_SIZE) {
-      const oldestKey = moleculeCache.keys().next().value;
-      if (oldestKey) moleculeCache.delete(oldestKey);
+const getCanonicalKey = (molecule: MoleculeInfo): string => {
+  return molecule.cid
+    ? `cid:${molecule.cid}`
+    : `name:${molecule.name.trim().toLowerCase()}`;
+};
+
+export const cacheMoleculeInRam = (term: string, molecule: MoleculeInfo) => {
+  if (!molecule || !molecule.name) return;
+  const canonicalKey = getCanonicalKey(molecule);
+
+  // Refresh LRU order on update
+  moleculePayloadCache.delete(canonicalKey);
+
+  // Evict oldest unpinned molecule if capacity reached
+  while (moleculePayloadCache.size >= MAX_MOLECULE_CACHE_SIZE) {
+    const oldestKey = moleculePayloadCache.keys().next().value;
+    if (oldestKey) {
+      moleculePayloadCache.delete(oldestKey);
+      // Clean up alias entries pointing to the evicted canonical key
+      for (const [alias, target] of aliasToCanonicalMap.entries()) {
+        if (target === oldestKey) {
+          aliasToCanonicalMap.delete(alias);
+        }
+      }
+    } else {
+      break;
     }
-    moleculeCache.set(molecule.cid, molecule);
+  }
+
+  moleculePayloadCache.set(canonicalKey, molecule);
+
+  const normName = molecule.name.trim().toLowerCase();
+  aliasToCanonicalMap.set(normName, canonicalKey);
+
+  const normTerm = term.trim().toLowerCase();
+  aliasToCanonicalMap.set(normTerm, canonicalKey);
+
+  if (molecule.cid) {
+    aliasToCanonicalMap.set(molecule.cid.trim(), canonicalKey);
   }
 };
+
+export const getMoleculeFromRam = (term: string): MoleculeInfo | null => {
+  if (!term || typeof term !== "string" || !term.trim()) return null;
+  const trimmed = term.trim();
+  const normalized = trimmed.toLowerCase();
+
+  const canonicalKey =
+    aliasToCanonicalMap.get(normalized) || aliasToCanonicalMap.get(trimmed);
+
+  if (!canonicalKey) return null;
+
+  const molecule = moleculePayloadCache.get(canonicalKey);
+  if (!molecule) return null;
+
+  // Refresh LRU access order
+  moleculePayloadCache.delete(canonicalKey);
+  moleculePayloadCache.set(canonicalKey, molecule);
+
+  return molecule;
+};
+
+// Lazy getter for the 103 KB bundled offline dataset (evaluates on-demand, not at module load)
+let bundledGetter: ((term: string) => MoleculeInfo | null) | null = null;
+
+function findBundledMolecule(term: string): MoleculeInfo | null {
+  if (!bundledGetter) {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const mod = require("../constants/bundledMoleculeData");
+    if (typeof mod.getBundledMolecule === "function") {
+      bundledGetter = mod.getBundledMolecule;
+    } else {
+      // Fallback for tests mocking BUNDLED_MOLECULES directly
+      bundledGetter = (t: string) => {
+        const norm = t.trim().toLowerCase();
+        const trim = t.trim();
+        return (
+          mod.BUNDLED_MOLECULES?.[norm] ||
+          mod.BUNDLED_MOLECULES_BY_CID?.[trim] ||
+          null
+        );
+      };
+    }
+  }
+  return bundledGetter ? bundledGetter(term) : null;
+}
 
 export const useMoleculeSearch = () => {
   const {
@@ -91,16 +163,8 @@ export const useMoleculeSearch = () => {
       clearSuggestions();
 
       // 1. Tier 1: Check In-Memory RAM Cache first by Name or CID (0ms synchronous)
-      const ramCached =
-        moleculeCache.get(normalizedTerm) || moleculeCache.get(trimmedTerm);
+      const ramCached = getMoleculeFromRam(trimmedTerm);
       if (ramCached) {
-        // Refresh LRU order
-        moleculeCache.delete(normalizedTerm);
-        moleculeCache.set(normalizedTerm, ramCached);
-        if (ramCached.cid) {
-          moleculeCache.set(ramCached.cid, ramCached);
-        }
-
         setIsLoading(false);
         setMoleculeData(ramCached);
         incrementSearchCountAndReview();
@@ -108,15 +172,9 @@ export const useMoleculeSearch = () => {
       }
 
       // 2. Check Pre-bundled Offline Dataset by Name or CID (0ms synchronous)
-      const bundled =
-        BUNDLED_MOLECULES[normalizedTerm] ||
-        BUNDLED_MOLECULES_BY_CID[trimmedTerm];
-
+      const bundled = findBundledMolecule(trimmedTerm);
       if (bundled) {
-        moleculeCache.set(normalizedTerm, bundled);
-        if (bundled.cid) {
-          moleculeCache.set(bundled.cid, bundled);
-        }
+        cacheMoleculeInRam(normalizedTerm, bundled);
 
         setIsLoading(false);
         setMoleculeData(bundled);
@@ -128,10 +186,8 @@ export const useMoleculeSearch = () => {
       setIsLoading(true);
       setMoleculeData(null);
 
-      // 3. Tier 2: Check Persistent Disk Cache (AsyncStorage) by Name or CID
-      const diskCached =
-        (await getCachedMolecule(normalizedTerm)) ||
-        (await getCachedMolecule(trimmedTerm));
+      // 3. Tier 2: Check Persistent Disk Cache (AsyncStorage) with a single normalized lookup
+      const diskCached = await getCachedMolecule(trimmedTerm);
       if (
         currentSearchId !== activeSearchIdRef.current ||
         controller.signal.aborted

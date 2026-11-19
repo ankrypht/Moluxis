@@ -67,3 +67,8 @@ jest.mock("expo-background-task", () => ({
     Failed: 2,
   },
 }));
+
+// Global mock for @react-native-async-storage/async-storage
+jest.mock("@react-native-async-storage/async-storage", () =>
+  require("@react-native-async-storage/async-storage/jest/async-storage-mock"),
+);

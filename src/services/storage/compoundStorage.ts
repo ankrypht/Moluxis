@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { AppState } from "react-native";
 import { SavedCompoundItem } from "../../types";
 import { normalizeCompoundName } from "../../utils/compound";
 
@@ -7,10 +8,58 @@ export const BOOKMARKS_STORAGE_KEY = "@moluxis_bookmarks_v1";
 export const MAX_HISTORY_ITEMS = 30;
 export const MAX_BOOKMARKS_ITEMS = 100;
 
+let pendingHistoryToWrite: SavedCompoundItem[] | null = null;
+let historyWriteTimer: ReturnType<typeof setTimeout> | null = null;
+
+// Auto-flush pending search history when app transitions to background or inactive
+if (typeof AppState !== "undefined" && AppState?.addEventListener) {
+  AppState.addEventListener("change", (state) => {
+    if (state === "background" || state === "inactive") {
+      flushRecentHistory().catch(() => {});
+    }
+  });
+}
+
+/**
+ * Flushes any pending debounced history writes to AsyncStorage immediately.
+ */
+export async function flushRecentHistory(): Promise<void> {
+  if (historyWriteTimer) {
+    clearTimeout(historyWriteTimer);
+    historyWriteTimer = null;
+  }
+  if (pendingHistoryToWrite) {
+    const dataToWrite = pendingHistoryToWrite;
+    pendingHistoryToWrite = null;
+    try {
+      await AsyncStorage.setItem(
+        HISTORY_STORAGE_KEY,
+        JSON.stringify(dataToWrite),
+      );
+    } catch (error) {
+      console.warn("Failed to flush search history:", error);
+    }
+  }
+}
+
+/**
+ * Resets module state for testing.
+ */
+export function _resetCompoundStorageForTests(): void {
+  if (historyWriteTimer) {
+    clearTimeout(historyWriteTimer);
+    historyWriteTimer = null;
+  }
+  pendingHistoryToWrite = null;
+}
+
 /**
  * Retrieve recent search history from AsyncStorage
  */
 export async function getRecentHistory(): Promise<SavedCompoundItem[]> {
+  if (pendingHistoryToWrite) {
+    await flushRecentHistory();
+  }
   try {
     const raw = await AsyncStorage.getItem(HISTORY_STORAGE_KEY);
     if (!raw) return [];
@@ -40,17 +89,24 @@ export async function getRecentHistory(): Promise<SavedCompoundItem[]> {
 /**
  * Add or update a compound in the search history.
  * Moves the item to the top and deduplicates by lowercase name.
+ * Accepts an optional in-memory currentHistory list to avoid reading AsyncStorage on load,
+ * and debounces the disk write (~500ms).
  */
 export async function addRecentHistory(
   item: Omit<SavedCompoundItem, "timestamp"> & { timestamp?: number },
+  currentHistory?: SavedCompoundItem[],
 ): Promise<SavedCompoundItem[]> {
   if (!item || typeof item.name !== "string" || !item.name.trim()) {
-    return getRecentHistory();
+    return currentHistory ? currentHistory : getRecentHistory();
   }
 
   let current: SavedCompoundItem[] = [];
   try {
-    current = await getRecentHistory();
+    current = currentHistory
+      ? currentHistory
+      : pendingHistoryToWrite
+        ? pendingHistoryToWrite
+        : await getRecentHistory();
     const normalizedName = normalizeCompoundName(item.name);
 
     // Check if an existing entry has more details like formula/cid
@@ -73,7 +129,16 @@ export async function addRecentHistory(
 
     // Insert at front and limit to MAX_HISTORY_ITEMS
     const updated = [mergedItem, ...filtered].slice(0, MAX_HISTORY_ITEMS);
-    await AsyncStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(updated));
+
+    // Debounce the disk write (~500ms)
+    pendingHistoryToWrite = updated;
+    if (historyWriteTimer) {
+      clearTimeout(historyWriteTimer);
+    }
+    historyWriteTimer = setTimeout(() => {
+      flushRecentHistory().catch(() => {});
+    }, 500);
+
     return updated;
   } catch (error) {
     console.warn("Failed to save search history:", error);
@@ -87,6 +152,10 @@ export async function addRecentHistory(
 export async function removeRecentHistory(
   name: string,
 ): Promise<SavedCompoundItem[]> {
+  if (pendingHistoryToWrite) {
+    await flushRecentHistory();
+  }
+
   if (!name || typeof name !== "string" || !name.trim()) {
     return getRecentHistory();
   }
@@ -110,6 +179,12 @@ export async function removeRecentHistory(
  * Clear all search history.
  */
 export async function clearRecentHistory(): Promise<void> {
+  if (historyWriteTimer) {
+    clearTimeout(historyWriteTimer);
+    historyWriteTimer = null;
+  }
+  pendingHistoryToWrite = null;
+
   try {
     await AsyncStorage.removeItem(HISTORY_STORAGE_KEY);
   } catch (error) {

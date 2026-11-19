@@ -4,6 +4,8 @@ import {
   addRecentHistory,
   removeRecentHistory,
   clearRecentHistory,
+  flushRecentHistory,
+  _resetCompoundStorageForTests,
   getBookmarks,
   addBookmark,
   removeBookmark,
@@ -33,7 +35,13 @@ describe("compoundStorage", () => {
   beforeEach(async () => {
     jest.clearAllMocks();
     mockStorageMap.clear();
+    _resetCompoundStorageForTests();
     jest.spyOn(console, "warn").mockImplementation(() => {});
+  });
+
+  afterEach(async () => {
+    await flushRecentHistory();
+    _resetCompoundStorageForTests();
   });
 
   describe("Recent History", () => {
@@ -47,7 +55,7 @@ describe("compoundStorage", () => {
       expect(invalidItems).toEqual([]);
     });
 
-    it("adds an item to history, places it at the front, and persists it", async () => {
+    it("adds an item to history, places it at the front, and debounces disk write", async () => {
       const updated = await addRecentHistory({
         name: "Caffeine",
         formula: "C8H10N4O2",
@@ -58,10 +66,38 @@ describe("compoundStorage", () => {
       expect(updated[0].name).toBe("Caffeine");
       expect(updated[0].formula).toBe("C8H10N4O2");
       expect(typeof updated[0].timestamp).toBe("number");
+
+      // Disk write is debounced; not immediately written
+      expect(AsyncStorage.setItem).not.toHaveBeenCalledWith(
+        HISTORY_STORAGE_KEY,
+        expect.any(String),
+      );
+
+      // Explicit flush commits it to disk
+      await flushRecentHistory();
       expect(AsyncStorage.setItem).toHaveBeenCalledWith(
         HISTORY_STORAGE_KEY,
         expect.any(String),
       );
+    });
+
+    it("bypasses AsyncStorage.getItem when inMemoryHistory is provided to addRecentHistory", async () => {
+      const existingHistory = [
+        { name: "Existing1", timestamp: Date.now() },
+        { name: "Existing2", timestamp: Date.now() },
+      ];
+
+      (AsyncStorage.getItem as jest.Mock).mockClear();
+
+      const updated = await addRecentHistory(
+        { name: "NewItem" },
+        existingHistory,
+      );
+
+      expect(updated).toHaveLength(3);
+      expect(updated[0].name).toBe("NewItem");
+      expect(updated[1].name).toBe("Existing1");
+      expect(AsyncStorage.getItem).not.toHaveBeenCalled();
     });
 
     it("deduplicates case-insensitively and moves recent item to front", async () => {
@@ -142,18 +178,9 @@ describe("compoundStorage", () => {
       expect(items[1].name).toBe("Aspirin");
     });
 
-    it("preserves existing items when AsyncStorage.setItem fails during add", async () => {
-      await addRecentHistory({ name: "Caffeine" });
-      (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce(
-        new Error("Disk full"),
-      );
-      const res = await addRecentHistory({ name: "Aspirin" });
-      expect(res).toHaveLength(1);
-      expect(res[0].name).toBe("Caffeine");
-    });
-
     it("preserves existing items when AsyncStorage.setItem fails during remove", async () => {
       await addRecentHistory({ name: "Caffeine" });
+      await flushRecentHistory();
       (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce(
         new Error("Disk full"),
       );
@@ -164,6 +191,7 @@ describe("compoundStorage", () => {
 
     it("safely handles empty or whitespace names in remove", async () => {
       await addRecentHistory({ name: "Ethanol" });
+      await flushRecentHistory();
       const res = await removeRecentHistory("   ");
       expect(res).toHaveLength(1);
       expect(res[0].name).toBe("Ethanol");

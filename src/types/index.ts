@@ -34,6 +34,7 @@ export interface MoleculeInfo {
   cid: string;
   properties: ChemicalProperties;
   safety: SafetyInfo;
+  has2d?: boolean;
 }
 
 export interface SavedCompoundItem {

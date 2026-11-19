@@ -71,6 +71,15 @@ export const getStructureControlsStyles = ({
     badgeTextNotAvailable: {
       color: COLORS.textMuted,
     },
+    badgeIndicatorContainer: {
+      width: 13,
+      height: 13,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    badgeIndicator: {
+      transform: [{ scale: 0.65 }],
+    },
     switchScale: {
       transform: [{ scale: 0.8 }],
     },
@@ -140,6 +149,24 @@ export const getStructureControlsStyles = ({
     },
     leftRailIconCompact: {
       marginBottom: scaleSize(1),
+    },
+    leftRailIndicatorContainer: {
+      width: scaleSize(18),
+      height: scaleSize(18),
+      justifyContent: "center",
+      alignItems: "center",
+      marginBottom: scaleSize(2),
+    },
+    leftRailIndicatorContainerCompact: {
+      width: scaleSize(15),
+      height: scaleSize(15),
+      marginBottom: scaleSize(1),
+    },
+    leftRailIndicator: {
+      transform: [{ scale: 0.75 }],
+    },
+    leftRailIndicatorCompact: {
+      transform: [{ scale: 0.6 }],
     },
     leftRailChipText: {
       fontSize: scaleSize(9.5),

@@ -22,9 +22,9 @@ export class CircuitBreaker {
   private openUntil = 0;
   private cooldownDurationMs = 30_000; // 30 seconds default cooldown
   private consecutiveErrors = 0;
-  private maxConsecutiveErrors = 1; // Trip on first 503/429 error by default
+  private maxConsecutiveErrors = 2; // Require 2 consecutive 503/429 errors by default before tripping
 
-  constructor(cooldownDurationMs = 30_000, maxConsecutiveErrors = 1) {
+  constructor(cooldownDurationMs = 30_000, maxConsecutiveErrors = 2) {
     this.cooldownDurationMs = cooldownDurationMs;
     this.maxConsecutiveErrors = maxConsecutiveErrors;
   }

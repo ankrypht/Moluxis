@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   getCachedMolecule,
   saveCachedMolecule,
@@ -5,7 +6,10 @@ import {
   removeCachedMolecule,
   clearMoleculeDiskCache,
   getDiskCacheIndex,
+  flushDiskCacheIndex,
+  _resetDiskCacheMemoryStateForTests,
   MAX_DISK_CACHE_ITEMS,
+  DISK_CACHE_INDEX_KEY,
 } from "../moleculeDiskCache";
 import { MoleculeInfo } from "../../../types";
 
@@ -50,7 +54,14 @@ const createMockMolecule = (name: string, cid = "123"): MoleculeInfo => ({
 
 describe("moleculeDiskCache", () => {
   beforeEach(async () => {
+    jest.clearAllMocks();
     mockStorageMap.clear();
+    _resetDiskCacheMemoryStateForTests();
+  });
+
+  afterEach(async () => {
+    await flushDiskCacheIndex();
+    _resetDiskCacheMemoryStateForTests();
   });
 
   it("should return null for non-existent molecule", async () => {
@@ -104,16 +115,13 @@ describe("moleculeDiskCache", () => {
   });
 
   it("should protect pinned molecules from LRU eviction", async () => {
-    // Save a pinned molecule
     const pinnedMol = createMockMolecule("PinnedMol", "1");
     await saveCachedMolecule(pinnedMol, true);
 
-    // Fill cache to capacity with unpinned molecules
     for (let i = 2; i <= MAX_DISK_CACHE_ITEMS + 2; i++) {
       await saveCachedMolecule(createMockMolecule(`Mol_${i}`, `${i}`), false);
     }
 
-    // Pinned molecule must still be present
     const pinned = await getCachedMolecule("PinnedMol");
     expect(pinned).not.toBeNull();
   });
@@ -133,5 +141,52 @@ describe("moleculeDiskCache", () => {
     expect(
       updatedIndex.find((e) => e.normalizedName === "testmol")?.isPinned,
     ).toBe(false);
+  });
+
+  it("should cache the index in memory and avoid reading index from AsyncStorage on repeat lookups", async () => {
+    const mol = createMockMolecule("Glucose", "5793");
+    await saveCachedMolecule(mol);
+
+    // Reset getItem calls count
+    (AsyncStorage.getItem as jest.Mock).mockClear();
+
+    // Look up twice
+    await getCachedMolecule("Glucose");
+    await getCachedMolecule("Glucose");
+
+    // DISK_CACHE_INDEX_KEY should not be read from AsyncStorage on repeat calls
+    const indexReadCalls = (
+      AsyncStorage.getItem as jest.Mock
+    ).mock.calls.filter((call) => call[0] === DISK_CACHE_INDEX_KEY);
+    expect(indexReadCalls.length).toBe(0);
+  });
+
+  it("should debounce index saves on read hits and flush them with flushDiskCacheIndex", async () => {
+    jest.useFakeTimers();
+    try {
+      const mol = createMockMolecule("Fructose", "5984");
+      await saveCachedMolecule(mol);
+
+      (AsyncStorage.setItem as jest.Mock).mockClear();
+
+      // Read hit touches lastAccessedAt
+      await getCachedMolecule("Fructose");
+
+      // Debounce timer is running, index not written yet
+      const initialIndexWrites = (
+        AsyncStorage.setItem as jest.Mock
+      ).mock.calls.filter((call) => call[0] === DISK_CACHE_INDEX_KEY);
+      expect(initialIndexWrites.length).toBe(0);
+
+      // Flush manually
+      await flushDiskCacheIndex();
+
+      const flushedIndexWrites = (
+        AsyncStorage.setItem as jest.Mock
+      ).mock.calls.filter((call) => call[0] === DISK_CACHE_INDEX_KEY);
+      expect(flushedIndexWrites.length).toBe(1);
+    } finally {
+      jest.useRealTimers();
+    }
   });
 });

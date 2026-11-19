@@ -101,17 +101,53 @@ describe("RequestQueue", () => {
     expect(queue.getMaxConcurrency()).toBe(2);
   });
 
-  it("should trip circuit breaker and throw PubChemThrottledError on 503", async () => {
-    mockFetch.mockResolvedValueOnce({
+  it("should retry transient 503 and succeed when retry succeeds without tripping circuit breaker", async () => {
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 503,
+        headers: new Headers(),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        headers: new Headers(),
+      });
+
+    const res = await queue.fetch("https://example.com");
+    expect(res.ok).toBe(true);
+    expect(res.status).toBe(200);
+    expect(pubChemCircuitBreaker.isOpen()).toBe(false);
+  });
+
+  it("should trip circuit breaker and throw PubChemThrottledError after consecutive 503 failures", async () => {
+    mockFetch.mockResolvedValue({
       ok: false,
       status: 503,
       headers: new Headers(),
     });
 
+    // Request 1 fails (and retries) -> records 1st failure, circuit breaker stays closed (threshold = 2)
+    const res1 = await queue.fetch("https://example.com");
+    expect(res1.status).toBe(503);
+    expect(pubChemCircuitBreaker.isOpen()).toBe(false);
+
+    // Request 2 fails -> reaches threshold (2 consecutive errors) -> trips circuit breaker to OPEN and throws PubChemThrottledError
     await expect(queue.fetch("https://example.com")).rejects.toThrow(
       "PubChem service returned HTTP 503.",
     );
     expect(pubChemCircuitBreaker.isOpen()).toBe(true);
+  });
+
+  it("should never record circuit breaker failure for aborted requests", async () => {
+    const controller = new AbortController();
+    controller.abort();
+
+    await expect(
+      queue.fetch("https://example.com", { signal: controller.signal }),
+    ).rejects.toThrow("Request aborted");
+
+    expect(pubChemCircuitBreaker.isOpen()).toBe(false);
   });
 
   it("should NOT trip circuit breaker or drain queue when Service status is Black on 200 OK response", async () => {

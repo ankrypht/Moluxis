@@ -2,7 +2,12 @@ import { renderHook, act } from "@testing-library/react-native";
 import { Keyboard } from "react-native";
 import { Alert } from "../../components/CustomAlert";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useMoleculeSearch, clearMoleculeCache } from "../useMoleculeSearch";
+import {
+  useMoleculeSearch,
+  clearMoleculeCache,
+  cacheMoleculeInRam,
+  getMoleculeFromRam,
+} from "../useMoleculeSearch";
 import { PubChemThrottledError } from "../../services/pubchem/circuitBreaker";
 import {
   fetchMoleculeDetails,
@@ -500,6 +505,56 @@ describe("useMoleculeSearch", () => {
       });
 
       expect(firstSignal?.aborted).toBe(true);
+    });
+
+    it("should cap RAM cache at 12 items and evict oldest via LRU", () => {
+      // Add 12 items to RAM cache
+      for (let i = 1; i <= 12; i++) {
+        cacheMoleculeInRam(`compound_${i}`, {
+          name: `Compound ${i}`,
+          cid: `${i}`,
+          sdf3d: `sdf_3d_${i}`,
+          sdf2d: `sdf_2d_${i}`,
+          useCif: false,
+          formula: `C${i}H${i * 2}`,
+          molecularWeight: `${i * 10}`,
+          synonyms: [],
+          description: "",
+          properties: {},
+          safety: {},
+        });
+      }
+
+      // Items should be retrievable from RAM by name and CID
+      expect(getMoleculeFromRam("compound_1")).not.toBeNull();
+      expect(getMoleculeFromRam("1")).not.toBeNull();
+      expect(getMoleculeFromRam("compound_12")).not.toBeNull();
+
+      // Access compound_1 to refresh its LRU position (making compound_2 the oldest)
+      getMoleculeFromRam("compound_1");
+
+      // Add a 13th item
+      cacheMoleculeInRam("compound_13", {
+        name: "Compound 13",
+        cid: "13",
+        sdf3d: "sdf_3d_13",
+        sdf2d: "sdf_2d_13",
+        useCif: false,
+        formula: "C13H26",
+        molecularWeight: "130",
+        synonyms: [],
+        description: "",
+        properties: {},
+        safety: {},
+      });
+
+      // compound_2 was oldest and should now be evicted
+      expect(getMoleculeFromRam("compound_2")).toBeNull();
+      expect(getMoleculeFromRam("2")).toBeNull();
+
+      // compound_1 and compound_13 should still be in RAM cache
+      expect(getMoleculeFromRam("compound_1")).not.toBeNull();
+      expect(getMoleculeFromRam("compound_13")).not.toBeNull();
     });
   });
 });

@@ -210,14 +210,17 @@ function MoleculeExplorer() {
       moleculeData.name !== lastRecordedNameRef.current
     ) {
       lastRecordedNameRef.current = moleculeData.name;
-      addHistory({
-        name: moleculeData.name,
-        formula: moleculeData.formula,
-        cid: moleculeData.cid,
-        molecularWeight: moleculeData.molecularWeight,
-      });
+      addHistory(
+        {
+          name: moleculeData.name,
+          formula: moleculeData.formula,
+          cid: moleculeData.cid,
+          molecularWeight: moleculeData.molecularWeight,
+        },
+        history,
+      );
     }
-  }, [moleculeData, addHistory]);
+  }, [moleculeData, addHistory, history]);
 
   const isCurrentBookmarked = Boolean(
     moleculeData?.name && isBookmarked(moleculeData.name),

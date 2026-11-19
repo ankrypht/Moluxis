@@ -19,8 +19,12 @@ describe("CircuitBreaker", () => {
     expect(breaker.getState()).toBe("CLOSED");
   });
 
-  it("should trip on the first 503 failure by default", () => {
+  it("should not trip on the first 503 failure by default (requires 2 consecutive errors)", () => {
     const defaultBreaker = new CircuitBreaker();
+    defaultBreaker.recordFailure(503);
+    expect(defaultBreaker.isOpen()).toBe(false);
+    expect(defaultBreaker.getState()).toBe("CLOSED");
+
     defaultBreaker.recordFailure(503);
     expect(defaultBreaker.isOpen()).toBe(true);
     expect(defaultBreaker.getState()).toBe("OPEN");

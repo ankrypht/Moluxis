@@ -164,8 +164,8 @@ describe("fetchMoleculeDetails", () => {
     expect(result.propsJson).toEqual(mockJson);
     expect(result.ghsJson).toEqual(mockJson);
     expect(result.sdfText3d).toBe(mockSdf);
-    expect(result.sdfText2d).toBe(mockSdf); // Both 3D and 2D available!
-    expect(mockFetch).toHaveBeenCalledTimes(6); // 6 calls, Structures View skipped
+    expect(result.sdfText2d).toBe(""); // 2D SDF is deferred in Stage 1!
+    expect(mockFetch).toHaveBeenCalledTimes(5); // 5 calls, 2D deferred & Structures View skipped
   });
 
   it("should handle partial fetch failures gracefully", async () => {
@@ -201,15 +201,15 @@ describe("fetchMoleculeDetails", () => {
       ok: true,
       text: async () => "PUGREST.NotFound",
     });
-    // 6. structure2d (succeeds)
+
+    // Stage 2 (triggered because 3D failed):
+    // 6. structuresView (empty, no COD ID)
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+    // 7. structure2d fallback (succeeds)
     mockFetch.mockResolvedValueOnce({
       ok: true,
       text: async () => mock2dSdf,
     });
-
-    // Stage 2 (triggered because 3D failed):
-    // 7. structuresView
-    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
 
     const result = await fetchMoleculeDetails(cid);
 
@@ -251,19 +251,14 @@ describe("fetchMoleculeDetails", () => {
       ok: true,
       text: async () => "PUGREST.NotFound",
     });
-    // 6. structure2d (fails)
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      text: async () => "PUGREST.NotFound",
-    });
 
     // Stage 2:
-    // 7. structuresView (returns COD ID)
+    // 6. structuresView (returns COD ID)
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => structuresJson,
     });
-    // 8. CIF fetch (triggered because codId found)
+    // 7. CIF fetch (triggered because codId found)
     mockFetch.mockResolvedValueOnce({
       ok: true,
       text: async () => mockCif,
@@ -326,21 +321,15 @@ describe("fetchMoleculeDetails", () => {
       ok: true,
       text: async () => mockSdf3d,
     });
-    const mockSdf2d = "2d sdf contents".padEnd(205, ".");
-    // 6. structure2d (succeeds)
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      text: async () => mockSdf2d,
-    });
 
     const result = await fetchMoleculeDetails(cid);
 
     expect(result.sdfText3d).toBe(mockSdf3d);
-    expect(result.sdfText2d).toBe(mockSdf2d);
+    expect(result.sdfText2d).toBe(""); // 2D SDF deferred
     expect(result.cifText).toBe("");
     expect(result.useCif).toBe(false);
-    // Structures View is completely bypassed!
-    expect(mockFetch).toHaveBeenCalledTimes(6);
+    // Structures View and 2D fetch are completely bypassed!
+    expect(mockFetch).toHaveBeenCalledTimes(5);
   });
 
   it("should ignore SDF text if it is too short or contains PUGREST.NotFound", async () => {
@@ -360,7 +349,7 @@ describe("fetchMoleculeDetails", () => {
 
   it("should re-throw PubChemThrottledError without swallowing it", async () => {
     const cid = 123;
-    mockFetch.mockResolvedValueOnce({
+    mockFetch.mockResolvedValue({
       ok: false,
       status: 503,
       headers: new Headers(),

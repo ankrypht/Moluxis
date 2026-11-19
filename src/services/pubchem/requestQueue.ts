@@ -256,14 +256,62 @@ export class RequestQueue {
         headers.set("Accept", "application/json, text/plain, */*");
       }
 
-      const response = await fetch(url, {
-        ...init,
-        headers,
-      });
+      let response: Response;
+      let throttlingHeader: string | null = null;
+      const maxRetries = 1;
+      let attempt = 0;
 
-      // Parse PubChem throttling header
-      const throttlingHeader = response.headers?.get("X-Throttling-Control");
-      this.handleThrottlingHeader(throttlingHeader);
+      while (true) {
+        if (init?.signal?.aborted) {
+          const abortErr = new Error("Request aborted");
+          abortErr.name = "AbortError";
+          throw abortErr;
+        }
+
+        response = await fetch(url, {
+          ...init,
+          headers,
+        });
+
+        // Parse PubChem throttling header
+        throttlingHeader = response.headers?.get("X-Throttling-Control");
+        this.handleThrottlingHeader(throttlingHeader);
+
+        // Check if retryable transient 503/429 error
+        if (
+          !skipBreaker &&
+          (response.status === 503 || response.status === 429) &&
+          attempt < maxRetries &&
+          !pubChemCircuitBreaker.isOpen()
+        ) {
+          attempt++;
+          const isTest = process.env.NODE_ENV === "test";
+          const baseDelay = 300 * Math.pow(2, attempt - 1);
+          const jitter = isTest ? 0 : Math.floor(Math.random() * 200);
+          const delayMs = isTest ? 0 : Math.min(baseDelay + jitter, 1500);
+
+          if (delayMs > 0) {
+            await new Promise<void>((resolve, reject) => {
+              const timer = setTimeout(resolve, delayMs);
+              if (init?.signal) {
+                init.signal.addEventListener(
+                  "abort",
+                  () => {
+                    clearTimeout(timer);
+                    const abortErr = new Error("Request aborted");
+                    abortErr.name = "AbortError";
+                    reject(abortErr);
+                  },
+                  { once: true },
+                );
+              }
+            });
+          }
+          continue;
+        }
+
+        break;
+      }
 
       if (!skipBreaker) {
         if (response.status === 503 || response.status === 429) {

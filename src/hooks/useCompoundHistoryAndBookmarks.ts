@@ -5,6 +5,7 @@ import {
   addRecentHistory,
   removeRecentHistory,
   clearRecentHistory,
+  flushRecentHistory,
   getBookmarks,
   removeBookmark,
   toggleBookmark,
@@ -19,6 +20,7 @@ export interface UseCompoundHistoryAndBookmarksReturn {
   isLoadingStorage: boolean;
   addHistory: (
     item: Omit<SavedCompoundItem, "timestamp"> & { timestamp?: number },
+    inMemoryHistory?: SavedCompoundItem[],
   ) => Promise<void>;
   removeHistory: (name: string) => Promise<void>;
   clearHistory: () => Promise<void>;
@@ -95,17 +97,25 @@ export const useCompoundHistoryAndBookmarks =
       load();
       return () => {
         isMountedRef.current = false;
+        flushRecentHistory().catch(() => {});
       };
     }, []);
+
+    const historyRef = useRef(history);
+    useEffect(() => {
+      historyRef.current = history;
+    }, [history]);
 
     const handleAddHistory = useCallback(
       async (
         item: Omit<SavedCompoundItem, "timestamp"> & { timestamp?: number },
+        inMemoryHistory?: SavedCompoundItem[],
       ) => {
         if (!item.name || !item.name.trim()) return;
         mutationVersionRef.current++;
         try {
-          const updated = await addRecentHistory(item);
+          const base = inMemoryHistory ?? historyRef.current;
+          const updated = await addRecentHistory(item, base);
           if (isMountedRef.current) {
             setHistory(updated);
           }

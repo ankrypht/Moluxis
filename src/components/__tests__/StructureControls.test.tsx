@@ -1,9 +1,14 @@
 import { Alert } from "../CustomAlert";
-import { render, fireEvent } from "@testing-library/react-native";
+import { render, fireEvent, act } from "@testing-library/react-native";
 import { StructureControls } from "../StructureControls";
 import { getStructureControlsStyles } from "../StructureControls.styles";
 import { getScaleMetrics } from "../../utils/scaling";
 import { MoleculeInfo } from "../../types";
+
+const mockFetchSdf = jest.fn();
+jest.mock("../../services/pubchem/api", () => ({
+  fetchSdf: (...args: any[]) => mockFetchSdf(...args),
+}));
 
 // Mock @expo/vector-icons
 jest.mock("@expo/vector-icons", () => {
@@ -88,6 +93,7 @@ describe("StructureControls Component", () => {
     const moleculeWithout2D: MoleculeInfo = {
       ...mockMoleculeData,
       sdf2d: "",
+      has2d: false,
     };
 
     const { getByLabelText } = render(
@@ -102,7 +108,7 @@ describe("StructureControls Component", () => {
     );
 
     const button2D = getByLabelText("2D Structure (Unavailable)");
-    expect(button2D.props.accessibilityState).toEqual({
+    expect(button2D.props.accessibilityState).toMatchObject({
       selected: false,
     });
 
@@ -114,6 +120,76 @@ describe("StructureControls Component", () => {
     expect(handleSelectFormat).not.toHaveBeenCalled();
     expect(mockTriggerWarningHaptic).toHaveBeenCalledTimes(1);
 
+    alertSpy.mockRestore();
+  });
+
+  it("downloads 2D SDF on demand when pressed and switches to 2D view on success", async () => {
+    mockFetchSdf.mockResolvedValueOnce("fetched 2d sdf");
+    const handleSelectFormat = jest.fn();
+
+    const moleculeDeferred2D: MoleculeInfo = {
+      ...mockMoleculeData,
+      sdf2d: "", // not yet downloaded
+    };
+
+    const { getByLabelText } = render(
+      <StructureControls
+        moleculeData={moleculeDeferred2D}
+        isAnimated={false}
+        structureFormat="3d"
+        onToggleAnimation={jest.fn()}
+        onSelectFormat={handleSelectFormat}
+        styles={styles}
+      />,
+    );
+
+    const button2D = getByLabelText("2D Structure");
+    fireEvent.press(button2D);
+
+    expect(mockFetchSdf).toHaveBeenCalledWith(2519, false);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(moleculeDeferred2D.sdf2d).toBe("fetched 2d sdf");
+    expect(handleSelectFormat).toHaveBeenCalledWith("2d");
+    expect(mockTriggerSelectionHaptic).toHaveBeenCalled();
+  });
+
+  it("shows alert when on-demand 2D SDF fetch fails", async () => {
+    const alertSpy = jest.spyOn(Alert, "alert").mockImplementation(() => {});
+    mockFetchSdf.mockRejectedValueOnce(new Error("Network error"));
+    const handleSelectFormat = jest.fn();
+
+    const moleculeDeferred2D: MoleculeInfo = {
+      ...mockMoleculeData,
+      sdf2d: "",
+    };
+
+    const { getByLabelText } = render(
+      <StructureControls
+        moleculeData={moleculeDeferred2D}
+        isAnimated={false}
+        structureFormat="3d"
+        onToggleAnimation={jest.fn()}
+        onSelectFormat={handleSelectFormat}
+        styles={styles}
+      />,
+    );
+
+    const button2D = getByLabelText("2D Structure");
+    fireEvent.press(button2D);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(alertSpy).toHaveBeenCalledWith(
+      "Connection Error",
+      expect.any(String),
+    );
+    expect(handleSelectFormat).not.toHaveBeenCalled();
     alertSpy.mockRestore();
   });
 
@@ -224,6 +300,7 @@ describe("StructureControls Component", () => {
       const moleculeWithout2D: MoleculeInfo = {
         ...mockMoleculeData,
         sdf2d: "",
+        has2d: false,
       };
 
       const { getByLabelText } = render(

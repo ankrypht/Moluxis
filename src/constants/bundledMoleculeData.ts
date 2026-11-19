@@ -523,3 +523,24 @@ export const BUNDLED_MOLECULES_BY_CID: Record<string, MoleculeInfo> =
     },
     {} as Record<string, MoleculeInfo>,
   );
+
+let bundledMoleculesByCidCache: Record<string, MoleculeInfo> | null = null;
+
+/**
+ * Retrieves a bundled offline molecule by name or CID on demand.
+ */
+export function getBundledMolecule(term: string): MoleculeInfo | null {
+  if (!term || typeof term !== "string" || !term.trim()) return null;
+  const normalized = term.trim().toLowerCase();
+  const trimmed = term.trim();
+
+  if (BUNDLED_MOLECULES[normalized]) {
+    return BUNDLED_MOLECULES[normalized];
+  }
+
+  if (!bundledMoleculesByCidCache) {
+    bundledMoleculesByCidCache = BUNDLED_MOLECULES_BY_CID;
+  }
+
+  return bundledMoleculesByCidCache[trimmed] || null;
+}
