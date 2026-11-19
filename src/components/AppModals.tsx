@@ -123,66 +123,76 @@ export const AppModals: React.FC<AppModalsProps> = React.memo(
     return (
       <>
         {/* RECENT SEARCHES & FAVORITES MODAL */}
-        <HistoryBookmarksModal
-          visible={showHistoryModal}
-          onClose={onCloseHistoryModal}
-          onSelectCompound={onSelectCompound}
-          history={history}
-          bookmarks={bookmarks}
-          onToggleBookmark={onToggleBookmark}
-          onRemoveHistoryItem={onRemoveHistoryItem}
-          onRemoveBookmarkItem={onRemoveBookmarkItem}
-          onClearHistory={onClearHistory}
-          onClearBookmarks={onClearBookmarks}
-          isBookmarked={isBookmarked}
-          initialTab={historyModalTab}
-          styles={styles}
-          isLandscape={isLandscape}
-          height={height}
-        />
+        {showHistoryModal && (
+          <HistoryBookmarksModal
+            visible={showHistoryModal}
+            onClose={onCloseHistoryModal}
+            onSelectCompound={onSelectCompound}
+            history={history}
+            bookmarks={bookmarks}
+            onToggleBookmark={onToggleBookmark}
+            onRemoveHistoryItem={onRemoveHistoryItem}
+            onRemoveBookmarkItem={onRemoveBookmarkItem}
+            onClearHistory={onClearHistory}
+            onClearBookmarks={onClearBookmarks}
+            isBookmarked={isBookmarked}
+            initialTab={historyModalTab}
+            styles={styles}
+            isLandscape={isLandscape}
+            height={height}
+          />
+        )}
 
         {/* SHARE & EXPORT MODAL */}
-        <ShareExportModal
-          visible={showShareModal}
-          onClose={onCloseShareModal}
-          moleculeData={moleculeData}
-          snapshotUri={snapshotUri}
-          isCapturingSnapshot={isCapturingSnapshot}
-          onRefreshSnapshot={onRefreshSnapshot}
-          styles={styles}
-          isLandscape={isLandscape}
-          height={height}
-        />
+        {showShareModal && (
+          <ShareExportModal
+            visible={showShareModal}
+            onClose={onCloseShareModal}
+            moleculeData={moleculeData}
+            snapshotUri={snapshotUri}
+            isCapturingSnapshot={isCapturingSnapshot}
+            onRefreshSnapshot={onRefreshSnapshot}
+            styles={styles}
+            isLandscape={isLandscape}
+            height={height}
+          />
+        )}
 
         {/* ABOUT MOLUXIS MODAL */}
-        <AboutModal
-          visible={showAboutModal}
-          onClose={onCloseAboutModal}
-          onOpenWhatsNew={onOpenWhatsNew}
-          onCheckForUpdates={onCheckForUpdates}
-          styles={styles}
-          isLandscape={isLandscape}
-          height={height}
-        />
+        {showAboutModal && (
+          <AboutModal
+            visible={showAboutModal}
+            onClose={onCloseAboutModal}
+            onOpenWhatsNew={onOpenWhatsNew}
+            onCheckForUpdates={onCheckForUpdates}
+            styles={styles}
+            isLandscape={isLandscape}
+            height={height}
+          />
+        )}
 
         {/* IN-APP UPDATE AVAILABLE MODAL */}
-        <UpdateAvailableModal
-          visible={showUpdateModal}
-          releaseInfo={releaseInfo}
-          onDismiss={dismissUpdateModal}
-          styles={styles}
-        />
+        {showUpdateModal && Boolean(releaseInfo) && (
+          <UpdateAvailableModal
+            visible={showUpdateModal}
+            releaseInfo={releaseInfo}
+            onDismiss={dismissUpdateModal}
+            styles={styles}
+          />
+        )}
 
         {/* POST-UPDATE WHAT'S NEW MODAL */}
-        <WhatsNewModal
-          visible={showWhatsNewModal}
-          releaseNotes={whatsNewNotes}
-          onClose={dismissWhatsNewModal}
-          styles={styles}
-        />
+        {showWhatsNewModal && (
+          <WhatsNewModal
+            visible={showWhatsNewModal}
+            releaseNotes={whatsNewNotes}
+            onClose={dismissWhatsNewModal}
+            styles={styles}
+          />
+        )}
 
         {/* DEV-ONLY NOTIFICATIONS & UPDATES TEST LAB */}
-        {IS_DEV_TEST_ENABLED && (
+        {IS_DEV_TEST_ENABLED && showDevTestModal && (
           <DevTestModal
             visible={showDevTestModal}
             onClose={onCloseDevTestModal}

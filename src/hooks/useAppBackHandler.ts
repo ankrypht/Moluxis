@@ -24,8 +24,8 @@ export interface UseAppBackHandlerOptions {
   onCloseDisplayOptions: () => void;
   showControls: boolean;
   onExitZenMode: () => void;
-  showSuggestions: boolean;
-  onCloseSuggestions: () => void;
+  showSuggestions?: boolean;
+  onCloseSuggestions?: () => void;
   canClearToShowcase: boolean;
   onClearToShowcase: () => void;
 }
@@ -120,7 +120,7 @@ export function useAppBackHandler(options: UseAppBackHandlerOptions) {
           return true;
         }
         if (currentOptions.showSuggestions) {
-          currentOptions.onCloseSuggestions();
+          currentOptions.onCloseSuggestions?.();
           return true;
         }
         if (currentOptions.canClearToShowcase) {

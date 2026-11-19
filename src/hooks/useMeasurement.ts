@@ -189,36 +189,48 @@ export function useMeasurement({
     setPickedAtomsState([]);
   }, []);
 
-  const handleAtomPicked = useCallback(
-    (atom: PickedAtom) => {
-      if (!isMeasuring) return;
-      const now = Date.now();
-      if (now - lastAtomPickTimeRef.current < ATOM_PICK_COOLDOWN_MS) {
-        return;
+  const isMeasuringRef = useRef(isMeasuring);
+  useEffect(() => {
+    isMeasuringRef.current = isMeasuring;
+  });
+
+  const measurementModeRef = useRef(measurementMode);
+  useEffect(() => {
+    measurementModeRef.current = measurementMode;
+  });
+
+  const currentMoleculeKeyRef = useRef(currentMoleculeKey);
+  useEffect(() => {
+    currentMoleculeKeyRef.current = currentMoleculeKey;
+  });
+
+  const handleAtomPicked = useCallback((atom: PickedAtom) => {
+    if (!isMeasuringRef.current) return;
+    const now = Date.now();
+    if (now - lastAtomPickTimeRef.current < ATOM_PICK_COOLDOWN_MS) {
+      return;
+    }
+    lastAtomPickTimeRef.current = now;
+    triggerMeasurementHaptic();
+    setMeasuringMoleculeKey(currentMoleculeKeyRef.current);
+
+    setPickedAtomsState((prev) => {
+      const existingIndex = prev.findIndex((a) =>
+        a.index !== undefined && atom.index !== undefined
+          ? a.index === atom.index
+          : a.serial !== undefined && a.serial === atom.serial,
+      );
+      if (existingIndex !== -1) {
+        return prev.filter((_, i) => i !== existingIndex);
       }
-      lastAtomPickTimeRef.current = now;
-      triggerMeasurementHaptic();
-      setMeasuringMoleculeKey(currentMoleculeKey);
 
-      setPickedAtomsState((prev) => {
-        const existingIndex = prev.findIndex((a) =>
-          a.index !== undefined && atom.index !== undefined
-            ? a.index === atom.index
-            : a.serial !== undefined && a.serial === atom.serial,
-        );
-        if (existingIndex !== -1) {
-          return prev.filter((_, i) => i !== existingIndex);
-        }
-
-        const maxCount = getRequiredAtomCount(measurementMode);
-        if (prev.length >= maxCount) {
-          return [atom];
-        }
-        return [...prev, atom];
-      });
-    },
-    [isMeasuring, measurementMode, currentMoleculeKey],
-  );
+      const maxCount = getRequiredAtomCount(measurementModeRef.current);
+      if (prev.length >= maxCount) {
+        return [atom];
+      }
+      return [...prev, atom];
+    });
+  }, []);
 
   const resetMeasurement = useCallback(() => {
     lastAtomPickTimeRef.current = 0;

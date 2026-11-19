@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,8 @@ import {
   StyleProp,
   ViewStyle,
   useWindowDimensions,
+  BackHandler,
+  Keyboard,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
@@ -20,12 +22,13 @@ import { StructureControls } from "./StructureControls";
 import { FloatingHeaderStyles } from "./FloatingHeader.styles";
 import { StructureControlsStyles } from "./StructureControls.styles";
 import { triggerImpactLight, triggerSelectionHaptic } from "../utils/haptics";
+import { useAutocomplete } from "../hooks/useAutocomplete";
 
 export interface FloatingHeaderProps {
-  searchInputRef: React.RefObject<TextInputInstance | null>;
-  searchText: string;
-  suggestions: string[];
-  showSuggestions: boolean;
+  searchInputRef?: React.RefObject<TextInputInstance | null>;
+  searchText?: string;
+  suggestions?: string[];
+  showSuggestions?: boolean;
   isLoading: boolean;
   moleculeData: MoleculeInfo | null;
   isLandscape: boolean;
@@ -34,10 +37,10 @@ export interface FloatingHeaderProps {
   structureFormat: "3d" | "2d";
   containerStyle?: StyleProp<ViewStyle>;
   styles: FloatingHeaderStyles & StructureControlsStyles;
-  onTextChange: (text: string) => void;
-  onFocus: () => void;
+  onTextChange?: (text: string) => void;
+  onFocus?: () => void;
   onSearch: (query?: string) => void;
-  onSelectSuggestion: (item: string) => void;
+  onSelectSuggestion?: (item: string) => void;
   onToggleAnimation: () => void;
   onSelectFormat: (format: "3d" | "2d") => void;
   onLayoutHeader?: (height: number) => void;
@@ -50,45 +53,123 @@ export interface FloatingHeaderProps {
 }
 
 export const FloatingHeader: React.FC<FloatingHeaderProps> = React.memo(
-  ({
-    searchInputRef,
-    searchText,
-    suggestions,
-    showSuggestions,
-    isLoading,
-    moleculeData,
-    isLandscape,
-    showInfo,
-    isAnimated,
-    structureFormat,
-    containerStyle,
-    styles,
-    onTextChange,
-    onFocus,
-    onSearch,
-    onSelectSuggestion,
-    onToggleAnimation,
-    onSelectFormat,
-    onLayoutHeader,
-    onClear,
-    isBookmarked,
-    onToggleBookmark,
-    onOpenHistory,
-    onOpenShare,
-    onOpenDevTools,
-  }) => {
+  (props) => {
+    const {
+      searchInputRef,
+      isLoading,
+      moleculeData,
+      isLandscape,
+      showInfo,
+      isAnimated,
+      structureFormat,
+      containerStyle,
+      styles,
+      onSearch,
+      onSelectSuggestion,
+      onToggleAnimation,
+      onSelectFormat,
+      onLayoutHeader,
+      onClear,
+      isBookmarked,
+      onToggleBookmark,
+      onOpenHistory,
+      onOpenShare,
+      onOpenDevTools,
+    } = props;
+
+    const localInputRef = useRef<TextInputInstance>(null);
+    const inputRef = searchInputRef || localInputRef;
+
+    const autocomplete = useAutocomplete();
+    const isControlled = props.searchText !== undefined;
+    const searchText = isControlled
+      ? props.searchText!
+      : autocomplete.searchText;
+    const suggestions =
+      props.suggestions !== undefined
+        ? props.suggestions
+        : autocomplete.suggestions;
+    const showSuggestions =
+      props.showSuggestions !== undefined
+        ? props.showSuggestions
+        : autocomplete.showSuggestions;
+    const onTextChange = props.onTextChange || autocomplete.handleTextChange;
+    const onFocus =
+      props.onFocus || (() => autocomplete.setShowSuggestions(true));
+
+    const lastMoleculeKeyRef = useRef<string | null>(null);
+    const currentKey = moleculeData?.cid || moleculeData?.name || null;
+
+    useEffect(() => {
+      if (isControlled) return;
+      if (currentKey !== lastMoleculeKeyRef.current) {
+        lastMoleculeKeyRef.current = currentKey;
+        autocomplete.setSearchText(moleculeData?.name || "");
+        autocomplete.clearSuggestions();
+      }
+    }, [currentKey, moleculeData?.name, isControlled, autocomplete]);
+
+    const isSuggestionsDropdownVisible =
+      showSuggestions && suggestions.length > 0;
+
+    useEffect(() => {
+      if (!isSuggestionsDropdownVisible) return;
+      const backHandler = BackHandler.addEventListener(
+        "hardwareBackPress",
+        () => {
+          if (!isControlled) {
+            autocomplete.clearSuggestions();
+          }
+          return true;
+        },
+      );
+      return () => backHandler.remove();
+    }, [isSuggestionsDropdownVisible, isControlled, autocomplete]);
+
+    const handleSelectSuggestion = useCallback(
+      (item: string) => {
+        inputRef.current?.blur();
+        Keyboard.dismiss();
+        if (!isControlled) {
+          autocomplete.setSearchText(item);
+          autocomplete.clearSuggestions();
+        }
+        if (onSelectSuggestion) {
+          onSelectSuggestion(item);
+        } else {
+          onSearch(item);
+        }
+      },
+      [inputRef, isControlled, autocomplete, onSelectSuggestion, onSearch],
+    );
+
+    const handleSubmitSearch = useCallback(() => {
+      inputRef.current?.blur();
+      Keyboard.dismiss();
+      if (!isControlled) {
+        autocomplete.clearSuggestions();
+      }
+      onSearch(searchText.trim() || undefined);
+    }, [inputRef, isControlled, autocomplete, onSearch, searchText]);
+
+    const handleClear = useCallback(() => {
+      if (!isControlled) {
+        autocomplete.setSearchText("");
+        autocomplete.clearSuggestions();
+      }
+      onClear?.();
+    }, [isControlled, autocomplete, onClear]);
+
     const renderSuggestionItem = useCallback(
       ({ item }: { item: string }) => (
-        <SuggestionItem item={item} onSelect={onSelectSuggestion} />
+        <SuggestionItem item={item} onSelect={handleSelectSuggestion} />
       ),
-      [onSelectSuggestion],
+      [handleSelectSuggestion],
     );
 
     const { width, height } = useWindowDimensions();
     const isTablet = Math.min(width, height) >= 600;
 
-    const isSuggestionsDropdownVisible =
-      showSuggestions && suggestions.length > 0;
     const actionIconSize = isLandscape && !isTablet ? 18 : 20;
     const actionButtonStyle = isLandscape
       ? [styles.headerIconButton, styles.headerIconButtonLandscape]
@@ -194,7 +275,7 @@ export const FloatingHeader: React.FC<FloatingHeaderProps> = React.memo(
                     testID="header-moluxis-home-button"
                     onPress={() => {
                       triggerImpactLight();
-                      onClear?.();
+                      handleClear();
                     }}
                     onLongPress={
                       onOpenDevTools
@@ -228,7 +309,7 @@ export const FloatingHeader: React.FC<FloatingHeaderProps> = React.memo(
               >
                 <View style={styles.inputWrapper}>
                   <TextInput
-                    ref={searchInputRef}
+                    ref={inputRef}
                     allowFontScaling={false}
                     style={[
                       styles.input,
@@ -244,7 +325,7 @@ export const FloatingHeader: React.FC<FloatingHeaderProps> = React.memo(
                     returnKeyType="search"
                     onSubmitEditing={() => {
                       triggerSelectionHaptic();
-                      onSearch();
+                      handleSubmitSearch();
                     }}
                     keyboardAppearance="dark"
                   />
@@ -256,7 +337,7 @@ export const FloatingHeader: React.FC<FloatingHeaderProps> = React.memo(
                       style={styles.clearButton}
                       onPress={() => {
                         triggerImpactLight();
-                        onClear();
+                        handleClear();
                       }}
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
@@ -276,7 +357,7 @@ export const FloatingHeader: React.FC<FloatingHeaderProps> = React.memo(
                   ]}
                   onPress={() => {
                     triggerSelectionHaptic();
-                    onSearch();
+                    handleSubmitSearch();
                   }}
                   onLongPress={
                     isLandscape && onOpenDevTools

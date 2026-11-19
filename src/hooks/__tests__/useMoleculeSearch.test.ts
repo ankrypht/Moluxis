@@ -12,7 +12,6 @@ import { PubChemThrottledError } from "../../services/pubchem/circuitBreaker";
 import {
   fetchMoleculeDetails,
   fetchCompoundByName,
-  fetchAutocomplete,
 } from "../../services/pubchem/api";
 
 // Mock React Native APIs using spyOn
@@ -83,59 +82,8 @@ describe("useMoleculeSearch", () => {
   it("should initialize with default values", () => {
     const { result } = renderHook(() => useMoleculeSearch());
 
-    expect(result.current.searchText).toBe("");
-    expect(result.current.suggestions).toEqual([]);
-    expect(result.current.showSuggestions).toBe(false);
     expect(result.current.isLoading).toBe(false);
     expect(result.current.moleculeData).toBeNull();
-  });
-
-  describe("handleTextChange and fetchSuggestions", () => {
-    it("should clear suggestions if text is less than 3 characters", async () => {
-      const { result } = renderHook(() => useMoleculeSearch());
-
-      act(() => {
-        result.current.handleTextChange("wa");
-      });
-
-      await act(async () => {
-        jest.advanceTimersByTime(300);
-      });
-
-      expect(fetchAutocomplete).not.toHaveBeenCalled();
-      expect(result.current.suggestions).toEqual([]);
-    });
-
-    it("should update search text and fetch suggestions when text is 3+ characters", async () => {
-      (fetchAutocomplete as jest.Mock).mockResolvedValueOnce([
-        "water",
-        "water gas",
-        "water vapor",
-      ]);
-
-      const { result } = renderHook(() => useMoleculeSearch());
-
-      act(() => {
-        result.current.handleTextChange("wat");
-      });
-
-      expect(result.current.searchText).toBe("wat");
-
-      await act(async () => {
-        jest.advanceTimersByTime(300);
-      });
-
-      expect(fetchAutocomplete).toHaveBeenCalledWith(
-        "wat",
-        expect.any(AbortSignal),
-      );
-      expect(result.current.suggestions).toEqual([
-        "water",
-        "water gas",
-        "water vapor",
-      ]);
-      expect(result.current.showSuggestions).toBe(true);
-    });
   });
 
   describe("searchMolecule", () => {
@@ -447,20 +395,20 @@ describe("useMoleculeSearch", () => {
       expect(result.current.moleculeData?.formula).toBe("C8H10N4O2");
     });
 
-    it("should clear search text, suggestions, and molecule data when clearMolecule is called", async () => {
+    it("should clear molecule data when clearMolecule is called", async () => {
       const { result } = renderHook(() => useMoleculeSearch());
 
-      act(() => {
-        result.current.handleTextChange("caffeine");
+      await act(async () => {
+        await result.current.searchMolecule("caffeine");
       });
+
+      expect(result.current.moleculeData).not.toBeNull();
 
       act(() => {
         result.current.clearMolecule();
       });
 
       expect(Keyboard.dismiss).toHaveBeenCalled();
-      expect(result.current.searchText).toBe("");
-      expect(result.current.suggestions).toEqual([]);
       expect(result.current.moleculeData).toBeNull();
     });
 

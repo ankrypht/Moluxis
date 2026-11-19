@@ -1,4 +1,10 @@
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useMemo,
+} from "react";
 import {
   View,
   type TextInputInstance,
@@ -8,11 +14,12 @@ import {
 import {
   useSafeAreaInsets,
   SafeAreaProvider,
+  type EdgeInsets,
 } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
 
-import { VisualizationType } from "./src/types";
+import { VisualizationType, MoleculeInfo } from "./src/types";
 import { getDefaultStructureFormat } from "./src/utils/structure";
 import { useMoleculeSearch } from "./src/hooks/useMoleculeSearch";
 import { useCompoundHistoryAndBookmarks } from "./src/hooks/useCompoundHistoryAndBookmarks";
@@ -22,7 +29,10 @@ import {
 } from "./src/hooks/useNotificationsAndUpdates";
 import { useSystemUI } from "./src/hooks/useSystemUI";
 import { useSnapshotCapture } from "./src/hooks/useSnapshotCapture";
-import { useMeasurement } from "./src/hooks/useMeasurement";
+import {
+  MeasurementProvider,
+  useMeasurementStatus,
+} from "./src/context/MeasurementContext";
 import { useAppLayoutStyles } from "./src/hooks/useAppLayoutStyles";
 import { useAppBackHandler } from "./src/hooks/useAppBackHandler";
 import { FeaturedCategoryKey } from "./src/constants/featuredMolecules";
@@ -63,13 +73,8 @@ export default function App() {
 
 function MoleculeExplorer() {
   const {
-    searchText,
-    suggestions,
-    showSuggestions,
-    setShowSuggestions,
     isLoading,
     moleculeData,
-    handleTextChange,
     searchMolecule,
     selectSuggestion,
     clearMolecule,
@@ -78,18 +83,6 @@ function MoleculeExplorer() {
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
   const isLandscape = width > height;
-
-  const {
-    history,
-    bookmarks,
-    addHistory,
-    removeHistory,
-    clearHistory,
-    toggleBookmark,
-    removeBookmark,
-    clearBookmarks,
-    isBookmarked,
-  } = useCompoundHistoryAndBookmarks();
 
   const { isKeyboardVisible } = useSystemUI();
 
@@ -176,27 +169,176 @@ function MoleculeExplorer() {
     setShowInfo(false);
   }, [setIsAnimated]);
 
+  return (
+    <MeasurementProvider
+      moleculeViewerRef={moleculeViewerRef}
+      moleculeData={moleculeData}
+      structureFormat={structureFormat}
+      setStructureFormat={setStructureFormat}
+      isLandscape={isLandscape}
+      onStartMeasuring={handleStartMeasuring}
+    >
+      <MoleculeExplorerContent
+        isLoading={isLoading}
+        moleculeData={moleculeData}
+        searchMolecule={searchMolecule}
+        selectSuggestion={selectSuggestion}
+        clearMolecule={clearMolecule}
+        insets={insets}
+        width={width}
+        height={height}
+        isLandscape={isLandscape}
+        isKeyboardVisible={isKeyboardVisible}
+        searchInputRef={searchInputRef}
+        moleculeViewerRef={moleculeViewerRef}
+        vizStyle={vizStyle}
+        setVizStyle={setVizStyle}
+        showLabels={showLabels}
+        setShowLabels={setShowLabels}
+        showInfo={showInfo}
+        setShowInfo={setShowInfo}
+        showControls={showControls}
+        setShowControls={setShowControls}
+        structureFormat={structureFormat}
+        setStructureFormat={setStructureFormat}
+        isAnimated={isAnimated}
+        setIsAnimated={setIsAnimated}
+        showDisplayOptions={showDisplayOptions}
+        setShowDisplayOptions={setShowDisplayOptions}
+        headerHeight={headerHeight}
+        setHeaderHeight={setHeaderHeight}
+        showHistoryModal={showHistoryModal}
+        setShowHistoryModal={setShowHistoryModal}
+        historyModalTab={historyModalTab}
+        setHistoryModalTab={setHistoryModalTab}
+        showShareModal={showShareModal}
+        setShowShareModal={setShowShareModal}
+        showAboutModal={showAboutModal}
+        setShowAboutModal={setShowAboutModal}
+        showDevTestModal={showDevTestModal}
+        setShowDevTestModal={setShowDevTestModal}
+        snapshotUri={snapshotUri}
+        isCapturingSnapshot={isCapturingSnapshot}
+        handleCaptureSnapshot={handleCaptureSnapshot}
+        handleSnapshotCaptured={handleSnapshotCaptured}
+        resetSnapshot={resetSnapshot}
+      />
+    </MeasurementProvider>
+  );
+}
+
+interface MoleculeExplorerContentProps {
+  isLoading: boolean;
+  moleculeData: MoleculeInfo | null;
+  searchMolecule: (query?: string) => Promise<void>;
+  selectSuggestion: (item: string) => void;
+  clearMolecule: () => void;
+  insets: EdgeInsets;
+  width: number;
+  height: number;
+  isLandscape: boolean;
+  isKeyboardVisible: boolean;
+  searchInputRef: React.RefObject<TextInputInstance | null>;
+  moleculeViewerRef: React.RefObject<MoleculeViewerRef | null>;
+  vizStyle: VisualizationType;
+  setVizStyle: (style: VisualizationType) => void;
+  showLabels: boolean;
+  setShowLabels: React.Dispatch<React.SetStateAction<boolean>>;
+  showInfo: boolean;
+  setShowInfo: React.Dispatch<React.SetStateAction<boolean>>;
+  showControls: boolean;
+  setShowControls: React.Dispatch<React.SetStateAction<boolean>>;
+  structureFormat: "3d" | "2d";
+  setStructureFormat: (format: "3d" | "2d") => void;
+  isAnimated: boolean;
+  setIsAnimated: (next: boolean | ((prev: boolean) => boolean)) => void;
+  showDisplayOptions: boolean;
+  setShowDisplayOptions: React.Dispatch<React.SetStateAction<boolean>>;
+  headerHeight: number;
+  setHeaderHeight: (height: number) => void;
+  showHistoryModal: boolean;
+  setShowHistoryModal: React.Dispatch<React.SetStateAction<boolean>>;
+  historyModalTab: "history" | "bookmarks";
+  setHistoryModalTab: React.Dispatch<
+    React.SetStateAction<"history" | "bookmarks">
+  >;
+  showShareModal: boolean;
+  setShowShareModal: React.Dispatch<React.SetStateAction<boolean>>;
+  showAboutModal: boolean;
+  setShowAboutModal: React.Dispatch<React.SetStateAction<boolean>>;
+  showDevTestModal: boolean;
+  setShowDevTestModal: React.Dispatch<React.SetStateAction<boolean>>;
+  snapshotUri: string | null;
+  isCapturingSnapshot: boolean;
+  handleCaptureSnapshot: () => void;
+  handleSnapshotCaptured: (dataUri: string | null) => void;
+  resetSnapshot: () => void;
+}
+
+const MoleculeExplorerContent = React.memo(function MoleculeExplorerContent({
+  isLoading,
+  moleculeData,
+  searchMolecule,
+  selectSuggestion,
+  clearMolecule,
+  insets,
+  width,
+  height,
+  isLandscape,
+  isKeyboardVisible,
+  searchInputRef,
+  moleculeViewerRef,
+  vizStyle,
+  setVizStyle,
+  showLabels,
+  setShowLabels,
+  showInfo,
+  setShowInfo,
+  showControls,
+  setShowControls,
+  structureFormat,
+  setStructureFormat,
+  isAnimated,
+  setIsAnimated,
+  showDisplayOptions,
+  setShowDisplayOptions,
+  headerHeight,
+  setHeaderHeight,
+  showHistoryModal,
+  setShowHistoryModal,
+  historyModalTab,
+  setHistoryModalTab,
+  showShareModal,
+  setShowShareModal,
+  showAboutModal,
+  setShowAboutModal,
+  showDevTestModal,
+  setShowDevTestModal,
+  snapshotUri,
+  isCapturingSnapshot,
+  handleCaptureSnapshot,
+  handleSnapshotCaptured,
+  resetSnapshot,
+}: MoleculeExplorerContentProps) {
+  const {
+    history,
+    bookmarks,
+    addHistory,
+    removeHistory,
+    clearHistory,
+    toggleBookmark,
+    removeBookmark,
+    clearBookmarks,
+    isBookmarked,
+  } = useCompoundHistoryAndBookmarks();
   const {
     isMeasuring,
     measurementMode,
-    pickedAtoms,
-    measurementData,
     measurePanelSize,
-    handleMeasurePanelLayout,
-    handleCloseMeasure,
     handleToggleMeasure,
-    handleSelectMeasurementMode,
-    handleRemoveAtom,
-    handleClearMeasurements,
+    handleCloseMeasure,
     handleAtomPicked,
-  } = useMeasurement({
-    moleculeViewerRef,
-    moleculeData,
-    structureFormat,
-    setStructureFormat,
-    isLandscape,
-    onStartMeasuring: handleStartMeasuring,
-  });
+  } = useMeasurementStatus();
 
   // Automatically record inspected compounds in search history
   const lastRecordedNameRef = useRef<string | null>(null);
@@ -270,7 +412,7 @@ function MoleculeExplorer() {
       setIsAnimated(false);
       searchMolecule(query);
     },
-    [searchMolecule, setIsAnimated],
+    [searchMolecule, setIsAnimated, searchInputRef],
   );
 
   const handleSelectSuggestion = useCallback(
@@ -280,7 +422,7 @@ function MoleculeExplorer() {
       setIsAnimated(false);
       selectSuggestion(item);
     },
-    [selectSuggestion, setIsAnimated],
+    [selectSuggestion, setIsAnimated, searchInputRef],
   );
 
   const handleClearToShowcase = useCallback(() => {
@@ -294,7 +436,17 @@ function MoleculeExplorer() {
     setShowShareModal(false);
     setShowAboutModal(false);
     clearMolecule();
-  }, [clearMolecule, handleCloseMeasure, setIsAnimated]);
+  }, [
+    clearMolecule,
+    handleCloseMeasure,
+    setIsAnimated,
+    searchInputRef,
+    setShowInfo,
+    setShowDisplayOptions,
+    setShowHistoryModal,
+    setShowShareModal,
+    setShowAboutModal,
+  ]);
 
   const handleToggleCurrentBookmark = useCallback(() => {
     if (moleculeData?.name) {
@@ -317,12 +469,23 @@ function MoleculeExplorer() {
       setShowDisplayOptions(false);
       setShowAboutModal(false);
     },
-    [],
+    [
+      searchInputRef,
+      setHistoryModalTab,
+      setShowHistoryModal,
+      setShowInfo,
+      setShowDisplayOptions,
+      setShowAboutModal,
+    ],
   );
+
+  const handleOpenHistoryFromHeader = useCallback(() => {
+    handleOpenHistoryModal("history");
+  }, [handleOpenHistoryModal]);
 
   const handleCloseHistoryModal = useCallback(() => {
     setShowHistoryModal(false);
-  }, []);
+  }, [setShowHistoryModal]);
 
   const handleOpenAboutModal = useCallback(() => {
     searchInputRef.current?.blur();
@@ -332,11 +495,18 @@ function MoleculeExplorer() {
     setShowDisplayOptions(false);
     setShowHistoryModal(false);
     setShowShareModal(false);
-  }, []);
+  }, [
+    searchInputRef,
+    setShowAboutModal,
+    setShowInfo,
+    setShowDisplayOptions,
+    setShowHistoryModal,
+    setShowShareModal,
+  ]);
 
   const handleCloseAboutModal = useCallback(() => {
     setShowAboutModal(false);
-  }, []);
+  }, [setShowAboutModal]);
 
   const handleToggleInfo = useCallback(() => {
     searchInputRef.current?.blur();
@@ -344,24 +514,27 @@ function MoleculeExplorer() {
     setShowInfo((prev) => !prev);
     setShowDisplayOptions(false);
     handleCloseMeasure();
-  }, [handleCloseMeasure]);
+  }, [handleCloseMeasure, searchInputRef, setShowInfo, setShowDisplayOptions]);
 
   const handleCloseInfo = useCallback(() => {
     setShowInfo(false);
-  }, []);
+  }, [setShowInfo]);
 
-  const handleSelectStyle = useCallback((style: VisualizationType) => {
-    setVizStyle(style);
-    setShowDisplayOptions(false);
-  }, []);
+  const handleSelectStyle = useCallback(
+    (style: VisualizationType) => {
+      setVizStyle(style);
+      setShowDisplayOptions(false);
+    },
+    [setVizStyle, setShowDisplayOptions],
+  );
 
   const handleToggleDisplayOptions = useCallback(() => {
     setShowDisplayOptions((prev) => !prev);
-  }, []);
+  }, [setShowDisplayOptions]);
 
   const handleToggleLabels = useCallback(() => {
     setShowLabels((prev) => !prev);
-  }, []);
+  }, [setShowLabels]);
 
   const handleOpenShareModal = useCallback(() => {
     searchInputRef.current?.blur();
@@ -372,12 +545,20 @@ function MoleculeExplorer() {
     setShowHistoryModal(false);
     setShowAboutModal(false);
     handleCaptureSnapshot();
-  }, [handleCaptureSnapshot]);
+  }, [
+    handleCaptureSnapshot,
+    searchInputRef,
+    setShowShareModal,
+    setShowInfo,
+    setShowDisplayOptions,
+    setShowHistoryModal,
+    setShowAboutModal,
+  ]);
 
   const handleCloseShareModal = useCallback(() => {
     setShowShareModal(false);
     resetSnapshot();
-  }, [resetSnapshot]);
+  }, [resetSnapshot, setShowShareModal]);
 
   const handleEnterZenMode = useCallback(() => {
     setShowControls(false);
@@ -387,11 +568,19 @@ function MoleculeExplorer() {
     setShowShareModal(false);
     setShowAboutModal(false);
     handleCloseMeasure();
-  }, [handleCloseMeasure]);
+  }, [
+    handleCloseMeasure,
+    setShowControls,
+    setShowInfo,
+    setShowDisplayOptions,
+    setShowHistoryModal,
+    setShowShareModal,
+    setShowAboutModal,
+  ]);
 
   const handleExitZenMode = useCallback(() => {
     setShowControls(true);
-  }, []);
+  }, [setShowControls]);
 
   const handleOpenBookmarksFromLink = useCallback(() => {
     handleOpenHistoryModal("bookmarks");
@@ -429,17 +618,15 @@ function MoleculeExplorer() {
 
   const handleCloseDisplayOptions = useCallback(() => {
     setShowDisplayOptions(false);
-  }, []);
+  }, [setShowDisplayOptions]);
 
-  const handleCloseSuggestions = useCallback(() => {
-    searchInputRef.current?.blur();
-    Keyboard.dismiss();
-    setShowSuggestions(false);
-  }, [setShowSuggestions]);
+  const handleOpenDevTools = useCallback(() => {
+    setShowDevTestModal(true);
+  }, [setShowDevTestModal]);
 
   const handleCloseDevTestModal = useCallback(() => {
     setShowDevTestModal(false);
-  }, []);
+  }, [setShowDevTestModal]);
 
   const hasActiveAlert = useActiveAlert();
 
@@ -451,7 +638,6 @@ function MoleculeExplorer() {
     isKeyboardVisible ||
     hasActiveAlert ||
     showHistoryModal ||
-    showSuggestions ||
     showShareModal ||
     showAboutModal ||
     showUpdateModal ||
@@ -483,11 +669,11 @@ function MoleculeExplorer() {
     onCloseDisplayOptions: handleCloseDisplayOptions,
     showControls,
     onExitZenMode: handleExitZenMode,
-    showSuggestions,
-    onCloseSuggestions: handleCloseSuggestions,
     canClearToShowcase: Boolean(moleculeData || isLoading),
     onClearToShowcase: handleClearToShowcase,
   });
+
+  const isCompactDock = Boolean(isLandscape && (showInfo || showShareModal));
 
   return (
     <View style={styles.container}>
@@ -521,9 +707,6 @@ function MoleculeExplorer() {
       {showControls && !isMeasuring && (
         <FloatingHeader
           searchInputRef={searchInputRef}
-          searchText={searchText}
-          suggestions={suggestions}
-          showSuggestions={showSuggestions}
           isLoading={isLoading}
           moleculeData={moleculeData}
           isLandscape={isLandscape}
@@ -532,8 +715,6 @@ function MoleculeExplorer() {
           structureFormat={structureFormat}
           containerStyle={dynamicHeaderContainerStyle}
           styles={styles}
-          onTextChange={handleTextChange}
-          onFocus={() => setShowSuggestions(true)}
           onSearch={handleSearch}
           onSelectSuggestion={handleSelectSuggestion}
           onToggleAnimation={toggleAnimation}
@@ -542,11 +723,9 @@ function MoleculeExplorer() {
           onClear={handleClearToShowcase}
           isBookmarked={isCurrentBookmarked}
           onToggleBookmark={handleToggleCurrentBookmark}
-          onOpenHistory={() => handleOpenHistoryModal("history")}
+          onOpenHistory={handleOpenHistoryFromHeader}
           onOpenShare={handleOpenShareModal}
-          onOpenDevTools={
-            IS_DEV_TEST_ENABLED ? () => setShowDevTestModal(true) : undefined
-          }
+          onOpenDevTools={IS_DEV_TEST_ENABLED ? handleOpenDevTools : undefined}
         />
       )}
 
@@ -598,7 +777,7 @@ function MoleculeExplorer() {
           onToggleLabels={handleToggleLabels}
           onEnterZenMode={handleEnterZenMode}
           isLandscape={isLandscape}
-          isCompact={Boolean(isLandscape && (showInfo || showShareModal))}
+          isCompact={isCompactDock}
         />
       )}
 
@@ -609,18 +788,7 @@ function MoleculeExplorer() {
         showControls &&
         !showShareModal &&
         !showHistoryModal && (
-          <MeasurementPanel
-            mode={measurementMode}
-            pickedAtoms={pickedAtoms}
-            measurementData={measurementData}
-            onSelectMode={handleSelectMeasurementMode}
-            onRemoveAtom={handleRemoveAtom}
-            onClear={handleClearMeasurements}
-            onClose={handleCloseMeasure}
-            styles={styles}
-            isLandscape={isLandscape}
-            onPanelLayout={handleMeasurePanelLayout}
-          />
+          <MeasurementPanel styles={styles} isLandscape={isLandscape} />
         )}
 
       {/* ANIMATED BOTTOM SHEET / SIDE DRAWER (Info Panel) */}
@@ -695,4 +863,4 @@ function MoleculeExplorer() {
       />
     </View>
   );
-}
+});

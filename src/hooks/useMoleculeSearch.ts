@@ -2,7 +2,6 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { Keyboard } from "react-native";
 import { Alert } from "../components/CustomAlert";
 import { MoleculeInfo } from "../types";
-import { useAutocomplete } from "./useAutocomplete";
 import { fetchMoleculeData } from "../services/pubchem/searchHelper";
 import { isAbortError } from "../services/pubchem/utils";
 import { useStoreReview } from "./useStoreReview";
@@ -114,27 +113,11 @@ function findBundledMolecule(term: string): MoleculeInfo | null {
 }
 
 export const useMoleculeSearch = () => {
-  const {
-    searchText,
-    setSearchText,
-    suggestions,
-    showSuggestions,
-    setShowSuggestions,
-    handleTextChange,
-    clearSuggestions,
-  } = useAutocomplete();
-
   const [isLoading, setIsLoading] = useState(false);
   const [moleculeData, setMoleculeData] = useState<MoleculeInfo | null>(null);
   const { incrementSearchCountAndReview } = useStoreReview();
   const activeSearchIdRef = useRef(0);
   const searchAbortControllerRef = useRef<AbortController | null>(null);
-
-  // Keep searchTextRef updated for use in useCallback
-  const searchTextRef = useRef(searchText);
-  useEffect(() => {
-    searchTextRef.current = searchText;
-  }, [searchText]);
 
   // Cancel any pending search on unmount
   useEffect(() => {
@@ -147,8 +130,7 @@ export const useMoleculeSearch = () => {
     async (queryName?: string) => {
       Keyboard.dismiss();
 
-      // Use the ref to get the current search text without adding it to dependency array
-      const term = queryName || searchTextRef.current;
+      const term = queryName || "";
       const trimmedTerm = term.trim();
       if (!trimmedTerm) return;
 
@@ -159,8 +141,6 @@ export const useMoleculeSearch = () => {
       searchAbortControllerRef.current?.abort();
       const controller = new AbortController();
       searchAbortControllerRef.current = controller;
-
-      clearSuggestions();
 
       // 1. Tier 1: Check In-Memory RAM Cache first by Name or CID (0ms synchronous)
       const ramCached = getMoleculeFromRam(trimmedTerm);
@@ -268,16 +248,14 @@ export const useMoleculeSearch = () => {
         }
       }
     },
-    [clearSuggestions, incrementSearchCountAndReview],
+    [incrementSearchCountAndReview],
   );
 
   const selectSuggestion = useCallback(
     (item: string) => {
-      setSearchText(item);
-      clearSuggestions();
       searchMolecule(item);
     },
-    [setSearchText, clearSuggestions, searchMolecule],
+    [searchMolecule],
   );
 
   const clearMolecule = useCallback(() => {
@@ -285,21 +263,13 @@ export const useMoleculeSearch = () => {
     searchAbortControllerRef.current?.abort();
     searchAbortControllerRef.current = null;
     Keyboard.dismiss();
-    setSearchText("");
-    clearSuggestions();
     setMoleculeData(null);
     setIsLoading(false);
-  }, [setSearchText, clearSuggestions]);
+  }, []);
 
   return {
-    searchText,
-    setSearchText,
-    suggestions,
-    showSuggestions,
-    setShowSuggestions,
     isLoading,
     moleculeData,
-    handleTextChange,
     searchMolecule,
     selectSuggestion,
     clearMolecule,
