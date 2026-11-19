@@ -28,6 +28,12 @@ export interface CustomAlertPayload {
 
 export type AlertListener = (alert: CustomAlertPayload | null) => void;
 
+let alertIdCounter = 0;
+
+export function resetAlertIdCounter(): void {
+  alertIdCounter = 0;
+}
+
 export class CustomAlertManagerClass {
   private listeners: Set<AlertListener> = new Set();
   private currentAlert: CustomAlertPayload | null = null;
@@ -53,8 +59,9 @@ export class CustomAlertManagerClass {
         ? buttons
         : [{ text: "OK", style: "default" }];
 
+    alertIdCounter += 1;
     const payload: CustomAlertPayload = {
-      id: Math.random().toString(36).substring(2, 9),
+      id: `alert-${alertIdCounter}`,
       title,
       message,
       buttons: resolvedButtons,
@@ -64,10 +71,24 @@ export class CustomAlertManagerClass {
     this.listeners.forEach((listener) => listener(payload));
   };
 
-  dismiss = (): void => {
+  dismiss = (id?: string): void => {
     if (!this.currentAlert) return;
+    if (id && this.currentAlert.id !== id) return;
     this.currentAlert = null;
     this.listeners.forEach((listener) => listener(null));
+  };
+
+  handleBackPress = (): boolean => {
+    if (!this.currentAlert) return false;
+    if (this.currentAlert.options?.cancelable === false) {
+      return true;
+    }
+    const current = this.currentAlert;
+    const cancelButton = current.buttons.find((b) => b.style === "cancel");
+    cancelButton?.onPress?.();
+    current.options?.onDismiss?.();
+    this.dismiss(current.id);
+    return true;
   };
 
   getCurrentAlert = (): CustomAlertPayload | null => {
@@ -86,7 +107,13 @@ export const Alert = {
   ): void => {
     customAlertManager.alert(title, message, buttons, options);
   },
-  dismiss: (): void => {
-    customAlertManager.dismiss();
+  dismiss: (id?: string): void => {
+    customAlertManager.dismiss(id);
+  },
+  handleBackPress: (): boolean => {
+    return customAlertManager.handleBackPress();
+  },
+  getCurrentAlert: (): CustomAlertPayload | null => {
+    return customAlertManager.getCurrentAlert();
   },
 };

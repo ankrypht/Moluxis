@@ -7,6 +7,24 @@ export interface Point3D {
 }
 
 /**
+ * Validates whether an unknown value is a valid Point3D with finite numeric coordinates.
+ */
+export function isValidPoint(p: unknown): p is Point3D {
+  if (p === null || p === undefined || typeof p !== "object") {
+    return false;
+  }
+  const pt = p as Record<string, unknown>;
+  return (
+    typeof pt.x === "number" &&
+    Number.isFinite(pt.x) &&
+    typeof pt.y === "number" &&
+    Number.isFinite(pt.y) &&
+    typeof pt.z === "number" &&
+    Number.isFinite(pt.z)
+  );
+}
+
+/**
  * Returns the number of atoms required to compute a measurement for the given mode.
  */
 export function getRequiredAtomCount(mode: MeasurementMode): number {
@@ -24,19 +42,29 @@ export function getRequiredAtomCount(mode: MeasurementMode): number {
 
 /**
  * Calculates Euclidean distance between two 3D coordinates in Ångströms (Å).
+ * Returns 0 if either point is missing or contains invalid coordinates.
  */
 export function calculateDistance(a: Point3D, b: Point3D): number {
+  if (!isValidPoint(a) || !isValidPoint(b)) {
+    return 0;
+  }
   const dx = b.x - a.x;
   const dy = b.y - a.y;
   const dz = b.z - a.z;
-  return Math.sqrt(dx * dx + dy * dy + dz * dz);
+  const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+  return Number.isFinite(dist) ? dist : 0;
 }
 
 /**
  * Calculates the bond angle formed by three atoms (A - B - C) with vertex at atom B.
  * Returns the angle in degrees in the range [0, 180].
+ * Returns 0 if any point is missing or contains invalid coordinates.
  */
 export function calculateAngle(a: Point3D, b: Point3D, c: Point3D): number {
+  if (!isValidPoint(a) || !isValidPoint(b) || !isValidPoint(c)) {
+    return 0;
+  }
+
   const v1x = a.x - b.x;
   const v1y = a.y - b.y;
   const v1z = a.z - b.z;
@@ -48,20 +76,30 @@ export function calculateAngle(a: Point3D, b: Point3D, c: Point3D): number {
   const len1 = Math.sqrt(v1x * v1x + v1y * v1y + v1z * v1z);
   const len2 = Math.sqrt(v2x * v2x + v2y * v2y + v2z * v2z);
 
-  if (len1 === 0 || len2 === 0) {
+  if (
+    len1 === 0 ||
+    len2 === 0 ||
+    !Number.isFinite(len1) ||
+    !Number.isFinite(len2)
+  ) {
     return 0;
   }
 
   const dot = (v1x * v2x + v1y * v2y + v1z * v2z) / (len1 * len2);
+  if (!Number.isFinite(dot)) {
+    return 0;
+  }
   const clampedDot = Math.max(-1, Math.min(1, dot));
 
-  return (Math.acos(clampedDot) * 180) / Math.PI;
+  const angle = (Math.acos(clampedDot) * 180) / Math.PI;
+  return Number.isFinite(angle) ? angle : 0;
 }
 
 /**
  * Calculates the dihedral / torsion angle formed by four atoms (A - B - C - D)
  * around the central bond B - C.
  * Returns the angle in degrees in the range [-180, 180].
+ * Returns 0 if any point is missing or contains invalid coordinates.
  */
 export function calculateDihedral(
   a: Point3D,
@@ -69,6 +107,15 @@ export function calculateDihedral(
   c: Point3D,
   d: Point3D,
 ): number {
+  if (
+    !isValidPoint(a) ||
+    !isValidPoint(b) ||
+    !isValidPoint(c) ||
+    !isValidPoint(d)
+  ) {
+    return 0;
+  }
+
   // Vector b1 = B - A
   const b1x = b.x - a.x;
   const b1y = b.y - a.y;
@@ -95,7 +142,7 @@ export function calculateDihedral(
   const n2z = b2x * b3y - b2y * b3x;
 
   const lenB2 = Math.sqrt(b2x * b2x + b2y * b2y + b2z * b2z);
-  if (lenB2 === 0) {
+  if (lenB2 === 0 || !Number.isFinite(lenB2)) {
     return 0;
   }
 
@@ -115,17 +162,27 @@ export function calculateDihedral(
   // y = m1 . n2
   const y = m1x * n2x + m1y * n2y + m1z * n2z;
 
-  if (x === 0 && y === 0) {
+  if ((x === 0 && y === 0) || !Number.isFinite(x) || !Number.isFinite(y)) {
     return 0;
   }
 
-  return (Math.atan2(y, x) * 180) / Math.PI;
+  const angle = (Math.atan2(y, x) * 180) / Math.PI;
+  return Number.isFinite(angle) ? angle : 0;
 }
 
 /**
  * Calculates the 3D midpoint between two points.
  */
 export function getMidpoint(a: Point3D, b: Point3D): Point3D {
+  const validA = isValidPoint(a);
+  const validB = isValidPoint(b);
+
+  if (!validA && !validB) {
+    return { x: 0, y: 0, z: 0 };
+  }
+  if (!validA) return { x: b.x, y: b.y, z: b.z };
+  if (!validB) return { x: a.x, y: a.y, z: a.z };
+
   return {
     x: (a.x + b.x) / 2,
     y: (a.y + b.y) / 2,
@@ -141,6 +198,13 @@ export function getAngleLabelPosition(
   b: Point3D,
   c: Point3D,
 ): Point3D {
+  if (!isValidPoint(b)) {
+    return { x: 0, y: 0, z: 0 };
+  }
+  if (!isValidPoint(a) || !isValidPoint(c)) {
+    return { x: b.x, y: b.y + 0.4, z: b.z };
+  }
+
   // Vector from B to midpoint of A and C
   const midAC = getMidpoint(a, c);
   const dirX = midAC.x - b.x;
@@ -149,7 +213,7 @@ export function getAngleLabelPosition(
   const len = Math.sqrt(dirX * dirX + dirY * dirY + dirZ * dirZ);
 
   // If A, B, C are nearly collinear, offset slightly in Y
-  if (len < 0.001) {
+  if (len < 0.001 || !Number.isFinite(len)) {
     return { x: b.x, y: b.y + 0.4, z: b.z };
   }
 
@@ -170,8 +234,9 @@ export function formatMeasurement(
   mode: MeasurementMode,
   atoms: PickedAtom[],
 ): { displayValue: string; designation: string } {
+  const safeValue = Number.isFinite(value) ? value : 0;
   const getAtomLabel = (atom: PickedAtom) =>
-    `${atom.elem}${atom.serial ?? atom.index ?? ""}`;
+    `${atom.elem || "Atom"}${atom.serial ?? atom.index ?? ""}`;
 
   switch (mode) {
     case "distance": {
@@ -179,14 +244,14 @@ export function formatMeasurement(
       const a2 = atoms[1] ? getAtomLabel(atoms[1]) : "B";
       return {
         designation: `d(${a1} — ${a2})`,
-        displayValue: `${value.toFixed(3)} Å`,
+        displayValue: `${Math.max(0, safeValue).toFixed(3)} Å`,
       };
     }
     case "angle": {
       const a1 = atoms[0] ? getAtomLabel(atoms[0]) : "A";
       const a2 = atoms[1] ? getAtomLabel(atoms[1]) : "B";
       const a3 = atoms[2] ? getAtomLabel(atoms[2]) : "C";
-      const normalized = Math.abs(value) < 0.005 ? 0 : value;
+      const normalized = Math.abs(safeValue) < 0.005 ? 0 : safeValue;
       return {
         designation: `∠(${a1} — ${a2} — ${a3})`,
         displayValue: `${normalized.toFixed(2)}°`,
@@ -197,7 +262,7 @@ export function formatMeasurement(
       const a2 = atoms[1] ? getAtomLabel(atoms[1]) : "B";
       const a3 = atoms[2] ? getAtomLabel(atoms[2]) : "C";
       const a4 = atoms[3] ? getAtomLabel(atoms[3]) : "D";
-      const normalized = Math.abs(value) < 0.005 ? 0 : value;
+      const normalized = Math.abs(safeValue) < 0.005 ? 0 : safeValue;
       return {
         designation: `τ(${a1} — ${a2} — ${a3} — ${a4})`,
         displayValue: `${normalized.toFixed(2)}°`,
@@ -206,7 +271,7 @@ export function formatMeasurement(
     default:
       return {
         designation: "",
-        displayValue: `${value.toFixed(2)}`,
+        displayValue: `${safeValue.toFixed(2)}`,
       };
   }
 }

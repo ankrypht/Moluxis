@@ -1,5 +1,5 @@
 import { StyleSheet } from "react-native";
-import { COLORS } from "../constants/colors";
+import { COLORS, addOpacity } from "../constants/colors";
 import { ScaleMetrics } from "../utils/scaling";
 
 export const getMoleculeViewerStyles = ({ scaleSize }: ScaleMetrics) =>
@@ -34,6 +34,76 @@ export const getMoleculeViewerStyles = ({ scaleSize }: ScaleMetrics) =>
       marginTop: scaleSize(14),
       fontWeight: "600",
       letterSpacing: -0.2,
+    },
+    fallbackContainer: {
+      position: "absolute",
+      top: 0,
+      bottom: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: COLORS.background,
+      justifyContent: "center",
+      alignItems: "center",
+      paddingHorizontal: scaleSize(24),
+      zIndex: 10,
+    },
+    fallbackCard: {
+      backgroundColor: COLORS.surface,
+      borderRadius: scaleSize(20),
+      borderWidth: 1,
+      borderColor: addOpacity(COLORS.border, 0.75),
+      paddingHorizontal: scaleSize(22),
+      paddingVertical: scaleSize(24),
+      width: "100%",
+      maxWidth: scaleSize(340),
+      alignItems: "center",
+      shadowColor: COLORS.shadow,
+      shadowOffset: { width: 0, height: 12 },
+      shadowOpacity: 0.5,
+      shadowRadius: 20,
+      elevation: 20,
+    },
+    fallbackIconBadge: {
+      width: scaleSize(52),
+      height: scaleSize(52),
+      borderRadius: scaleSize(26),
+      backgroundColor: addOpacity(COLORS.warning, 0.14),
+      borderColor: addOpacity(COLORS.warning, 0.35),
+      borderWidth: 1.5,
+      justifyContent: "center",
+      alignItems: "center",
+      marginBottom: scaleSize(14),
+    },
+    fallbackTitle: {
+      fontSize: scaleSize(17),
+      fontWeight: "700",
+      color: COLORS.textPrimary,
+      textAlign: "center",
+      marginBottom: scaleSize(8),
+      letterSpacing: -0.2,
+    },
+    fallbackMessage: {
+      fontSize: scaleSize(13.5),
+      color: COLORS.textSecondary,
+      textAlign: "center",
+      lineHeight: scaleSize(19),
+      marginBottom: scaleSize(18),
+    },
+    fallbackRetryButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: COLORS.primary,
+      paddingHorizontal: scaleSize(20),
+      paddingVertical: scaleSize(11),
+      borderRadius: scaleSize(12),
+      gap: scaleSize(6),
+    },
+    fallbackRetryText: {
+      fontSize: scaleSize(14),
+      fontWeight: "600",
+      color: COLORS.textOnPrimary,
+      letterSpacing: -0.1,
     },
   });
 

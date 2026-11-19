@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Animated, useAnimatedValue, useWindowDimensions } from "react-native";
 
 export interface BottomSheetAnimationOptions {
@@ -25,11 +25,16 @@ export function useBottomSheetAnimation({
   const slideAnim = useAnimatedValue(slideDistance);
   const fadeAnim = useAnimatedValue(0);
 
+  const slideDistanceRef = useRef(slideDistance);
+  useEffect(() => {
+    slideDistanceRef.current = slideDistance;
+  }, [slideDistance]);
+
   useEffect(() => {
     if (visible) {
-      slideAnim.setValue(slideDistance);
+      slideAnim.setValue(slideDistanceRef.current);
       fadeAnim.setValue(0);
-      Animated.parallel([
+      const animation = Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 1,
           duration: 200,
@@ -42,9 +47,16 @@ export function useBottomSheetAnimation({
           tension: 65,
           overshootClamping: true,
         }),
-      ]).start();
+      ]);
+      animation.start();
+      return () => {
+        animation.stop();
+      };
+    } else {
+      slideAnim.setValue(slideDistanceRef.current);
+      fadeAnim.setValue(0);
     }
-  }, [visible, slideAnim, fadeAnim, slideDistance]);
+  }, [visible, slideAnim, fadeAnim]);
 
   return {
     slideAnim,

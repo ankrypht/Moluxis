@@ -1,7 +1,15 @@
 import { useEffect, useRef } from "react";
 import { BackHandler } from "react-native";
 
-interface UseAppBackHandlerOptions {
+export interface UseAppBackHandlerOptions {
+  hasActiveAlert?: boolean;
+  onCloseAlert?: () => void;
+  showUpdateModal?: boolean;
+  onCloseUpdateModal?: () => void;
+  showWhatsNewModal?: boolean;
+  onCloseWhatsNewModal?: () => void;
+  showDevTestModal?: boolean;
+  onCloseDevTestModal?: () => void;
   showShareModal: boolean;
   onCloseShareModal: () => void;
   showHistoryModal: boolean;
@@ -29,6 +37,10 @@ export function useAppBackHandler(options: UseAppBackHandlerOptions) {
   });
 
   const {
+    hasActiveAlert,
+    showUpdateModal,
+    showWhatsNewModal,
+    showDevTestModal,
     showShareModal,
     showHistoryModal,
     showAboutModal,
@@ -41,6 +53,10 @@ export function useAppBackHandler(options: UseAppBackHandlerOptions) {
   } = options;
 
   const canGoBack = Boolean(
+    hasActiveAlert ||
+    showUpdateModal ||
+    showWhatsNewModal ||
+    showDevTestModal ||
     showShareModal ||
     showHistoryModal ||
     showAboutModal ||
@@ -59,6 +75,22 @@ export function useAppBackHandler(options: UseAppBackHandlerOptions) {
       "hardwareBackPress",
       () => {
         const currentOptions = optionsRef.current;
+        if (currentOptions.hasActiveAlert) {
+          currentOptions.onCloseAlert?.();
+          return true;
+        }
+        if (currentOptions.showUpdateModal) {
+          currentOptions.onCloseUpdateModal?.();
+          return true;
+        }
+        if (currentOptions.showWhatsNewModal) {
+          currentOptions.onCloseWhatsNewModal?.();
+          return true;
+        }
+        if (currentOptions.showDevTestModal) {
+          currentOptions.onCloseDevTestModal?.();
+          return true;
+        }
         if (currentOptions.showShareModal) {
           currentOptions.onCloseShareModal();
           return true;
@@ -102,6 +134,10 @@ export function useAppBackHandler(options: UseAppBackHandlerOptions) {
     return () => subscription.remove();
   }, [
     canGoBack,
+    hasActiveAlert,
+    showUpdateModal,
+    showWhatsNewModal,
+    showDevTestModal,
     showShareModal,
     showHistoryModal,
     showAboutModal,

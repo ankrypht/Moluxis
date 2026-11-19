@@ -1,10 +1,17 @@
-import { render, fireEvent, act } from "@testing-library/react-native";
+import {
+  render,
+  fireEvent,
+  renderHook,
+  act,
+} from "@testing-library/react-native";
 import { BackHandler } from "react-native";
 import {
   CustomAlertModal,
   Alert,
   customAlertManager,
   resolveAlertTheme,
+  useActiveAlert,
+  resetAlertIdCounter,
 } from "../CustomAlert";
 import { COLORS } from "../../constants/colors";
 import * as Haptics from "../../utils/haptics";
@@ -267,6 +274,258 @@ describe("CustomAlert Component & Service", () => {
       expect(onCancelMock).toHaveBeenCalledTimes(1);
 
       backPressSpy.mockRestore();
+    });
+
+    it("handles Alert.handleBackPress correctly for active, cancelable, and non-cancelable alerts", () => {
+      // 1. When no alert is active, returns false
+      expect(Alert.handleBackPress()).toBe(false);
+
+      // 2. When active and cancelable
+      const onCancelMock = jest.fn();
+      const onDismissMock = jest.fn();
+
+      act(() => {
+        Alert.alert(
+          "Test Alert",
+          "Message",
+          [{ text: "Cancel", style: "cancel", onPress: onCancelMock }],
+          { onDismiss: onDismissMock },
+        );
+      });
+
+      expect(customAlertManager.getCurrentAlert()).not.toBeNull();
+
+      let result;
+      act(() => {
+        result = Alert.handleBackPress();
+      });
+
+      expect(result).toBe(true);
+      expect(onCancelMock).toHaveBeenCalledTimes(1);
+      expect(onDismissMock).toHaveBeenCalledTimes(1);
+      expect(customAlertManager.getCurrentAlert()).toBeNull();
+
+      // 3. When active and non-cancelable
+      act(() => {
+        Alert.alert("Locked Alert", "Cannot cancel", [{ text: "OK" }], {
+          cancelable: false,
+        });
+      });
+
+      act(() => {
+        result = Alert.handleBackPress();
+      });
+
+      expect(result).toBe(true);
+      expect(customAlertManager.getCurrentAlert()).not.toBeNull();
+    });
+
+    it("provides reactive active alert status via useActiveAlert", () => {
+      const { result } = renderHook(() => useActiveAlert());
+      expect(result.current).toBe(false);
+
+      act(() => {
+        Alert.alert("Alert Active", "Testing hook");
+      });
+      expect(result.current).toBe(true);
+
+      act(() => {
+        Alert.dismiss();
+      });
+      expect(result.current).toBe(false);
+    });
+  });
+
+  describe("Consecutive Alert Dismissal Animation Race Condition", () => {
+    beforeEach(() => {
+      resetAlertIdCounter();
+    });
+
+    it("assigns monotonically incrementing alert IDs", () => {
+      act(() => {
+        Alert.alert("Alert 1");
+      });
+      const alert1 = customAlertManager.getCurrentAlert();
+      expect(alert1?.id).toBe("alert-1");
+
+      act(() => {
+        Alert.alert("Alert 2");
+      });
+      const alert2 = customAlertManager.getCurrentAlert();
+      expect(alert2?.id).toBe("alert-2");
+
+      act(() => {
+        Alert.alert("Alert 3");
+      });
+      const alert3 = customAlertManager.getCurrentAlert();
+      expect(alert3?.id).toBe("alert-3");
+    });
+
+    it("preserves consecutive alert when button.onPress synchronously triggers a new alert", () => {
+      const { getByTestId, getByText, queryByText } = render(
+        <CustomAlertModal />,
+      );
+
+      act(() => {
+        Alert.alert("Clear Search History?", "Remove all records?", [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Clear All",
+            style: "destructive",
+            onPress: () => {
+              Alert.alert("History Cleared", "All records were deleted");
+            },
+          },
+        ]);
+      });
+
+      expect(getByText("Clear Search History?")).toBeTruthy();
+
+      const clearBtn = getByTestId("custom-alert-button-1");
+      act(() => {
+        fireEvent.press(clearBtn);
+      });
+
+      // Synchronous mounting of the new alert
+      expect(getByText("History Cleared")).toBeTruthy();
+      expect(getByText("All records were deleted")).toBeTruthy();
+      expect(queryByText("Clear Search History?")).toBeNull();
+
+      // Advance timers past the 130ms exit duration of the first alert
+      act(() => {
+        jest.advanceTimersByTime(200);
+      });
+
+      // The second alert must NOT have been destroyed by the first alert's exit animation callback
+      expect(getByText("History Cleared")).toBeTruthy();
+      expect(getByText("All records were deleted")).toBeTruthy();
+      expect(customAlertManager.getCurrentAlert()?.title).toBe(
+        "History Cleared",
+      );
+    });
+
+    it("preserves consecutive alert when triggered asynchronously during exit animation", () => {
+      const { getByTestId, getByText, queryByText } = render(
+        <CustomAlertModal />,
+      );
+
+      act(() => {
+        Alert.alert("First Alert", "Will trigger async followup", [
+          {
+            text: "Trigger Async",
+            onPress: () => {
+              setTimeout(() => {
+                Alert.alert("Async Followup", "Arrived during exit animation");
+              }, 50);
+            },
+          },
+        ]);
+      });
+
+      const button = getByTestId("custom-alert-button-0");
+      act(() => {
+        fireEvent.press(button);
+      });
+
+      // Advance by 50ms so setTimeout fires and mounts the followup alert
+      act(() => {
+        jest.advanceTimersByTime(50);
+      });
+
+      expect(getByText("Async Followup")).toBeTruthy();
+
+      // Advance past the 130ms mark (total 150ms from button press)
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      // Async alert must still be mounted and not destroyed
+      expect(getByText("Async Followup")).toBeTruthy();
+      expect(queryByText("First Alert")).toBeNull();
+      expect(customAlertManager.getCurrentAlert()?.title).toBe(
+        "Async Followup",
+      );
+    });
+
+    it("preserves consecutive alert triggered via backdrop press onDismiss", () => {
+      const { getByTestId, getByText } = render(<CustomAlertModal />);
+
+      act(() => {
+        Alert.alert(
+          "Cancelable Alert",
+          "Tap outside to trigger dismiss followup",
+          [{ text: "Cancel", style: "cancel" }],
+          {
+            onDismiss: () => {
+              Alert.alert("Backdrop Followup", "Spawned by onDismiss");
+            },
+          },
+        );
+      });
+
+      const backdrop = getByTestId("custom-alert-backdrop");
+      act(() => {
+        fireEvent.press(backdrop);
+      });
+
+      expect(getByText("Backdrop Followup")).toBeTruthy();
+
+      act(() => {
+        jest.advanceTimersByTime(200);
+      });
+
+      expect(getByText("Backdrop Followup")).toBeTruthy();
+      expect(customAlertManager.getCurrentAlert()?.title).toBe(
+        "Backdrop Followup",
+      );
+    });
+
+    it("normal dismissal cleanly unmounts after exit animation completes", () => {
+      const { getByTestId, queryByTestId } = render(<CustomAlertModal />);
+
+      act(() => {
+        Alert.alert("Standard Notice", "Dismiss normally", [{ text: "OK" }]);
+      });
+
+      expect(getByTestId("custom-alert-card")).toBeTruthy();
+
+      const button = getByTestId("custom-alert-button-0");
+      act(() => {
+        fireEvent.press(button);
+      });
+
+      act(() => {
+        jest.advanceTimersByTime(200);
+      });
+
+      expect(queryByTestId("custom-alert-card")).toBeNull();
+      expect(customAlertManager.getCurrentAlert()).toBeNull();
+    });
+
+    it("scoped dismiss(id) ignores mismatched IDs and only dismisses matching ID", () => {
+      act(() => {
+        Alert.alert("Original Alert");
+      });
+      const originalId = customAlertManager.getCurrentAlert()?.id;
+      expect(originalId).toBe("alert-1");
+
+      act(() => {
+        Alert.alert("Replacement Alert");
+      });
+      const newId = customAlertManager.getCurrentAlert()?.id;
+      expect(newId).toBe("alert-2");
+
+      // Attempt to dismiss using old ID - should be a no-op
+      act(() => {
+        Alert.dismiss(originalId);
+      });
+      expect(customAlertManager.getCurrentAlert()?.id).toBe("alert-2");
+
+      // Dismiss using active ID
+      act(() => {
+        Alert.dismiss(newId);
+      });
+      expect(customAlertManager.getCurrentAlert()).toBeNull();
     });
   });
 });

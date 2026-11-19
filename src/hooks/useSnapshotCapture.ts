@@ -22,16 +22,24 @@ export function useSnapshotCapture(
   const handleCaptureSnapshot = useCallback(() => {
     if (snapshotTimeoutRef.current) {
       clearTimeout(snapshotTimeoutRef.current);
+      snapshotTimeoutRef.current = null;
     }
+
+    if (!moleculeViewerRef.current) {
+      setIsCapturingSnapshot(false);
+      return;
+    }
+
     setIsCapturingSnapshot(true);
     setSnapshotUri(null);
-    moleculeViewerRef.current?.captureSnapshot();
 
     snapshotTimeoutRef.current = setTimeout(() => {
       if (isMountedRef.current) {
         setIsCapturingSnapshot(false);
       }
     }, 4000);
+
+    moleculeViewerRef.current.captureSnapshot();
   }, [moleculeViewerRef]);
 
   const handleSnapshotCaptured = useCallback((uri: string | null) => {

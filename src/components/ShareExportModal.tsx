@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
 import {
   View,
   Text,
@@ -64,21 +70,42 @@ export const ShareExportModal: React.FC<ShareExportModalProps> = React.memo(
 
     const [isSharingImage, setIsSharingImage] = useState(false);
     const [pendingShareSnapshot, setPendingShareSnapshot] = useState(false);
+    const hasAttemptedCaptureRef = useRef(false);
+    const prevCidRef = useRef<string | undefined>(moleculeData?.cid);
+
+    if (moleculeData?.cid !== prevCidRef.current) {
+      prevCidRef.current = moleculeData?.cid;
+      hasAttemptedCaptureRef.current = false;
+    }
 
     useEffect(() => {
       if (visible) {
         setPendingShareSnapshot(false);
+      } else {
+        hasAttemptedCaptureRef.current = false;
       }
     }, [visible]);
 
     useModalBackHandler(visible, onClose);
 
-    // Auto-request snapshot if not yet captured when modal is visible
+    // Auto-request snapshot if not yet captured when modal is visible (once per session)
     useEffect(() => {
-      if (visible && !snapshotUri && !isCapturingSnapshot) {
+      if (
+        visible &&
+        !snapshotUri &&
+        !isCapturingSnapshot &&
+        !hasAttemptedCaptureRef.current
+      ) {
+        hasAttemptedCaptureRef.current = true;
         onRefreshSnapshot();
       }
-    }, [visible, snapshotUri, isCapturingSnapshot, onRefreshSnapshot]);
+    }, [
+      visible,
+      snapshotUri,
+      isCapturingSnapshot,
+      onRefreshSnapshot,
+      moleculeData?.cid,
+    ]);
 
     // If user tapped share snapshot while it was capturing, share once ready
     useEffect(() => {

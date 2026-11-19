@@ -41,6 +41,7 @@ import { MoleculeInfoSheet } from "./src/components/MoleculeInfoSheet";
 import { LandscapeNameOverlay } from "./src/components/LandscapeNameOverlay";
 import { ExitFullScreenButton } from "./src/components/ExitFullScreenButton";
 import { AppModals } from "./src/components/AppModals";
+import { Alert, useActiveAlert } from "./src/components/CustomAlert";
 import { CURRENT_RELEASE_NOTES } from "./src/services/updates/updateNoticeService";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -403,8 +404,15 @@ function MoleculeExplorer() {
     setShowDevTestModal(false);
   }, []);
 
+  const hasActiveAlert = useActiveAlert();
+
+  const handleCloseAlert = useCallback(() => {
+    Alert.handleBackPress();
+  }, []);
+
   const isInteracting = Boolean(
     isKeyboardVisible ||
+    hasActiveAlert ||
     showHistoryModal ||
     showSuggestions ||
     showShareModal ||
@@ -416,6 +424,14 @@ function MoleculeExplorer() {
 
   // Hardware Back Button Navigation
   useAppBackHandler({
+    hasActiveAlert,
+    onCloseAlert: handleCloseAlert,
+    showUpdateModal,
+    onCloseUpdateModal: dismissUpdateModal,
+    showWhatsNewModal,
+    onCloseWhatsNewModal: dismissWhatsNewModal,
+    showDevTestModal,
+    onCloseDevTestModal: handleCloseDevTestModal,
     showShareModal,
     onCloseShareModal: handleCloseShareModal,
     showHistoryModal,

@@ -133,6 +133,116 @@ describe("ShareExportModal", () => {
     expect(onRefreshSnapshot).toHaveBeenCalledTimes(1);
   });
 
+  it("does not re-trigger onRefreshSnapshot continuously if snapshot remains null and isCapturingSnapshot is false", () => {
+    const onRefreshSnapshot = jest.fn();
+    const { rerender } = render(
+      <ShareExportModal
+        {...defaultProps}
+        snapshotUri={null}
+        isCapturingSnapshot={false}
+        onRefreshSnapshot={onRefreshSnapshot}
+      />,
+    );
+
+    expect(onRefreshSnapshot).toHaveBeenCalledTimes(1);
+
+    // Simulate re-renders where capture failed and snapshotUri is still null
+    rerender(
+      <ShareExportModal
+        {...defaultProps}
+        snapshotUri={null}
+        isCapturingSnapshot={false}
+        onRefreshSnapshot={onRefreshSnapshot}
+      />,
+    );
+    rerender(
+      <ShareExportModal
+        {...defaultProps}
+        snapshotUri={null}
+        isCapturingSnapshot={false}
+        onRefreshSnapshot={onRefreshSnapshot}
+      />,
+    );
+
+    // Should remain 1 (no infinite loop)
+    expect(onRefreshSnapshot).toHaveBeenCalledTimes(1);
+  });
+
+  it("resets capture attempt when modal is closed and re-opened", () => {
+    const onRefreshSnapshot = jest.fn();
+    const { rerender } = render(
+      <ShareExportModal
+        {...defaultProps}
+        visible={true}
+        snapshotUri={null}
+        isCapturingSnapshot={false}
+        onRefreshSnapshot={onRefreshSnapshot}
+      />,
+    );
+
+    expect(onRefreshSnapshot).toHaveBeenCalledTimes(1);
+
+    // Close modal
+    rerender(
+      <ShareExportModal
+        {...defaultProps}
+        visible={false}
+        snapshotUri={null}
+        isCapturingSnapshot={false}
+        onRefreshSnapshot={onRefreshSnapshot}
+      />,
+    );
+
+    // Re-open modal
+    rerender(
+      <ShareExportModal
+        {...defaultProps}
+        visible={true}
+        snapshotUri={null}
+        isCapturingSnapshot={false}
+        onRefreshSnapshot={onRefreshSnapshot}
+      />,
+    );
+
+    expect(onRefreshSnapshot).toHaveBeenCalledTimes(2);
+  });
+
+  it("resets capture attempt when moleculeData changes while visible", () => {
+    const onRefreshSnapshot = jest.fn();
+    const { rerender } = render(
+      <ShareExportModal
+        {...defaultProps}
+        visible={true}
+        moleculeData={sampleMolecule}
+        snapshotUri={null}
+        isCapturingSnapshot={false}
+        onRefreshSnapshot={onRefreshSnapshot}
+      />,
+    );
+
+    expect(onRefreshSnapshot).toHaveBeenCalledTimes(1);
+
+    const differentMolecule = {
+      ...sampleMolecule,
+      cid: "9999",
+      name: "Aspirin",
+    };
+
+    // Change moleculeData
+    rerender(
+      <ShareExportModal
+        {...defaultProps}
+        visible={true}
+        moleculeData={differentMolecule}
+        snapshotUri={null}
+        isCapturingSnapshot={false}
+        onRefreshSnapshot={onRefreshSnapshot}
+      />,
+    );
+
+    expect(onRefreshSnapshot).toHaveBeenCalledTimes(2);
+  });
+
   it("shares 3D snapshot image when share button is tapped", async () => {
     const { getByTestId } = render(<ShareExportModal {...defaultProps} />);
 

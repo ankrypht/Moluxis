@@ -11,11 +11,13 @@ import {
   View,
   Text,
   ActivityIndicator,
+  TouchableOpacity,
   StyleProp,
   ViewStyle,
   AppState,
   AppStateStatus,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { WebView } from "react-native-webview";
 import type { WebViewRenderProcessGoneEvent } from "react-native-webview/lib/WebViewTypes";
 
@@ -31,6 +33,7 @@ import { COLORS } from "../constants/colors";
 import { MoleculeViewerStyles } from "./MoleculeViewer.styles";
 import { FeaturedMolecules } from "./FeaturedMolecules";
 import { FeaturedMoleculesStyles } from "./FeaturedMolecules.styles";
+import { triggerImpactLight } from "../utils/haptics";
 
 // In react-native-webview 14.x typings with React 19, the default generic P=undefined causes props to resolve as never
 const WebViewComponent = WebView as unknown as React.ComponentType<any>;
@@ -48,6 +51,7 @@ function isWebViewReadyMessage(data: unknown): data is WebViewReadyMessage {
 }
 
 const UPDATE_DELAY_MS = 150;
+const MAX_RENDER_RETRIES = 1;
 
 export interface MoleculeViewerRef {
   captureSnapshot: () => void;
@@ -122,6 +126,8 @@ export const MoleculeViewer = React.memo(
         null,
       );
       const [isViewerReady, setIsViewerReady] = useState(false);
+      const [hasRenderCrashed, setHasRenderCrashed] = useState(false);
+      const crashCountRef = useRef(0);
 
       useEffect(() => {
         isAnimatedRef.current = isAnimated;
@@ -249,6 +255,8 @@ export const MoleculeViewer = React.memo(
           lastLoadedSignatureRef.current = null;
           pendingStructureRef.current = null;
           setIsViewerReady(false);
+          crashCountRef.current = 0;
+          setHasRenderCrashed(false);
           if (fallbackTimerRef.current) {
             clearTimeout(fallbackTimerRef.current);
             fallbackTimerRef.current = null;
@@ -260,6 +268,21 @@ export const MoleculeViewer = React.memo(
         if (!moleculeData) return null;
         return `${moleculeData.cid || moleculeData.name}_${structureFormat}_${moleculeData.useCif ? "cif" : "sdf"}`;
       }, [moleculeData, structureFormat]);
+
+      // Reset crash state whenever the active molecule or format changes
+      useEffect(() => {
+        crashCountRef.current = 0;
+        setHasRenderCrashed(false);
+      }, [currentSignature]);
+
+      const handleRetry = useCallback(() => {
+        triggerImpactLight();
+        crashCountRef.current = 0;
+        setHasRenderCrashed(false);
+        isWebViewReadyRef.current = false;
+        setIsViewerReady(false);
+        lastLoadedSignatureRef.current = null;
+      }, []);
 
       // Dispatch LOAD_STRUCTURE when moleculeData or structureFormat changes
       useEffect(() => {
@@ -491,7 +514,7 @@ export const MoleculeViewer = React.memo(
 
       return (
         <View style={[styles.viewerContainer, containerStyle]}>
-          {(moleculeData || isLoading) && (
+          {(moleculeData || isLoading) && !hasRenderCrashed && (
             <WebViewComponent
               ref={webViewRef}
               originWhitelist={["about:blank"]}
@@ -516,20 +539,71 @@ export const MoleculeViewer = React.memo(
                 isWebViewReadyRef.current = false;
                 setIsViewerReady(false);
                 lastLoadedSignatureRef.current = null;
-                webViewRef.current?.reload();
+
+                if (crashCountRef.current < MAX_RENDER_RETRIES) {
+                  crashCountRef.current += 1;
+                  webViewRef.current?.reload();
+                } else {
+                  setHasRenderCrashed(true);
+                }
               }}
               onMessage={onWebViewMessage}
             />
           )}
-          {((isLoading && !moleculeData) ||
-            (moleculeData && !isViewerReady)) && (
-            <View style={styles.loadingOverlay} pointerEvents="none">
-              <ActivityIndicator size="large" color={COLORS.primary} />
-              <Text allowFontScaling={false} style={styles.loadingText}>
-                Generating 3D Structure...
-              </Text>
+          {hasRenderCrashed && (
+            <View
+              style={styles.fallbackContainer}
+              testID="render-fallback-card"
+            >
+              <View style={styles.fallbackCard}>
+                <View style={styles.fallbackIconBadge}>
+                  <Ionicons
+                    name="alert-circle-outline"
+                    size={28}
+                    color={COLORS.warning}
+                  />
+                </View>
+                <Text allowFontScaling={false} style={styles.fallbackTitle}>
+                  Structure Unavailable
+                </Text>
+                <Text allowFontScaling={false} style={styles.fallbackMessage}>
+                  {structureFormat === "3d"
+                    ? "The 3D rendering process encountered an error and could not display this molecule. You can try reloading or switching to 2D view."
+                    : "The rendering process encountered an error and could not display this structure. You can try reloading."}
+                </Text>
+                <TouchableOpacity
+                  style={styles.fallbackRetryButton}
+                  onPress={handleRetry}
+                  activeOpacity={0.75}
+                  accessibilityRole="button"
+                  accessibilityLabel="Try again"
+                  testID="render-fallback-retry-button"
+                >
+                  <Ionicons
+                    name="refresh-outline"
+                    size={16}
+                    color={COLORS.textOnPrimary}
+                  />
+                  <Text
+                    allowFontScaling={false}
+                    style={styles.fallbackRetryText}
+                  >
+                    Try Again
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           )}
+          {!hasRenderCrashed &&
+            ((isLoading && !moleculeData) ||
+              (moleculeData && !isViewerReady)) && (
+              <View style={styles.loadingOverlay} pointerEvents="none">
+                <ActivityIndicator size="large" color={COLORS.primary} />
+                <Text allowFontScaling={false} style={styles.loadingText}>
+                  Generating 3D Structure...
+                </Text>
+              </View>
+            )}
           {!moleculeData && !isLoading && (
             <FeaturedMolecules
               onSelectMolecule={onSelectMolecule || (() => {})}

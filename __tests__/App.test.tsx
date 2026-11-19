@@ -6,6 +6,7 @@ import {
   resetShowcaseScrollOffset,
   resetSavedFeaturedCategory,
 } from "../src/components/FeaturedMolecules";
+import { Alert } from "../src/components/CustomAlert";
 
 // Mock dependencies
 jest.mock("react-native-safe-area-context", () => {
@@ -1202,6 +1203,208 @@ describe("Hardware Back Press Navigation", () => {
       expect(handled).toBe(true);
       expect(mockClearMolecule).not.toHaveBeenCalled();
     } finally {
+      backSpy.mockRestore();
+    }
+  });
+
+  it("dismisses DevTestModal on hardware back press without clearing molecule", async () => {
+    mockMoleculeData = {
+      name: "Water",
+      formula: "H2O",
+      molecularWeight: "18.015",
+      cid: "962",
+      sdf2d: "sdf2d-data",
+      sdf3d: "sdf3d-data",
+      properties: {},
+      safety: {},
+    };
+
+    const backSpy = jest.spyOn(BackHandler, "addEventListener");
+
+    try {
+      const { getByTestId, queryByTestId } = render(<App />);
+
+      const titleBtn = getByTestId("header-moluxis-home-button");
+      await act(async () => {
+        fireEvent(titleBtn, "longPress");
+      });
+
+      expect(getByTestId("dev-test-modal")).toBeTruthy();
+
+      const backCall = backSpy.mock.calls
+        .filter(([event]) => event === "hardwareBackPress")
+        .pop();
+      expect(backCall).toBeDefined();
+
+      let handled: boolean | null | undefined;
+      act(() => {
+        handled = backCall?.[1]({
+          type: "hardwareBackPress",
+          timeStamp: 0,
+        });
+      });
+
+      expect(handled).toBe(true);
+      expect(queryByTestId("dev-test-modal")).toBeNull();
+      expect(mockClearMolecule).not.toHaveBeenCalled();
+    } finally {
+      backSpy.mockRestore();
+    }
+  });
+
+  it("dismisses UpdateAvailableModal on hardware back press without clearing molecule", async () => {
+    mockMoleculeData = {
+      name: "Water",
+      formula: "H2O",
+      molecularWeight: "18.015",
+      cid: "962",
+      sdf2d: "sdf2d-data",
+      sdf3d: "sdf3d-data",
+      properties: {},
+      safety: {},
+    };
+
+    const backSpy = jest.spyOn(BackHandler, "addEventListener");
+
+    try {
+      const { getByTestId, queryByTestId } = render(<App />);
+
+      const titleBtn = getByTestId("header-moluxis-home-button");
+      await act(async () => {
+        fireEvent(titleBtn, "longPress");
+      });
+
+      await act(async () => {
+        fireEvent.press(getByTestId("dev-preview-update-modal"));
+      });
+
+      expect(getByTestId("update-available-modal")).toBeTruthy();
+
+      const backCall = backSpy.mock.calls
+        .filter(([event]) => event === "hardwareBackPress")
+        .pop();
+      expect(backCall).toBeDefined();
+
+      let handled: boolean | null | undefined;
+      act(() => {
+        handled = backCall?.[1]({
+          type: "hardwareBackPress",
+          timeStamp: 0,
+        });
+      });
+
+      expect(handled).toBe(true);
+      expect(queryByTestId("update-available-modal")).toBeNull();
+      expect(mockClearMolecule).not.toHaveBeenCalled();
+    } finally {
+      backSpy.mockRestore();
+    }
+  });
+
+  it("dismisses WhatsNewModal on hardware back press without clearing molecule", async () => {
+    mockMoleculeData = {
+      name: "Water",
+      formula: "H2O",
+      molecularWeight: "18.015",
+      cid: "962",
+      sdf2d: "sdf2d-data",
+      sdf3d: "sdf3d-data",
+      properties: {},
+      safety: {},
+    };
+
+    const backSpy = jest.spyOn(BackHandler, "addEventListener");
+
+    try {
+      const { getByTestId, queryByTestId } = render(<App />);
+
+      const titleBtn = getByTestId("header-moluxis-home-button");
+      await act(async () => {
+        fireEvent(titleBtn, "longPress");
+      });
+
+      await act(async () => {
+        fireEvent.press(getByTestId("dev-preview-whats-new"));
+      });
+
+      expect(getByTestId("whats-new-modal")).toBeTruthy();
+
+      const backCall = backSpy.mock.calls
+        .filter(([event]) => event === "hardwareBackPress")
+        .pop();
+      expect(backCall).toBeDefined();
+
+      let handled: boolean | null | undefined;
+      act(() => {
+        handled = backCall?.[1]({
+          type: "hardwareBackPress",
+          timeStamp: 0,
+        });
+      });
+
+      expect(handled).toBe(true);
+      expect(queryByTestId("whats-new-modal")).toBeNull();
+      expect(mockClearMolecule).not.toHaveBeenCalled();
+    } finally {
+      backSpy.mockRestore();
+    }
+  });
+
+  it("dismisses active CustomAlert on hardware back press without dismissing history modal or clearing molecule", async () => {
+    mockMoleculeData = {
+      name: "Water",
+      formula: "H2O",
+      molecularWeight: "18.015",
+      cid: "962",
+      sdf2d: "sdf2d-data",
+      sdf3d: "sdf3d-data",
+      properties: {},
+      safety: {},
+    };
+
+    const backSpy = jest.spyOn(BackHandler, "addEventListener");
+
+    try {
+      const { getByTestId } = render(<App />);
+
+      const historyBtn = getByTestId("header-history-button");
+      await act(async () => {
+        fireEvent.press(historyBtn);
+      });
+
+      expect(getByTestId("close-history-modal")).toBeTruthy();
+
+      const onCancelMock = jest.fn();
+      act(() => {
+        Alert.alert("Clear History", "Are you sure?", [
+          { text: "Cancel", style: "cancel", onPress: onCancelMock },
+        ]);
+      });
+
+      expect(getByTestId("custom-alert-card")).toBeTruthy();
+
+      const backCall = backSpy.mock.calls
+        .filter(([event]) => event === "hardwareBackPress")
+        .pop();
+      expect(backCall).toBeDefined();
+
+      let handled: boolean | null | undefined;
+      act(() => {
+        handled = backCall?.[1]({
+          type: "hardwareBackPress",
+          timeStamp: 0,
+        });
+      });
+
+      expect(handled).toBe(true);
+      expect(onCancelMock).toHaveBeenCalledTimes(1);
+      // History modal must STILL be open
+      expect(getByTestId("close-history-modal")).toBeTruthy();
+      expect(mockClearMolecule).not.toHaveBeenCalled();
+    } finally {
+      act(() => {
+        Alert.dismiss();
+      });
       backSpy.mockRestore();
     }
   });

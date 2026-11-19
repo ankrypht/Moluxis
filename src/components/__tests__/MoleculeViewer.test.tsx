@@ -1,9 +1,10 @@
 import React from "react";
-import { render, act } from "@testing-library/react-native";
+import { render, act, fireEvent } from "@testing-library/react-native";
 import { MoleculeViewer } from "../MoleculeViewer";
 import { MoleculeInfo } from "../../types";
 
 const mockPostMessage = jest.fn();
+const mockReload = jest.fn();
 
 jest.mock("@expo/vector-icons", () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -22,7 +23,7 @@ jest.mock("react-native-webview", () => {
   const MockWebView = React.forwardRef((props: any, ref: any) => {
     React.useImperativeHandle(ref, () => ({
       postMessage: mockPostMessage,
-      reload: jest.fn(),
+      reload: mockReload,
     }));
     return <View testID="molecule-webview" {...props} />;
   });
@@ -39,6 +40,13 @@ const mockStyles: any = {
   webview: {},
   loadingOverlay: {},
   loadingText: {},
+  fallbackContainer: {},
+  fallbackCard: {},
+  fallbackIconBadge: {},
+  fallbackTitle: {},
+  fallbackMessage: {},
+  fallbackRetryButton: {},
+  fallbackRetryText: {},
   showcaseContainer: {},
 };
 
@@ -557,5 +565,238 @@ describe("MoleculeViewer", () => {
         mode: "angle",
       }),
     );
+  });
+
+  describe("WebView Crash-and-Reload Loop Protection", () => {
+    let warnSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      warnSpy.mockRestore();
+    });
+
+    it("attempts exactly 1 reload retry on the first onRenderProcessGone crash", () => {
+      const { getByTestId, queryByTestId } = render(
+        <MoleculeViewer
+          moleculeData={sampleMolecule}
+          isLoading={false}
+          structureFormat="3d"
+          vizStyle="ballStick"
+          showLabels={false}
+          isAnimated={true}
+          styles={mockStyles}
+        />,
+      );
+
+      const webview = getByTestId("molecule-webview");
+
+      act(() => {
+        webview.props.onRenderProcessGone({
+          nativeEvent: { didCrash: true },
+        });
+      });
+
+      expect(mockReload).toHaveBeenCalledTimes(1);
+      expect(warnSpy).toHaveBeenCalledWith(
+        "WebView render process gone, didCrash:",
+        true,
+      );
+      expect(queryByTestId("render-fallback-card")).toBeNull();
+    });
+
+    it("stops retrying and renders graceful fallback card on second onRenderProcessGone crash", () => {
+      const { getByTestId, queryByTestId, getByText, queryByText } = render(
+        <MoleculeViewer
+          moleculeData={sampleMolecule}
+          isLoading={false}
+          structureFormat="3d"
+          vizStyle="ballStick"
+          showLabels={false}
+          isAnimated={true}
+          styles={mockStyles}
+        />,
+      );
+
+      const webview = getByTestId("molecule-webview");
+
+      // First crash: triggers 1st reload retry
+      act(() => {
+        webview.props.onRenderProcessGone({
+          nativeEvent: { didCrash: true },
+        });
+      });
+      expect(mockReload).toHaveBeenCalledTimes(1);
+      expect(warnSpy).toHaveBeenCalledWith(
+        "WebView render process gone, didCrash:",
+        true,
+      );
+      expect(queryByTestId("render-fallback-card")).toBeNull();
+
+      // Second crash: stops retrying, unmounts crashed webview, shows fallback card
+      act(() => {
+        webview.props.onRenderProcessGone({
+          nativeEvent: { didCrash: true },
+        });
+      });
+
+      // Reload should NOT have been called again (still 1)
+      expect(mockReload).toHaveBeenCalledTimes(1);
+
+      // Fallback card is shown
+      expect(getByTestId("render-fallback-card")).toBeTruthy();
+      expect(getByText("Structure Unavailable")).toBeTruthy();
+      expect(
+        getByText(
+          "The 3D rendering process encountered an error and could not display this molecule. You can try reloading or switching to 2D view.",
+        ),
+      ).toBeTruthy();
+
+      // Crashed webview is unmounted
+      expect(queryByTestId("molecule-webview")).toBeNull();
+
+      // Loading overlay is hidden
+      expect(queryByText("Generating 3D Structure...")).toBeNull();
+    });
+
+    it("resets crash state and remounts WebView when Try Again button is pressed", () => {
+      const { getByTestId, queryByTestId } = render(
+        <MoleculeViewer
+          moleculeData={sampleMolecule}
+          isLoading={false}
+          structureFormat="3d"
+          vizStyle="ballStick"
+          showLabels={false}
+          isAnimated={true}
+          styles={mockStyles}
+        />,
+      );
+
+      const webview = getByTestId("molecule-webview");
+
+      // Crash twice to trigger fallback card
+      act(() => {
+        webview.props.onRenderProcessGone({
+          nativeEvent: { didCrash: true },
+        });
+      });
+      act(() => {
+        webview.props.onRenderProcessGone({
+          nativeEvent: { didCrash: true },
+        });
+      });
+
+      expect(getByTestId("render-fallback-card")).toBeTruthy();
+      expect(queryByTestId("molecule-webview")).toBeNull();
+
+      // Press "Try Again" button
+      act(() => {
+        fireEvent.press(getByTestId("render-fallback-retry-button"));
+      });
+
+      // Fallback card dismissed, WebView remounted
+      expect(queryByTestId("render-fallback-card")).toBeNull();
+      expect(getByTestId("molecule-webview")).toBeTruthy();
+    });
+
+    it("resets crash state when active molecule changes", () => {
+      const differentMolecule: MoleculeInfo = {
+        ...sampleMolecule,
+        name: "Aspirin",
+        cid: "2244",
+      };
+
+      const { getByTestId, queryByTestId, rerender } = render(
+        <MoleculeViewer
+          moleculeData={sampleMolecule}
+          isLoading={false}
+          structureFormat="3d"
+          vizStyle="ballStick"
+          showLabels={false}
+          isAnimated={true}
+          styles={mockStyles}
+        />,
+      );
+
+      const webview = getByTestId("molecule-webview");
+
+      // Crash twice to enter error state
+      act(() => {
+        webview.props.onRenderProcessGone({
+          nativeEvent: { didCrash: true },
+        });
+      });
+      act(() => {
+        webview.props.onRenderProcessGone({
+          nativeEvent: { didCrash: true },
+        });
+      });
+
+      expect(getByTestId("render-fallback-card")).toBeTruthy();
+
+      // Change active molecule
+      rerender(
+        <MoleculeViewer
+          moleculeData={differentMolecule}
+          isLoading={false}
+          structureFormat="3d"
+          vizStyle="ballStick"
+          showLabels={false}
+          isAnimated={true}
+          styles={mockStyles}
+        />,
+      );
+
+      expect(queryByTestId("render-fallback-card")).toBeNull();
+      expect(getByTestId("molecule-webview")).toBeTruthy();
+    });
+
+    it("resets crash state when structureFormat changes from 3d to 2d", () => {
+      const { getByTestId, queryByTestId, rerender } = render(
+        <MoleculeViewer
+          moleculeData={sampleMolecule}
+          isLoading={false}
+          structureFormat="3d"
+          vizStyle="ballStick"
+          showLabels={false}
+          isAnimated={true}
+          styles={mockStyles}
+        />,
+      );
+
+      const webview = getByTestId("molecule-webview");
+
+      // Crash twice in 3d
+      act(() => {
+        webview.props.onRenderProcessGone({
+          nativeEvent: { didCrash: true },
+        });
+      });
+      act(() => {
+        webview.props.onRenderProcessGone({
+          nativeEvent: { didCrash: true },
+        });
+      });
+
+      expect(getByTestId("render-fallback-card")).toBeTruthy();
+
+      // Switch to 2D
+      rerender(
+        <MoleculeViewer
+          moleculeData={sampleMolecule}
+          isLoading={false}
+          structureFormat="2d"
+          vizStyle="ballStick"
+          showLabels={false}
+          isAnimated={true}
+          styles={mockStyles}
+        />,
+      );
+
+      expect(queryByTestId("render-fallback-card")).toBeNull();
+      expect(getByTestId("molecule-webview")).toBeTruthy();
+    });
   });
 });

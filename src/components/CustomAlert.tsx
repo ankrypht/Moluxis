@@ -31,7 +31,10 @@ import {
   CustomAlertManagerClass,
   customAlertManager,
   Alert,
+  resetAlertIdCounter,
 } from "../services/alert/customAlertManager";
+
+import { useActiveAlert } from "../hooks/useActiveAlert";
 
 export type {
   AlertButtonStyle,
@@ -41,7 +44,13 @@ export type {
   CustomAlertPayload,
   AlertListener,
 };
-export { CustomAlertManagerClass, customAlertManager, Alert };
+export {
+  CustomAlertManagerClass,
+  customAlertManager,
+  Alert,
+  useActiveAlert,
+  resetAlertIdCounter,
+};
 
 interface ResolvedTheme {
   iconName: keyof typeof Ionicons.glyphMap;
@@ -160,6 +169,7 @@ export const CustomAlertModal: React.FC<CustomAlertModalProps> = React.memo(
     const { width, height } = useWindowDimensions();
     const insets = passedInsets || DEFAULT_INSETS;
     const [alertData, setAlertData] = useState<CustomAlertPayload | null>(null);
+    const currentAlertIdRef = useRef<string | null>(null);
 
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const scaleAnim = useRef(new Animated.Value(0.92)).current;
@@ -182,6 +192,7 @@ export const CustomAlertModal: React.FC<CustomAlertModalProps> = React.memo(
       const unsubscribe = customAlertManager.subscribe((incoming) => {
         if (incoming) {
           Keyboard.dismiss();
+          currentAlertIdRef.current = incoming.id;
           setAlertData(incoming);
           fadeAnim.setValue(0);
           scaleAnim.setValue(0.92);
@@ -199,6 +210,7 @@ export const CustomAlertModal: React.FC<CustomAlertModalProps> = React.memo(
             }),
           ]).start();
         } else {
+          currentAlertIdRef.current = null;
           setAlertData((prev) => {
             if (!prev) return null;
             Animated.parallel([
@@ -212,8 +224,14 @@ export const CustomAlertModal: React.FC<CustomAlertModalProps> = React.memo(
                 duration: 130,
                 useNativeDriver: true,
               }),
-            ]).start(() => {
-              setAlertData(null);
+            ]).start((result) => {
+              if (result && !result.finished) return;
+              setAlertData((currentAlert) => {
+                if (currentAlert && currentAlert.id === prev.id) {
+                  return null;
+                }
+                return currentAlert;
+              });
             });
             return prev;
           });
@@ -228,7 +246,15 @@ export const CustomAlertModal: React.FC<CustomAlertModalProps> = React.memo(
     }, [fadeAnim, scaleAnim]);
 
     const handleDismissAnimation = useCallback(
-      (onComplete?: () => void) => {
+      (dismissingId?: string, onComplete?: () => void) => {
+        const dismissingAlertId = dismissingId ?? currentAlertIdRef.current;
+        if (
+          dismissingAlertId &&
+          customAlertManager.getCurrentAlert()?.id !== dismissingAlertId
+        ) {
+          return;
+        }
+
         Animated.parallel([
           Animated.timing(fadeAnim, {
             toValue: 0,
@@ -240,9 +266,18 @@ export const CustomAlertModal: React.FC<CustomAlertModalProps> = React.memo(
             duration: 130,
             useNativeDriver: true,
           }),
-        ]).start(() => {
-          setAlertData(null);
-          customAlertManager.dismiss();
+        ]).start((result) => {
+          if (result && !result.finished) return;
+          setAlertData((currentAlert) => {
+            if (
+              !currentAlert ||
+              (dismissingAlertId && currentAlert.id !== dismissingAlertId)
+            ) {
+              return currentAlert;
+            }
+            return null;
+          });
+          customAlertManager.dismiss(dismissingAlertId ?? undefined);
           onComplete?.();
         });
       },
@@ -253,23 +288,41 @@ export const CustomAlertModal: React.FC<CustomAlertModalProps> = React.memo(
       if (!alertData) return;
       if (alertData.options?.cancelable === false) return;
 
+      const dismissingAlertId = alertData.id;
       const cancelButton = alertData.buttons.find((b) => b.style === "cancel");
       cancelButton?.onPress?.();
       alertData.options?.onDismiss?.();
-      handleDismissAnimation();
+
+      if (
+        dismissingAlertId &&
+        customAlertManager.getCurrentAlert()?.id !== dismissingAlertId
+      ) {
+        return;
+      }
+      handleDismissAnimation(dismissingAlertId);
     }, [alertData, handleDismissAnimation]);
 
     const handleButtonPress = useCallback(
       (button: CustomAlertButton) => {
+        if (!alertData) return;
+        const dismissingAlertId = alertData.id;
+
         if (button.style === "destructive") {
           triggerWarningHaptic();
         } else {
           triggerSelectionHaptic();
         }
         button.onPress?.();
-        handleDismissAnimation();
+
+        if (
+          dismissingAlertId &&
+          customAlertManager.getCurrentAlert()?.id !== dismissingAlertId
+        ) {
+          return;
+        }
+        handleDismissAnimation(dismissingAlertId);
       },
-      [handleDismissAnimation],
+      [alertData, handleDismissAnimation],
     );
 
     useModalBackHandler(Boolean(alertData), handleBackdropPress);
