@@ -7,11 +7,10 @@ import {
 } from "../constants/theme";
 import { ScaleMetrics } from "../utils/scaling";
 
-export const getFeaturedMoleculesStyles = ({
+export const getFeaturedMoleculesCoreStyles = ({
   width,
   height,
   isLandscape,
-  insets,
   scaleSize,
   hScaleSize,
 }: ScaleMetrics) => {
@@ -21,22 +20,11 @@ export const getFeaturedMoleculesStyles = ({
     height,
     isLandscape,
   );
-
   const sectionGap = isPhoneLandscape ? scaleSize(8) : scaleSize(16);
 
   return StyleSheet.create({
-    featuredContainer: {
-      flex: 1,
+    featuredMoleculesSection: {
       width: "100%",
-    },
-    featuredScrollContent: {
-      width: "100%",
-      paddingLeft: Math.max(insets.left, hScaleSize(16)),
-      paddingRight: Math.max(insets.right, hScaleSize(16)),
-      paddingTop: isLandscape
-        ? Math.max(insets.top, scaleSize(10)) + scaleSize(64)
-        : insets.top + scaleSize(148),
-      paddingBottom: Math.max(insets.bottom, scaleSize(16)) + scaleSize(24),
     },
     heroSection: {
       alignItems: "center",
@@ -79,84 +67,6 @@ export const getFeaturedMoleculesStyles = ({
       marginTop: isPhoneLandscape ? scaleSize(2) : scaleSize(4),
       maxWidth: isPhoneLandscape ? scaleSize(400) : scaleSize(340),
       lineHeight: isPhoneLandscape ? scaleSize(15) : scaleSize(18),
-    },
-    jumpBackSection: {
-      marginBottom: sectionGap,
-      maxWidth: containerMaxWidth,
-      width: "100%",
-      alignSelf: "center",
-      backgroundColor: addOpacity(COLORS.surface, 0.7),
-      borderRadius: isPhoneLandscape ? scaleSize(14) : scaleSize(20),
-      padding: isPhoneLandscape ? scaleSize(8) : scaleSize(14),
-      borderWidth: 1,
-      borderColor: addOpacity(COLORS.border, 0.5),
-    },
-    jumpBackHeader: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: isPhoneLandscape ? scaleSize(6) : scaleSize(12),
-    },
-    jumpBackHeaderLeft: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: isPhoneLandscape ? scaleSize(6) : hScaleSize(8),
-    },
-    jumpBackTitle: {
-      fontSize: isPhoneLandscape ? scaleSize(13) : scaleSize(15),
-      fontWeight: "800",
-      color: COLORS.textPrimary,
-      letterSpacing: -0.2,
-    },
-    jumpBackViewAllBtn: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: scaleSize(4),
-      paddingVertical: isPhoneLandscape ? scaleSize(2) : scaleSize(4),
-      paddingHorizontal: isPhoneLandscape ? scaleSize(6) : scaleSize(8),
-      borderRadius: scaleSize(8),
-      backgroundColor: addOpacity(COLORS.primary, 0.12),
-    },
-    jumpBackViewAllText: {
-      fontSize: isPhoneLandscape ? scaleSize(10.5) : scaleSize(12),
-      fontWeight: "700",
-      color: COLORS.primary,
-    },
-    jumpBackChipsScroll: {
-      flexDirection: "row",
-      gap: isPhoneLandscape ? scaleSize(8) : hScaleSize(10),
-    },
-    jumpBackChip: {
-      backgroundColor: COLORS.surfaceElevated,
-      borderRadius: isPhoneLandscape ? scaleSize(10) : scaleSize(14),
-      paddingVertical: isPhoneLandscape ? scaleSize(6) : scaleSize(10),
-      paddingHorizontal: isPhoneLandscape ? scaleSize(10) : scaleSize(14),
-      borderWidth: 1,
-      borderColor: addOpacity(COLORS.border, 0.7),
-      flexDirection: "row",
-      alignItems: "center",
-      gap: isPhoneLandscape ? scaleSize(6) : scaleSize(10),
-    },
-    jumpBackChipIcon: {
-      width: isPhoneLandscape ? scaleSize(22) : scaleSize(28),
-      height: isPhoneLandscape ? scaleSize(22) : scaleSize(28),
-      borderRadius: isPhoneLandscape ? scaleSize(6) : scaleSize(8),
-      backgroundColor: addOpacity(COLORS.primary, 0.15),
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    jumpBackChipIconFav: {
-      backgroundColor: addOpacity(COLORS.warning, 0.15),
-    },
-    jumpBackChipName: {
-      fontSize: isPhoneLandscape ? scaleSize(11.5) : scaleSize(13),
-      fontWeight: "700",
-      color: COLORS.textPrimary,
-    },
-    jumpBackChipFormula: {
-      fontSize: isPhoneLandscape ? scaleSize(10) : scaleSize(11),
-      fontWeight: "600",
-      color: COLORS.textSecondary,
     },
     tabBarContainer: {
       marginBottom: sectionGap,
@@ -334,80 +244,12 @@ export const getFeaturedMoleculesStyles = ({
       gap: isPhoneLandscape ? scaleSize(8) : hScaleSize(10),
       marginBottom: isPhoneLandscape ? scaleSize(8) : scaleSize(10),
     },
-    showcaseAboutBanner: {
-      marginTop: isPhoneLandscape ? scaleSize(6) : sectionGap,
-      marginBottom: sectionGap,
-      maxWidth: containerMaxWidth,
-      width: "100%",
-      alignSelf: "center",
-      backgroundColor: addOpacity(COLORS.surface, 0.72),
-      borderRadius: isPhoneLandscape ? scaleSize(12) : scaleSize(16),
-      borderWidth: 1,
-      borderColor: addOpacity(COLORS.border, 0.5),
-      paddingVertical: isPhoneLandscape ? scaleSize(5) : scaleSize(9),
-      paddingHorizontal: isPhoneLandscape ? scaleSize(10) : hScaleSize(12),
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      gap: isPhoneLandscape ? scaleSize(8) : hScaleSize(10),
-    },
-    showcaseAboutInfoCol: {
-      flex: 1,
-      minWidth: 0,
-      justifyContent: "center",
-    },
-    showcaseAboutCreditRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      flexWrap: "wrap",
-      gap: isPhoneLandscape ? scaleSize(4) : hScaleSize(6),
-    },
-    showcaseAboutCreditText: {
-      fontSize: isPhoneLandscape ? scaleSize(11) : scaleSize(12.5),
-      color: COLORS.textSecondary,
-      fontWeight: "500",
-    },
-    showcaseAboutAuthorName: {
-      color: COLORS.textPrimary,
-      fontWeight: "800",
-    },
-    showcaseAboutVersionText: {
-      fontSize: isPhoneLandscape ? scaleSize(9.5) : scaleSize(10.5),
-      color: COLORS.textMuted,
-      fontWeight: "600",
-    },
-    showcaseGithubLink: {
-      flexDirection: "row",
-      alignItems: "center",
-      alignSelf: "flex-start",
-      marginTop: isPhoneLandscape ? scaleSize(1.5) : scaleSize(3),
-      gap: isPhoneLandscape ? scaleSize(3) : hScaleSize(4),
-    },
-    showcaseGithubLinkText: {
-      fontSize: isPhoneLandscape ? scaleSize(10) : scaleSize(11.5),
-      color: COLORS.textSecondary,
-      fontWeight: "600",
-    },
-    showcaseAboutPill: {
-      flexShrink: 0,
-      flexDirection: "row",
-      alignItems: "center",
-      gap: isPhoneLandscape ? scaleSize(4) : hScaleSize(5),
-      backgroundColor: addOpacity(COLORS.primary, 0.14),
-      borderWidth: 1,
-      borderColor: addOpacity(COLORS.primary, 0.38),
-      borderRadius: isPhoneLandscape ? scaleSize(9) : scaleSize(12),
-      paddingHorizontal: isPhoneLandscape ? scaleSize(9) : hScaleSize(12),
-      paddingVertical: isPhoneLandscape ? scaleSize(5) : scaleSize(8),
-    },
-    showcaseAboutPillText: {
-      fontSize: isPhoneLandscape ? scaleSize(11) : scaleSize(12.5),
-      fontWeight: "700",
-      color: COLORS.primary,
-    },
   });
 };
 
-export type FeaturedMoleculesStyles = ReturnType<
-  typeof getFeaturedMoleculesStyles
+export type FeaturedMoleculesCoreStyles = ReturnType<
+  typeof getFeaturedMoleculesCoreStyles
 >;
+
+export const getFeaturedMoleculesStyles = getFeaturedMoleculesCoreStyles;
+export type FeaturedMoleculesStyles = FeaturedMoleculesCoreStyles;

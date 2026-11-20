@@ -11,7 +11,6 @@ import {
   ScrollView,
   type ScrollViewInstance,
   TouchableOpacity,
-  useWindowDimensions,
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from "react-native";
@@ -23,24 +22,17 @@ import {
   FEATURED_MOLECULES_BY_CATEGORY,
 } from "../constants/featuredMolecules";
 import {
-  FeaturedMoleculesStyles,
-  getFeaturedMoleculesStyles,
+  FeaturedMoleculesCoreStyles,
+  getFeaturedMoleculesCoreStyles,
 } from "./FeaturedMolecules.styles";
 import { useScaleMetrics } from "../utils/scaling";
 import { COLORS, addOpacity } from "../constants/colors";
-import {
-  APP_AUTHOR,
-  GITHUB_REPO_URL,
-  getAppVersion,
-  openExternalUrl,
-} from "../constants/distributions";
+import { triggerSelectionHaptic } from "../utils/haptics";
+import { BREAKPOINTS } from "../constants/theme";
 
-import { SavedCompoundItem } from "../types";
-import { ChemicalFormula } from "./ChemicalFormula";
-import { triggerSelectionHaptic, triggerImpactLight } from "../utils/haptics";
-import { normalizeCompoundName } from "../utils/compound";
-
+// Module-level persistent state
 let savedShowcaseScrollOffset = 0;
+let savedCategoryTabsScrollOffset = 0;
 let savedFeaturedCategory: FeaturedCategoryKey = "biochemicals";
 const categoryListeners = new Set<(category: FeaturedCategoryKey) => void>();
 
@@ -50,6 +42,22 @@ export const resetShowcaseScrollOffset = () => {
 
 export const getSavedShowcaseScrollOffset = () => {
   return savedShowcaseScrollOffset;
+};
+
+export const setSavedShowcaseScrollOffset = (offset: number) => {
+  savedShowcaseScrollOffset = Math.max(0, offset);
+};
+
+export const resetCategoryTabsScrollOffset = () => {
+  savedCategoryTabsScrollOffset = 0;
+};
+
+export const getSavedCategoryTabsScrollOffset = () => {
+  return savedCategoryTabsScrollOffset;
+};
+
+export const setSavedCategoryTabsScrollOffset = (offset: number) => {
+  savedCategoryTabsScrollOffset = Math.max(0, offset);
 };
 
 export const resetSavedFeaturedCategory = () => {
@@ -66,152 +74,135 @@ export const getSavedFeaturedCategory = () => {
   return savedFeaturedCategory;
 };
 
+export const subscribeCategoryChange = (
+  listener: (category: FeaturedCategoryKey) => void,
+) => {
+  categoryListeners.add(listener);
+  return () => {
+    categoryListeners.delete(listener);
+  };
+};
+
 export interface FeaturedMoleculesProps {
   onSelectMolecule: (query: string) => void;
-  styles?: FeaturedMoleculesStyles;
-  topOffset?: number;
-  initialScrollOffset?: number;
-  onScrollOffsetChange?: (offset: number) => void;
-  history?: SavedCompoundItem[];
-  bookmarks?: SavedCompoundItem[];
-  onOpenHistory?: (initialTab?: "history" | "bookmarks") => void;
-  onOpenAbout?: () => void;
+  styles?: Partial<FeaturedMoleculesCoreStyles>;
   initialCategory?: FeaturedCategoryKey;
   onCategoryChange?: (category: FeaturedCategoryKey) => void;
+  initialCategoryScrollOffset?: number;
+  onCategoryScrollOffsetChange?: (offset: number) => void;
+  isPhoneLandscape?: boolean;
 }
 
 export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
   ({
     onSelectMolecule,
     styles: passedStyles,
-    topOffset,
-    initialScrollOffset: propsInitialScrollOffset,
-    onScrollOffsetChange,
-    history,
-    bookmarks,
-    onOpenHistory,
-    onOpenAbout,
     initialCategory,
     onCategoryChange,
+    initialCategoryScrollOffset: propsInitialCategoryScrollOffset,
+    onCategoryScrollOffsetChange,
+    isPhoneLandscape: passedIsPhoneLandscape,
   }) => {
     const metrics = useScaleMetrics();
-    const ownStyles = useMemo(
-      () => getFeaturedMoleculesStyles(metrics),
-      [metrics],
+    const isPartial = Boolean(
+      passedStyles &&
+      !("featuredMoleculesSection" in passedStyles && "card" in passedStyles),
     );
-    const styles = passedStyles ?? ownStyles;
-    const appVersion = getAppVersion();
-    const { width, height } = useWindowDimensions();
-    const isLandscape = width > height;
-    const isPhoneLandscape = isLandscape && height < 600;
-    const scrollViewRef = useRef<ScrollViewInstance>(null);
-    const hasRestoredScrollRef = useRef(false);
-    const restoreScrollRafRef = useRef<number | null>(null);
+    const ownStyles = useMemo(
+      () =>
+        passedStyles && !isPartial
+          ? null
+          : getFeaturedMoleculesCoreStyles(metrics),
+      [passedStyles, isPartial, metrics],
+    );
+    const styles = useMemo(
+      () =>
+        passedStyles
+          ? ownStyles
+            ? { ...ownStyles, ...passedStyles }
+            : (passedStyles as FeaturedMoleculesCoreStyles)
+          : ownStyles!,
+      [passedStyles, ownStyles],
+    );
+    const { width, height, isLandscape } = metrics;
+    const isPhoneLandscape =
+      passedIsPhoneLandscape ?? (isLandscape && height < BREAKPOINTS.TABLET);
+
+    const categoryTabsScrollRef = useRef<ScrollViewInstance>(null);
+    const hasRestoredTabsScrollRef = useRef(false);
+    const restoreTabsScrollRafRef = useRef<number | null>(null);
 
     useEffect(() => {
       return () => {
-        if (restoreScrollRafRef.current !== null) {
-          cancelAnimationFrame(restoreScrollRafRef.current);
-          restoreScrollRafRef.current = null;
+        if (restoreTabsScrollRafRef.current !== null) {
+          cancelAnimationFrame(restoreTabsScrollRafRef.current);
+          restoreTabsScrollRafRef.current = null;
         }
       };
     }, []);
 
     const [selectedCategory, setSelectedCategory] =
       useState<FeaturedCategoryKey>(
-        () => initialCategory ?? savedFeaturedCategory,
+        () => initialCategory ?? getSavedFeaturedCategory(),
       );
 
     useEffect(() => {
-      categoryListeners.add(setSelectedCategory);
-      return () => {
-        categoryListeners.delete(setSelectedCategory);
-      };
+      if (initialCategory) {
+        setSavedFeaturedCategory(initialCategory);
+      }
+    }, [initialCategory]);
+
+    useEffect(() => {
+      return subscribeCategoryChange(setSelectedCategory);
     }, []);
 
     const handleSelectCategory = useCallback(
       (category: FeaturedCategoryKey) => {
         triggerSelectionHaptic();
-        savedFeaturedCategory = category;
-        setSelectedCategory(category);
+        setSavedFeaturedCategory(category);
         onCategoryChange?.(category);
       },
       [onCategoryChange],
     );
 
-    const [initialScrollOffset] = useState(
-      () => propsInitialScrollOffset ?? savedShowcaseScrollOffset,
+    const [initialCategoryScrollOffset] = useState(
+      () =>
+        propsInitialCategoryScrollOffset ?? getSavedCategoryTabsScrollOffset(),
     );
 
-    const handleScroll = useCallback(
+    const handleCategoryTabsScroll = useCallback(
       (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        const offsetY = Math.max(0, event.nativeEvent.contentOffset.y);
-        savedShowcaseScrollOffset = offsetY;
-        onScrollOffsetChange?.(offsetY);
+        const offsetX = Math.max(0, event.nativeEvent.contentOffset.x);
+        setSavedCategoryTabsScrollOffset(offsetX);
+        onCategoryScrollOffsetChange?.(offsetX);
       },
-      [onScrollOffsetChange],
+      [onCategoryScrollOffsetChange],
     );
 
-    const handleContentSizeChange = useCallback(
-      (_contentWidth: number, contentHeight: number) => {
+    const handleCategoryTabsContentSizeChange = useCallback(
+      (contentWidth: number, _contentHeight: number) => {
         if (
-          initialScrollOffset > 0 &&
-          !hasRestoredScrollRef.current &&
-          contentHeight > 0
+          initialCategoryScrollOffset > 0 &&
+          !hasRestoredTabsScrollRef.current &&
+          contentWidth > 0
         ) {
-          hasRestoredScrollRef.current = true;
-          restoreScrollRafRef.current = requestAnimationFrame(() => {
-            restoreScrollRafRef.current = null;
-            scrollViewRef.current?.scrollTo({
-              y: initialScrollOffset,
+          if (contentWidth >= initialCategoryScrollOffset) {
+            hasRestoredTabsScrollRef.current = true;
+          }
+          if (restoreTabsScrollRafRef.current !== null) {
+            cancelAnimationFrame(restoreTabsScrollRafRef.current);
+          }
+          restoreTabsScrollRafRef.current = requestAnimationFrame(() => {
+            restoreTabsScrollRafRef.current = null;
+            categoryTabsScrollRef.current?.scrollTo({
+              x: initialCategoryScrollOffset,
               animated: false,
             });
           });
         }
       },
-      [initialScrollOffset],
+      [initialCategoryScrollOffset],
     );
-
-    const recentItems = useMemo(() => {
-      const itemMap = new Map<string, SavedCompoundItem>();
-
-      for (const item of history || []) {
-        if (!item?.name) continue;
-        const lower = normalizeCompoundName(item.name);
-        if (
-          !itemMap.has(lower) ||
-          (item.timestamp &&
-            item.timestamp > (itemMap.get(lower)?.timestamp || 0))
-        ) {
-          itemMap.set(lower, item);
-        }
-      }
-
-      for (const item of bookmarks || []) {
-        if (!item?.name) continue;
-        const lower = normalizeCompoundName(item.name);
-        if (
-          !itemMap.has(lower) ||
-          (item.timestamp &&
-            item.timestamp > (itemMap.get(lower)?.timestamp || 0))
-        ) {
-          itemMap.set(lower, item);
-        }
-      }
-
-      return Array.from(itemMap.values())
-        .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
-        .slice(0, 8);
-    }, [history, bookmarks]);
-
-    const bookmarkNamesSet = useMemo(() => {
-      const set = new Set<string>();
-      for (const item of bookmarks || []) {
-        const norm = normalizeCompoundName(item?.name);
-        if (norm) set.add(norm);
-      }
-      return set;
-    }, [bookmarks]);
 
     const activeCategory = useMemo(
       () =>
@@ -355,318 +346,124 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
     );
 
     return (
-      <View style={styles.featuredContainer}>
-        <ScrollView
-          ref={scrollViewRef}
-          testID="featured-molecules-scroll"
-          showsVerticalScrollIndicator={false}
-          contentOffset={
-            initialScrollOffset > 0
-              ? { x: 0, y: initialScrollOffset }
-              : undefined
-          }
-          onScroll={handleScroll}
-          scrollEventThrottle={64}
-          onContentSizeChange={handleContentSizeChange}
-          contentContainerStyle={[
-            styles.featuredScrollContent,
-            topOffset ? { paddingTop: topOffset } : null,
-          ]}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* Compact Creator & Open Source Banner (immediately visible above the fold) */}
-          <View
-            style={styles.showcaseAboutBanner}
-            testID="showcase-about-banner"
+      <View style={styles.featuredMoleculesSection}>
+        {/* Hero Section */}
+        <View style={styles.heroSection}>
+          <View style={styles.heroBadge}>
+            <Ionicons
+              name="sparkles"
+              size={isPhoneLandscape ? 11 : 13}
+              color={COLORS.primary}
+            />
+            <Text allowFontScaling={false} style={styles.heroBadgeText}>
+              Curated Showcase
+            </Text>
+          </View>
+          <Text allowFontScaling={false} style={styles.heroTitle}>
+            Featured Molecules
+          </Text>
+          <Text allowFontScaling={false} style={styles.heroSubtitle}>
+            Tap any compound below to load and interact with its 3D structure.
+          </Text>
+        </View>
+
+        {/* Category Filter Tabs (With Remembered Horizontal Scroll Position) */}
+        <View style={styles.tabBarContainer}>
+          <ScrollView
+            ref={categoryTabsScrollRef}
+            testID="category-tabs-scroll"
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentOffset={
+              initialCategoryScrollOffset > 0
+                ? { x: initialCategoryScrollOffset, y: 0 }
+                : undefined
+            }
+            onScroll={handleCategoryTabsScroll}
+            scrollEventThrottle={64}
+            onContentSizeChange={handleCategoryTabsContentSizeChange}
+            contentContainerStyle={styles.tabBarScroll}
+            keyboardShouldPersistTaps="handled"
           >
-            <View style={styles.showcaseAboutInfoCol}>
-              <View style={styles.showcaseAboutCreditRow}>
-                <Text
-                  allowFontScaling={false}
-                  style={styles.showcaseAboutCreditText}
-                  numberOfLines={1}
+            {FEATURED_CATEGORIES.map((category) => {
+              const isActive = selectedCategory === category.key;
+              return (
+                <TouchableOpacity
+                  key={category.key}
+                  testID={`category-tab-${category.key}`}
+                  accessibilityRole="tab"
+                  accessibilityState={{ selected: isActive }}
+                  accessibilityLabel={`${category.title} category`}
+                  activeOpacity={0.75}
+                  style={[
+                    styles.categoryTab,
+                    isActive && [
+                      styles.categoryTabActive,
+                      {
+                        backgroundColor: addOpacity(category.color, 0.16),
+                        borderColor: addOpacity(category.color, 0.55),
+                      },
+                    ],
+                  ]}
+                  onPress={() => handleSelectCategory(category.key)}
                 >
-                  Made by{" "}
-                  <Text style={styles.showcaseAboutAuthorName}>
-                    {APP_AUTHOR}
-                  </Text>
-                </Text>
-                <Text
-                  allowFontScaling={false}
-                  style={styles.showcaseAboutVersionText}
-                >
-                  v{appVersion}
-                </Text>
-              </View>
-
-              <TouchableOpacity
-                testID="showcase-github-button"
-                accessibilityRole="button"
-                accessibilityLabel="Open source on GitHub"
-                style={styles.showcaseGithubLink}
-                activeOpacity={0.7}
-                hitSlop={{ top: 6, bottom: 8, left: 4, right: 8 }}
-                onPress={() => {
-                  triggerSelectionHaptic();
-                  openExternalUrl(GITHUB_REPO_URL).catch(() => {});
-                }}
-              >
-                <Ionicons
-                  name="logo-github"
-                  size={isPhoneLandscape ? 11 : 12}
-                  color={COLORS.textSecondary}
-                />
-                <Text
-                  allowFontScaling={false}
-                  style={styles.showcaseGithubLinkText}
-                >
-                  Open source on GitHub
-                </Text>
-                <Ionicons
-                  name="open-outline"
-                  size={isPhoneLandscape ? 9 : 10}
-                  color={COLORS.primary}
-                />
-              </TouchableOpacity>
-            </View>
-
-            {onOpenAbout && (
-              <TouchableOpacity
-                testID="showcase-about-button"
-                accessibilityRole="button"
-                accessibilityLabel="About Moluxis"
-                style={styles.showcaseAboutPill}
-                activeOpacity={0.75}
-                onPress={() => {
-                  triggerImpactLight();
-                  onOpenAbout();
-                }}
-              >
-                <Ionicons
-                  name="information-circle-outline"
-                  size={isPhoneLandscape ? 13 : 15}
-                  color={COLORS.primary}
-                />
-                <Text
-                  allowFontScaling={false}
-                  style={styles.showcaseAboutPillText}
-                >
-                  About
-                </Text>
-                <Ionicons
-                  name="chevron-forward"
-                  size={isPhoneLandscape ? 10 : 12}
-                  color={COLORS.primary}
-                />
-              </TouchableOpacity>
-            )}
-          </View>
-
-          {/* Jump Back In (Recent Searches & Favorites) */}
-          {recentItems.length > 0 && (
-            <View style={styles.jumpBackSection}>
-              <View style={styles.jumpBackHeader}>
-                <View style={styles.jumpBackHeaderLeft}>
-                  <Ionicons
-                    name="time-outline"
-                    size={isPhoneLandscape ? 14 : 17}
-                    color={COLORS.primary}
-                  />
-                  <Text allowFontScaling={false} style={styles.jumpBackTitle}>
-                    Jump Back In
-                  </Text>
-                </View>
-                {onOpenHistory && (
-                  <TouchableOpacity
-                    testID="jump-back-view-all"
-                    accessibilityRole="button"
-                    accessibilityLabel="View full history and bookmarks"
-                    style={styles.jumpBackViewAllBtn}
-                    onPress={() => {
-                      triggerImpactLight();
-                      onOpenHistory();
-                    }}
-                  >
-                    <Text
-                      allowFontScaling={false}
-                      style={styles.jumpBackViewAllText}
-                    >
-                      View All
-                    </Text>
-                    <Ionicons
-                      name="chevron-forward"
-                      size={isPhoneLandscape ? 10 : 12}
-                      color={COLORS.primary}
-                    />
-                  </TouchableOpacity>
-                )}
-              </View>
-
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.jumpBackChipsScroll}
-                keyboardShouldPersistTaps="handled"
-              >
-                {recentItems.map((item) => {
-                  const isFav = bookmarkNamesSet.has(
-                    item.name.trim().toLowerCase(),
-                  );
-                  return (
-                    <TouchableOpacity
-                      key={item.name}
-                      testID={`recent-chip-${item.name.toLowerCase()}`}
-                      accessibilityRole="button"
-                      accessibilityLabel={`Revisit ${item.name}`}
-                      style={styles.jumpBackChip}
-                      onPress={() => {
-                        triggerSelectionHaptic();
-                        onSelectMolecule(item.name);
-                      }}
-                      activeOpacity={0.7}
-                    >
-                      <View
-                        style={[
-                          styles.jumpBackChipIcon,
-                          isFav && styles.jumpBackChipIconFav,
-                        ]}
-                      >
-                        <Ionicons
-                          name={isFav ? "bookmark" : "time-outline"}
-                          size={isPhoneLandscape ? 12 : 14}
-                          color={isFav ? COLORS.warning : COLORS.primary}
-                        />
-                      </View>
-                      <View>
-                        <Text
-                          allowFontScaling={false}
-                          style={styles.jumpBackChipName}
-                          numberOfLines={1}
-                        >
-                          {item.name}
-                        </Text>
-                        {item.formula ? (
-                          <ChemicalFormula
-                            formula={item.formula}
-                            style={styles.jumpBackChipFormula}
-                          />
-                        ) : null}
-                      </View>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-            </View>
-          )}
-
-          {/* Hero Section */}
-          <View style={styles.heroSection}>
-            <View style={styles.heroBadge}>
-              <Ionicons
-                name="sparkles"
-                size={isPhoneLandscape ? 11 : 13}
-                color={COLORS.primary}
-              />
-              <Text allowFontScaling={false} style={styles.heroBadgeText}>
-                Curated Showcase
-              </Text>
-            </View>
-            <Text allowFontScaling={false} style={styles.heroTitle}>
-              Featured Molecules
-            </Text>
-            <Text allowFontScaling={false} style={styles.heroSubtitle}>
-              Tap any compound below to load and interact with its 3D structure.
-            </Text>
-          </View>
-
-          {/* Category Filter Tabs */}
-          <View style={styles.tabBarContainer}>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.tabBarScroll}
-              keyboardShouldPersistTaps="handled"
-            >
-              {FEATURED_CATEGORIES.map((category) => {
-                const isActive = selectedCategory === category.key;
-                return (
-                  <TouchableOpacity
-                    key={category.key}
-                    testID={`category-tab-${category.key}`}
-                    accessibilityRole="tab"
-                    accessibilityState={{ selected: isActive }}
-                    accessibilityLabel={`${category.title} category`}
-                    activeOpacity={0.75}
+                  <View
                     style={[
-                      styles.categoryTab,
-                      isActive && [
-                        styles.categoryTabActive,
-                        {
-                          backgroundColor: addOpacity(category.color, 0.16),
-                          borderColor: addOpacity(category.color, 0.55),
-                        },
-                      ],
+                      styles.categoryTabIconBadge,
+                      {
+                        backgroundColor: isActive
+                          ? addOpacity(category.color, 0.25)
+                          : addOpacity(COLORS.surfaceElevated, 0.9),
+                      },
                     ]}
-                    onPress={() => handleSelectCategory(category.key)}
                   >
-                    <View
-                      style={[
-                        styles.categoryTabIconBadge,
-                        {
-                          backgroundColor: isActive
-                            ? addOpacity(category.color, 0.25)
-                            : addOpacity(COLORS.surfaceElevated, 0.9),
-                        },
-                      ]}
-                    >
-                      <Ionicons
-                        name={category.icon}
-                        size={isPhoneLandscape ? 10 : 12}
-                        color={isActive ? category.color : COLORS.textMuted}
-                      />
-                    </View>
+                    <Ionicons
+                      name={category.icon}
+                      size={isPhoneLandscape ? 10 : 12}
+                      color={isActive ? category.color : COLORS.textMuted}
+                    />
+                  </View>
+                  <Text
+                    allowFontScaling={false}
+                    style={[
+                      styles.categoryTabText,
+                      isActive && styles.categoryTabTextActive,
+                    ]}
+                  >
+                    {category.title}
+                  </Text>
+                  <View
+                    style={[
+                      styles.categoryTabCountBadge,
+                      isActive && {
+                        backgroundColor: addOpacity(category.color, 0.22),
+                      },
+                    ]}
+                  >
                     <Text
                       allowFontScaling={false}
                       style={[
-                        styles.categoryTabText,
-                        isActive && styles.categoryTabTextActive,
+                        styles.categoryTabCountText,
+                        isActive && { color: category.color },
                       ]}
                     >
-                      {category.title}
+                      {FEATURED_MOLECULES_BY_CATEGORY[category.key]?.length ||
+                        4}
                     </Text>
-                    <View
-                      style={[
-                        styles.categoryTabCountBadge,
-                        isActive && {
-                          backgroundColor: addOpacity(category.color, 0.22),
-                        },
-                      ]}
-                    >
-                      <Text
-                        allowFontScaling={false}
-                        style={[
-                          styles.categoryTabCountText,
-                          isActive && { color: category.color },
-                        ]}
-                      >
-                        {FEATURED_MOLECULES_BY_CATEGORY[category.key]?.length ||
-                          4}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-          </View>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
 
-          {/* Active Category Molecules */}
-          {renderCategorySection(
-            activeCategory.title,
-            activeCategory.icon,
-            activeCategory.color,
-            FEATURED_MOLECULES_BY_CATEGORY[activeCategory.key] || [],
-          )}
-        </ScrollView>
+        {/* Active Category Molecules */}
+        {renderCategorySection(
+          activeCategory.title,
+          activeCategory.icon,
+          activeCategory.color,
+          FEATURED_MOLECULES_BY_CATEGORY[activeCategory.key] || [],
+        )}
       </View>
     );
   },

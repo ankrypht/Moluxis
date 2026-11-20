@@ -6,8 +6,13 @@ import {
   getSavedShowcaseScrollOffset,
   resetSavedFeaturedCategory,
   getSavedFeaturedCategory,
+  resetCategoryTabsScrollOffset,
+  getSavedCategoryTabsScrollOffset,
+  setSavedCategoryTabsScrollOffset,
 } from "../FeaturedMolecules";
-import { getFeaturedMoleculesStyles } from "../FeaturedMolecules.styles";
+import { HomeScreen } from "../HomeScreen";
+import { getFeaturedMoleculesCoreStyles } from "../FeaturedMolecules.styles";
+import { getHomeScreenStyles } from "../HomeScreen.styles";
 import { getScaleMetrics } from "../../utils/scaling";
 import { GITHUB_REPO_URL } from "../../constants/distributions";
 
@@ -25,10 +30,11 @@ jest.mock("@expo/vector-icons", () => {
 describe("FeaturedMolecules Component", () => {
   const dummyInsets = { top: 0, bottom: 0, left: 0, right: 0 };
   const metrics = getScaleMetrics(360, 736, dummyInsets);
-  const styles = getFeaturedMoleculesStyles(metrics);
+  const styles = getFeaturedMoleculesCoreStyles(metrics);
 
   beforeEach(() => {
     resetShowcaseScrollOffset();
+    resetCategoryTabsScrollOffset();
     resetSavedFeaturedCategory();
   });
 
@@ -199,7 +205,7 @@ describe("FeaturedMolecules Component", () => {
   it("applies topOffset when provided", async () => {
     const mockSelect = jest.fn();
     const { getByText } = render(
-      <FeaturedMolecules
+      <HomeScreen
         onSelectMolecule={mockSelect}
         styles={styles}
         topOffset={180}
@@ -213,7 +219,7 @@ describe("FeaturedMolecules Component", () => {
     const mockSelect = jest.fn();
     const mockScrollOffsetChange = jest.fn();
     const { getByTestId } = render(
-      <FeaturedMolecules
+      <HomeScreen
         onSelectMolecule={mockSelect}
         styles={styles}
         onScrollOffsetChange={mockScrollOffsetChange}
@@ -234,7 +240,7 @@ describe("FeaturedMolecules Component", () => {
   it("initializes ScrollView with initialScrollOffset", () => {
     const mockSelect = jest.fn();
     const { getByTestId } = render(
-      <FeaturedMolecules
+      <HomeScreen
         onSelectMolecule={mockSelect}
         styles={styles}
         initialScrollOffset={350}
@@ -249,7 +255,7 @@ describe("FeaturedMolecules Component", () => {
   it("cancels pending scroll restoration requestAnimationFrame on unmount", () => {
     const cancelRafSpy = jest.spyOn(global, "cancelAnimationFrame");
     const { getByTestId, unmount } = render(
-      <FeaturedMolecules
+      <HomeScreen
         onSelectMolecule={jest.fn()}
         styles={styles}
         initialScrollOffset={300}
@@ -266,9 +272,60 @@ describe("FeaturedMolecules Component", () => {
     cancelRafSpy.mockRestore();
   });
 
+  describe("Category Tabs Horizontal Scroll Memory", () => {
+    it("tracks horizontal scroll on category tabs and updates savedCategoryTabsScrollOffset", () => {
+      const mockSelect = jest.fn();
+      const mockTabsScrollChange = jest.fn();
+      const { getByTestId } = render(
+        <FeaturedMolecules
+          onSelectMolecule={mockSelect}
+          styles={styles}
+          onCategoryScrollOffsetChange={mockTabsScrollChange}
+        />,
+      );
+
+      const tabsScroll = getByTestId("category-tabs-scroll");
+      fireEvent.scroll(tabsScroll, {
+        nativeEvent: {
+          contentOffset: { x: 120, y: 0 },
+        },
+      });
+
+      expect(mockTabsScrollChange).toHaveBeenCalledWith(120);
+      expect(getSavedCategoryTabsScrollOffset()).toBe(120);
+    });
+
+    it("restores horizontal scroll position on remount via requestAnimationFrame", () => {
+      setSavedCategoryTabsScrollOffset(85);
+      const { getByTestId } = render(
+        <FeaturedMolecules onSelectMolecule={jest.fn()} styles={styles} />,
+      );
+
+      const tabsScroll = getByTestId("category-tabs-scroll");
+      expect(tabsScroll.props.contentOffset).toEqual({ x: 85, y: 0 });
+    });
+
+    it("cancels pending category tabs scroll restoration requestAnimationFrame on unmount", () => {
+      const cancelRafSpy = jest.spyOn(global, "cancelAnimationFrame");
+      setSavedCategoryTabsScrollOffset(50);
+      const { getByTestId, unmount } = render(
+        <FeaturedMolecules onSelectMolecule={jest.fn()} styles={styles} />,
+      );
+
+      const tabsScroll = getByTestId("category-tabs-scroll");
+      act(() => {
+        tabsScroll.props.onContentSizeChange(800, 40);
+      });
+
+      unmount();
+      expect(cancelRafSpy).toHaveBeenCalled();
+      cancelRafSpy.mockRestore();
+    });
+  });
+
   it("renders correctly on wider tablet screens", () => {
     const tabletMetrics = getScaleMetrics(768, 1024, dummyInsets);
-    const tabletStyles = getFeaturedMoleculesStyles(tabletMetrics);
+    const tabletStyles = getFeaturedMoleculesCoreStyles(tabletMetrics);
     const mockSelect = jest.fn();
     const { getByText } = render(
       <FeaturedMolecules onSelectMolecule={mockSelect} styles={tabletStyles} />,
@@ -289,7 +346,7 @@ describe("FeaturedMolecules Component", () => {
     ];
 
     const { getByText, getByTestId } = render(
-      <FeaturedMolecules
+      <HomeScreen
         onSelectMolecule={mockSelect}
         styles={styles}
         history={sampleHistory}
@@ -321,7 +378,7 @@ describe("FeaturedMolecules Component", () => {
   it("does not render Jump Back In section when history and bookmarks are empty", () => {
     const mockSelect = jest.fn();
     const { queryByText } = render(
-      <FeaturedMolecules
+      <HomeScreen
         onSelectMolecule={mockSelect}
         styles={styles}
         history={[]}
@@ -344,7 +401,7 @@ describe("FeaturedMolecules Component", () => {
     ];
 
     const { getAllByTestId } = render(
-      <FeaturedMolecules
+      <HomeScreen
         onSelectMolecule={mockSelect}
         styles={styles}
         history={history}
@@ -369,7 +426,7 @@ describe("FeaturedMolecules Component", () => {
     const mockOpenAbout = jest.fn();
 
     const { getByTestId, getByText } = render(
-      <FeaturedMolecules
+      <HomeScreen
         onSelectMolecule={jest.fn()}
         styles={styles}
         onOpenAbout={mockOpenAbout}
@@ -398,7 +455,7 @@ describe("FeaturedMolecules Component", () => {
     it("pads away from camera notch and cutout on mobile landscape", () => {
       const cutoutInsets = { top: 0, bottom: 21, left: 48, right: 34 };
       const landscapeMetrics = getScaleMetrics(736, 360, cutoutInsets);
-      const landscapeStyles = getFeaturedMoleculesStyles(landscapeMetrics);
+      const landscapeStyles = getHomeScreenStyles(landscapeMetrics);
 
       // Verify padding on both left and right sides respects camera cutouts
       expect(
@@ -412,9 +469,7 @@ describe("FeaturedMolecules Component", () => {
     it("applies balanced compact proportions on mobile landscape phones", () => {
       const cutoutInsets = { top: 0, bottom: 21, left: 44, right: 44 };
       const phoneLandscapeMetrics = getScaleMetrics(736, 360, cutoutInsets);
-      const phoneLandscapeStyles = getFeaturedMoleculesStyles(
-        phoneLandscapeMetrics,
-      );
+      const phoneLandscapeStyles = getHomeScreenStyles(phoneLandscapeMetrics);
 
       // Container maxWidth aligned to 520
       expect(phoneLandscapeStyles.heroSection.maxWidth).toBe(520);
@@ -439,9 +494,7 @@ describe("FeaturedMolecules Component", () => {
 
     it("aligns container maxWidth to 680 on tablet portrait", () => {
       const tabletPortraitMetrics = getScaleMetrics(768, 1024, dummyInsets);
-      const tabletPortraitStyles = getFeaturedMoleculesStyles(
-        tabletPortraitMetrics,
-      );
+      const tabletPortraitStyles = getHomeScreenStyles(tabletPortraitMetrics);
 
       expect(tabletPortraitStyles.heroSection.maxWidth).toBe(680);
       expect(tabletPortraitStyles.jumpBackSection.maxWidth).toBe(680);
@@ -452,9 +505,7 @@ describe("FeaturedMolecules Component", () => {
 
     it("aligns container maxWidth to 860 on tablet landscape", () => {
       const tabletLandscapeMetrics = getScaleMetrics(1024, 768, dummyInsets);
-      const tabletLandscapeStyles = getFeaturedMoleculesStyles(
-        tabletLandscapeMetrics,
-      );
+      const tabletLandscapeStyles = getHomeScreenStyles(tabletLandscapeMetrics);
 
       expect(tabletLandscapeStyles.heroSection.maxWidth).toBe(860);
       expect(tabletLandscapeStyles.jumpBackSection.maxWidth).toBe(860);
@@ -465,9 +516,7 @@ describe("FeaturedMolecules Component", () => {
 
     it("preserves mobile portrait maxWidth 500 and comfortable spacing", () => {
       const mobilePortraitMetrics = getScaleMetrics(360, 736, dummyInsets);
-      const mobilePortraitStyles = getFeaturedMoleculesStyles(
-        mobilePortraitMetrics,
-      );
+      const mobilePortraitStyles = getHomeScreenStyles(mobilePortraitMetrics);
 
       expect(mobilePortraitStyles.heroSection.maxWidth).toBe(500);
       expect(mobilePortraitStyles.jumpBackSection.maxWidth).toBe(500);

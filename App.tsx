@@ -36,7 +36,7 @@ import {
 import { useAppLayoutStyles } from "./src/hooks/useAppLayoutStyles";
 import { useAppBackHandler } from "./src/hooks/useAppBackHandler";
 import { FeaturedCategoryKey } from "./src/constants/featuredMolecules";
-import { setSavedFeaturedCategory } from "./src/components/FeaturedMolecules";
+import { setSavedFeaturedCategory } from "./src/components/HomeScreen";
 import { getStyles } from "./App.styles";
 
 import {

@@ -5,7 +5,8 @@ import App from "../App";
 import {
   resetShowcaseScrollOffset,
   resetSavedFeaturedCategory,
-} from "../src/components/FeaturedMolecules";
+  resetCategoryTabsScrollOffset,
+} from "../src/components/HomeScreen";
 import { Alert } from "../src/components/CustomAlert";
 
 // Mock dependencies
@@ -230,6 +231,7 @@ describe("Featured Molecules on First Launch", () => {
     jest.spyOn(Keyboard, "dismiss").mockImplementation(() => {});
     mockMoleculeData = null; // empty state on first launch
     resetShowcaseScrollOffset();
+    resetCategoryTabsScrollOffset();
     resetSavedFeaturedCategory();
   });
 
@@ -1500,6 +1502,7 @@ describe("About Moluxis Modal & Top Showcase Banner", () => {
     jest.spyOn(Keyboard, "dismiss").mockImplementation(() => {});
     mockMoleculeData = null;
     resetShowcaseScrollOffset();
+    resetCategoryTabsScrollOffset();
     resetSavedFeaturedCategory();
   });
 

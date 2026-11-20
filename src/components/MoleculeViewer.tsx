@@ -34,8 +34,7 @@ import {
   MoleculeViewerStyles,
   getMoleculeViewerStyles,
 } from "./MoleculeViewer.styles";
-import { FeaturedMolecules } from "./FeaturedMolecules";
-import { FeaturedMoleculesStyles } from "./FeaturedMolecules.styles";
+import { HomeScreen, HomeScreenStyles } from "./HomeScreen";
 import { triggerImpactLight } from "../utils/haptics";
 import { useScaleMetrics } from "../utils/scaling";
 
@@ -56,6 +55,7 @@ function isWebViewReadyMessage(data: unknown): data is WebViewReadyMessage {
 
 const UPDATE_DELAY_MS = 150;
 const MAX_RENDER_RETRIES = 1;
+const NOOP = () => {};
 
 export interface MoleculeViewerRef {
   captureSnapshot: (options?: { resolution?: "preview" | "full" }) => void;
@@ -84,7 +84,7 @@ export interface MoleculeViewerProps {
   measurementMode?: MeasurementMode;
   onAtomPicked?: (atom: PickedAtom) => void;
   containerStyle?: StyleProp<ViewStyle>;
-  styles?: MoleculeViewerStyles & Partial<FeaturedMoleculesStyles>;
+  styles?: MoleculeViewerStyles & Partial<HomeScreenStyles>;
   onSelectMolecule?: (query: string) => void;
   topOffset?: number;
   initialScrollOffset?: number;
@@ -327,6 +327,7 @@ export const MoleculeViewer = React.memo(
           isWebViewReadyRef.current = false;
           lastLoadedSignatureRef.current = null;
           pendingStructureRef.current = null;
+          // eslint-disable-next-line react-hooks/set-state-in-effect
           setIsViewerReady(false);
           crashCountRef.current = 0;
           setHasRenderCrashed(false);
@@ -345,6 +346,7 @@ export const MoleculeViewer = React.memo(
       // Reset crash state whenever the active molecule or format changes
       useEffect(() => {
         crashCountRef.current = 0;
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setHasRenderCrashed(false);
       }, [currentSignature]);
 
@@ -710,11 +712,11 @@ export const MoleculeViewer = React.memo(
               </View>
             )}
           {!moleculeData && !isLoading && (
-            <FeaturedMolecules
-              onSelectMolecule={onSelectMolecule || (() => {})}
+            <HomeScreen
+              onSelectMolecule={onSelectMolecule || NOOP}
               styles={
                 passedStyles && "featuredContainer" in passedStyles
-                  ? (passedStyles as any)
+                  ? (passedStyles as Partial<HomeScreenStyles>)
                   : undefined
               }
               topOffset={topOffset}
