@@ -2,18 +2,14 @@
   "version": "2.2.0",
   "releaseDate": "November 2026",
   "features": [
-    "Interactive 3D Measurements: Tap atoms directly on the 3D model to measure bond distances and angles in real time",
-    "Weekly Molecule Spotlights: Discover fascinating featured molecules every week with optional notifications",
-    "In-App Update Alerts: Get notified right inside the app whenever a new version is available on Google Play",
-    "All-New About Screen: Explore project information, developer credits, and verified scientific source links"
+    "3D Measurements: Tap atoms to measure bond distances and angles",
+    "Weekly Spotlights: Discover curated molecules weekly with optional alerts",
+    "Update Alerts: In-app notices when a new version arrives on Google Play",
+    "About Screen: View project info, credits, and scientific sources"
   ],
   "improvements": [
-    "Tablet UI: Improved UI for tablet users",
-    "Natural Back Navigation: The Android back button now smoothly steps through menus, measurements, and searches before exiting",
-    "Smoother 3D Graphics: Enhanced responsiveness, clearer atom highlighting, and satisfying tactile vibration feedback"
+    "Landscape Mode: Optimized layout and controls for horizontal view",
+    "Back Navigation: Closes active tools and menus before app exit"
   ],
-  "fixes": [
-    "Fixed layout adjustments when rotating between portrait and landscape modes",
-    "General stability improvements and visual polish across the app"
-  ]
+  "fixes": ["Stability & Polish: General bug fixes and visual improvements"]
 }
