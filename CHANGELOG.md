@@ -1,5 +1,32 @@
 # Changelog
 
+## [2.2.0](https://github.com/ankrypht/Moluxis/compare/v2.1.1...v2.2.0) (2026-11-20)
+
+
+### Features
+
+* add About modal and home screen attribution banner ([bef4511](https://github.com/ankrypht/Moluxis/commit/bef451180bf9ea4746d9821b0d4ad7de505637e3))
+* add in-app updates, background update task, and notification engine ([ac1478f](https://github.com/ankrypht/Moluxis/commit/ac1478f8bc2d6993f6253ddd03bbc1bf7828a3f4))
+* add interactive atom picking and measurement calculator ([8f19e6c](https://github.com/ankrypht/Moluxis/commit/8f19e6c807374eb731350b99be083789acd8ba6b))
+* implement comprehensive hardware back press navigation handling ([4b4816a](https://github.com/ankrypht/Moluxis/commit/4b4816a6b086ecaef46f447a73e5a86c036eb27b))
+* refine landscape layout, measurement UX, and fix state edge cases ([1b6eff3](https://github.com/ankrypht/Moluxis/commit/1b6eff380f926911a3dbb999f729085af6f122ba))
+* **ui:** optimize responsive layout and component alignment across tablet and landscape ([d312c8b](https://github.com/ankrypht/Moluxis/commit/d312c8b72540ee9fdab7ccdb3e4d4e391fba267b))
+
+
+### Bug Fixes
+
+* eliminate Android elevation shadow box artifacts on translucent surfaces ([3b61de1](https://github.com/ankrypht/Moluxis/commit/3b61de156169a32916800c24e6dcc3a6a939f7d0))
+* improve cleanup, lifecycle management, and snapshot handling in viewer and modal components ([f9ac0bc](https://github.com/ankrypht/Moluxis/commit/f9ac0bce99ca210dd52231097403e06842b37223))
+* reset measurement panel size without setState in effect ([c841626](https://github.com/ankrypht/Moluxis/commit/c8416264f716837650038c7b452094df17162c67))
+
+
+### Performance Improvements
+
+* eliminate root-level re-render cascades in App component ([98378c7](https://github.com/ankrypht/Moluxis/commit/98378c7bb0a759936e06d29d39a43962d19a53dc))
+* lazy load 3Dmol viewer html and optimize snapshot memory ([0d3b81a](https://github.com/ankrypht/Moluxis/commit/0d3b81ae7979e96c692e5c6c9efcaa64dcc83658))
+* optimize data caching, storage writes, and pubchem request pipeline ([cfe30b9](https://github.com/ankrypht/Moluxis/commit/cfe30b972bef450b04c1871b1e39536bc5a887be))
+* optimize molecule viewer snapshot handling and add atom pick throttling ([2245137](https://github.com/ankrypht/Moluxis/commit/22451377b4f97c91bd3b04f1d54679de7b2b78dd))
+
 ## [2.1.1](https://github.com/ankrypht/Moluxis/compare/v2.1.0...v2.1.1) (2026-10-11)
 
 
