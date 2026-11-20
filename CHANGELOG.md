@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.2.1](https://github.com/ankrypht/Moluxis/compare/v2.2.0...v2.2.1) (2026-11-20)
+
+
+### Bug Fixes
+
+* add ProGuard rules for RoomDatabase and InputMerger in app config ([c1e4380](https://github.com/ankrypht/Moluxis/commit/c1e438096e33768433936fcc16ff92ce813ee3ea))
+
 ## [2.2.0](https://github.com/ankrypht/Moluxis/compare/v2.1.1...v2.2.0) (2026-11-20)
 
 
