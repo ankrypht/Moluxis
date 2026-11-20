@@ -1,5 +1,9 @@
 import { StyleSheet } from "react-native";
 import { COLORS, addOpacity } from "../constants/colors";
+import {
+  createBottomSheetContainerStyle,
+  createBottomSheetLandscapeStyle,
+} from "../constants/theme";
 import { ScaleMetrics } from "../utils/scaling";
 
 export const getMoleculeInfoSheetStyles = ({
@@ -9,30 +13,17 @@ export const getMoleculeInfoSheetStyles = ({
   hScaleSize,
 }: ScaleMetrics) =>
   StyleSheet.create({
-    bottomSheet: {
-      position: "absolute",
-      bottom: 0,
-      left: 0,
-      right: 0,
-      backgroundColor: COLORS.surface,
-      borderTopLeftRadius: scaleSize(32),
-      borderTopRightRadius: scaleSize(32),
-      borderWidth: 1,
-      borderColor: COLORS.border,
+    bottomSheet: createBottomSheetContainerStyle({
+      scaleSize,
+      radius: 32,
       zIndex: 200,
-      shadowColor: COLORS.shadow,
-      shadowOffset: { width: 0, height: -10 },
-      shadowOpacity: 0.4,
-      shadowRadius: 24,
-      elevation: 20,
-    },
-    bottomSheetLandscape: {
-      top: 0,
-      left: "55%", // Take up right 45%
-      borderBottomLeftRadius: scaleSize(32),
-      borderTopRightRadius: 0,
-      borderBottomRightRadius: 0,
-    },
+      shadowPreset: "sheetInfo",
+      isAbsolute: true,
+    }),
+    bottomSheetLandscape: createBottomSheetLandscapeStyle(scaleSize, {
+      left: "55%",
+      radius: 32,
+    }),
     sheetHeaderRow: {
       flexDirection: "row",
       justifyContent: "space-between",

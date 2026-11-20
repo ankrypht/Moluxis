@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   View,
   Text,
@@ -10,7 +10,10 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 
 import { MeasurementMode, PickedAtom, MeasurementData } from "../types";
 import { getRequiredAtomCount } from "../utils/geometry";
-import { MeasurementPanelStyles } from "./MeasurementPanel.styles";
+import {
+  MeasurementPanelStyles,
+  getMeasurementPanelStyles,
+} from "./MeasurementPanel.styles";
 import { ATOM_MESH_COLORS, COLORS, addOpacity } from "../constants/colors";
 import { useMeasurementDetails } from "../context/MeasurementContext";
 import {
@@ -18,6 +21,7 @@ import {
   triggerImpactLight,
   triggerWarningHaptic,
 } from "../utils/haptics";
+import { useScaleMetrics } from "../utils/scaling";
 
 export interface MeasurementPanelProps {
   mode?: MeasurementMode;
@@ -27,7 +31,7 @@ export interface MeasurementPanelProps {
   onRemoveAtom?: (index: number) => void;
   onClear?: () => void;
   onClose?: () => void;
-  styles: MeasurementPanelStyles;
+  styles?: MeasurementPanelStyles;
   isLandscape?: boolean;
   onPanelLayout?: (size: { width: number; height: number }) => void;
 }
@@ -57,7 +61,12 @@ export const MeasurementPanel: React.FC<MeasurementPanelProps> = React.memo(
     const onClear = props.onClear ?? contextDetails.onClear;
     const onClose = props.onClose ?? contextDetails.onClose;
     const onPanelLayout = props.onPanelLayout ?? contextDetails.onPanelLayout;
-    const styles = props.styles;
+    const metrics = useScaleMetrics();
+    const ownStyles = useMemo(
+      () => getMeasurementPanelStyles(metrics),
+      [metrics],
+    );
+    const styles = props.styles ?? ownStyles;
     const isLandscape = props.isLandscape ?? false;
     const requiredCount = getRequiredAtomCount(mode);
     const isComplete = pickedAtoms.length >= requiredCount && !!measurementData;

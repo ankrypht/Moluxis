@@ -22,7 +22,11 @@ import {
   FEATURED_CATEGORIES,
   FEATURED_MOLECULES_BY_CATEGORY,
 } from "../constants/featuredMolecules";
-import { FeaturedMoleculesStyles } from "./FeaturedMolecules.styles";
+import {
+  FeaturedMoleculesStyles,
+  getFeaturedMoleculesStyles,
+} from "./FeaturedMolecules.styles";
+import { useScaleMetrics } from "../utils/scaling";
 import { COLORS, addOpacity } from "../constants/colors";
 import {
   APP_AUTHOR,
@@ -64,7 +68,7 @@ export const getSavedFeaturedCategory = () => {
 
 export interface FeaturedMoleculesProps {
   onSelectMolecule: (query: string) => void;
-  styles: FeaturedMoleculesStyles;
+  styles?: FeaturedMoleculesStyles;
   topOffset?: number;
   initialScrollOffset?: number;
   onScrollOffsetChange?: (offset: number) => void;
@@ -79,7 +83,7 @@ export interface FeaturedMoleculesProps {
 export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
   ({
     onSelectMolecule,
-    styles,
+    styles: passedStyles,
     topOffset,
     initialScrollOffset: propsInitialScrollOffset,
     onScrollOffsetChange,
@@ -90,6 +94,12 @@ export const FeaturedMolecules: React.FC<FeaturedMoleculesProps> = React.memo(
     initialCategory,
     onCategoryChange,
   }) => {
+    const metrics = useScaleMetrics();
+    const ownStyles = useMemo(
+      () => getFeaturedMoleculesStyles(metrics),
+      [metrics],
+    );
+    const styles = passedStyles ?? ownStyles;
     const appVersion = getAppVersion();
     const { width, height } = useWindowDimensions();
     const isLandscape = width > height;

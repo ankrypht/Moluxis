@@ -390,7 +390,6 @@ const MoleculeExplorerContent = React.memo(function MoleculeExplorerContent({
     showShareModal,
     showDisplayOptions,
     measurePanelSize,
-    measurementPanelWrapperStyle: styles.measurementPanelWrapper,
   });
 
   const toggleAnimation = useCallback(() => {
@@ -697,7 +696,6 @@ const MoleculeExplorerContent = React.memo(function MoleculeExplorerContent({
         measurementMode={measurementMode}
         onAtomPicked={handleAtomPicked}
         containerStyle={dynamicViewerContainerStyle}
-        styles={styles}
         onSelectMolecule={handleSelectSuggestion}
         topOffset={headerHeight > 0 ? headerHeight : 0}
         history={history}
@@ -718,7 +716,6 @@ const MoleculeExplorerContent = React.memo(function MoleculeExplorerContent({
           isAnimated={isAnimated}
           structureFormat={structureFormat}
           containerStyle={dynamicHeaderContainerStyle}
-          styles={styles}
           onSearch={handleSearch}
           onSelectSuggestion={handleSelectSuggestion}
           onToggleAnimation={toggleAnimation}
@@ -755,7 +752,6 @@ const MoleculeExplorerContent = React.memo(function MoleculeExplorerContent({
                 structureFormat={structureFormat}
                 onToggleAnimation={toggleAnimation}
                 onSelectFormat={handleSelectFormat}
-                styles={styles}
                 isLandscape={true}
                 showInfo={showInfo}
                 isCompact={showInfo || showShareModal}
@@ -774,7 +770,6 @@ const MoleculeExplorerContent = React.memo(function MoleculeExplorerContent({
           isMeasuring={isMeasuring}
           onToggleMeasure={handleToggleMeasure}
           containerStyle={dynamicDockContainerStyle}
-          styles={styles}
           onSelectStyle={handleSelectStyle}
           onToggleDisplayOptions={handleToggleDisplayOptions}
           onToggleInfo={handleToggleInfo}
@@ -791,9 +786,7 @@ const MoleculeExplorerContent = React.memo(function MoleculeExplorerContent({
         isMeasuring &&
         showControls &&
         !showShareModal &&
-        !showHistoryModal && (
-          <MeasurementPanel styles={styles} isLandscape={isLandscape} />
-        )}
+        !showHistoryModal && <MeasurementPanel isLandscape={isLandscape} />}
 
       {/* ANIMATED BOTTOM SHEET / SIDE DRAWER (Info Panel) */}
       {moleculeData && !isLoading && (
@@ -804,7 +797,6 @@ const MoleculeExplorerContent = React.memo(function MoleculeExplorerContent({
           width={width}
           height={height}
           insets={insets}
-          styles={styles}
           onClose={handleCloseInfo}
           onOpenShare={handleOpenShareModal}
         />
@@ -815,18 +807,13 @@ const MoleculeExplorerContent = React.memo(function MoleculeExplorerContent({
         !isLoading &&
         !showInfo &&
         showControls &&
-        !isMeasuring && (
-          <LandscapeNameOverlay name={moleculeData.name} styles={styles} />
-        )}
+        !isMeasuring && <LandscapeNameOverlay name={moleculeData.name} />}
 
       {/* Floating Exit Full Screen Button */}
-      {!showControls && (
-        <ExitFullScreenButton onPress={handleExitZenMode} styles={styles} />
-      )}
+      {!showControls && <ExitFullScreenButton onPress={handleExitZenMode} />}
 
       {/* ALL MODALS & DIALOGS */}
       <AppModals
-        styles={styles}
         insets={insets}
         height={height}
         isLandscape={isLandscape}

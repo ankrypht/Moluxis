@@ -11,7 +11,11 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { Alert } from "./CustomAlert";
 import { SavedCompoundItem } from "../types";
 import { COLORS } from "../constants/colors";
-import { HistoryBookmarksModalStyles } from "./HistoryBookmarksModal.styles";
+import {
+  HistoryBookmarksModalStyles,
+  getHistoryBookmarksModalStyles,
+} from "./HistoryBookmarksModal.styles";
+import { useScaleMetrics } from "../utils/scaling";
 import { ChemicalFormula } from "./ChemicalFormula";
 import { formatRelativeTime } from "../utils/formatTime";
 import {
@@ -34,7 +38,7 @@ export interface HistoryBookmarksModalProps {
   onClearBookmarks: () => void;
   isBookmarked: (name?: string | null) => boolean;
   initialTab?: "history" | "bookmarks";
-  styles: HistoryBookmarksModalStyles;
+  styles?: HistoryBookmarksModalStyles;
   isLandscape?: boolean;
   height?: number;
 }
@@ -172,7 +176,7 @@ export const HistoryBookmarksModal: React.FC<HistoryBookmarksModalProps> =
       onClearBookmarks,
       isBookmarked,
       initialTab = "history",
-      styles,
+      styles: passedStyles,
       isLandscape = false,
       height = 700,
     }) => {
@@ -190,6 +194,16 @@ export const HistoryBookmarksModal: React.FC<HistoryBookmarksModalProps> =
 
       const activeTab = userSelectedTab ?? initialTab;
       const setActiveTab = setUserSelectedTab;
+
+      const metrics = useScaleMetrics();
+      const ownStyles = useMemo(
+        () =>
+          visible
+            ? getHistoryBookmarksModalStyles(metrics)
+            : ({} as HistoryBookmarksModalStyles),
+        [visible, metrics],
+      );
+      const styles = passedStyles ?? ownStyles;
 
       const { slideAnim, fadeAnim, sheetHeight } = useBottomSheetAnimation({
         visible,

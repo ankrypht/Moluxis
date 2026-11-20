@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   View,
   Text,
@@ -10,7 +10,11 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 
 import { VisualizationType } from "../types";
 import { COLORS, addOpacity } from "../constants/colors";
-import { FloatingDockStyles } from "./FloatingDock.styles";
+import {
+  FloatingDockStyles,
+  getFloatingDockStyles,
+} from "./FloatingDock.styles";
+import { useScaleMetrics } from "../utils/scaling";
 import {
   triggerStylePressHaptic,
   triggerZenModeHaptic,
@@ -24,7 +28,7 @@ export interface FloatingDockProps {
   showInfo: boolean;
   showDisplayOptions: boolean;
   containerStyle?: StyleProp<ViewStyle>;
-  styles: FloatingDockStyles;
+  styles?: FloatingDockStyles;
   onSelectStyle: (style: VisualizationType) => void;
   onToggleDisplayOptions: () => void;
   onToggleInfo: () => void;
@@ -82,7 +86,7 @@ export const FloatingDock: React.FC<FloatingDockProps> = React.memo(
     showInfo,
     showDisplayOptions,
     containerStyle,
-    styles,
+    styles: passedStyles,
     onSelectStyle,
     onToggleDisplayOptions,
     onToggleInfo,
@@ -93,6 +97,9 @@ export const FloatingDock: React.FC<FloatingDockProps> = React.memo(
     isLandscape = false,
     isCompact: isCompactProp,
   }) => {
+    const metrics = useScaleMetrics();
+    const ownStyles = useMemo(() => getFloatingDockStyles(metrics), [metrics]);
+    const styles = passedStyles ?? ownStyles;
     const isCompact = Boolean(isLandscape && (isCompactProp ?? showInfo));
 
     return (

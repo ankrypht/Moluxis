@@ -1,5 +1,9 @@
 import { StyleSheet } from "react-native";
 import { COLORS, addOpacity } from "../constants/colors";
+import {
+  createModalBackdropStyle,
+  createDialogCardStyle,
+} from "../constants/theme";
 import { ScaleMetrics } from "../utils/scaling";
 
 export const getDevTestModalStyles = ({
@@ -23,32 +27,18 @@ export const getDevTestModalStyles = ({
         : scaleSize(16),
       paddingVertical: scaleSize(16),
     },
-    devBackdrop: {
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: addOpacity(COLORS.background, 0.82),
-    },
-    devCard: {
-      width: "100%",
+    devBackdrop: createModalBackdropStyle(0.82),
+    devCard: createDialogCardStyle({
       maxWidth: isLandscape ? scaleSize(560) : scaleSize(390),
+      scaleSize,
       maxHeight: isLandscape ? Math.round(height * 0.92) : "86%",
-      backgroundColor: COLORS.surface,
-      borderRadius: scaleSize(24),
-      borderWidth: 1,
-      borderColor: addOpacity(COLORS.border, 0.85),
-      paddingTop: scaleSize(18),
-      paddingBottom: scaleSize(14),
-      paddingHorizontal: scaleSize(18),
-      shadowColor: COLORS.shadow,
-      shadowOffset: { width: 0, height: 16 },
-      shadowOpacity: 0.7,
-      shadowRadius: 32,
-      elevation: 30,
+      borderOpacity: 0.85,
+      borderRadius: 24,
+      paddingHorizontal: 18,
+      paddingTop: 18,
+      paddingBottom: 14,
       zIndex: 8910,
-    },
+    }),
     devHeader: {
       flexDirection: "row",
       alignItems: "center",

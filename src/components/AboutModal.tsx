@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -36,7 +36,8 @@ import {
   triggerSuccessHaptic,
 } from "../utils/haptics";
 import { useBottomSheetAnimation } from "../hooks/useModalAnimation";
-import { AboutModalStyles } from "./AboutModal.styles";
+import { AboutModalStyles, getAboutModalStyles } from "./AboutModal.styles";
+import { useScaleMetrics } from "../utils/scaling";
 
 const APP_ICON = require("../../assets/about-icon.png");
 
@@ -45,7 +46,7 @@ export interface AboutModalProps {
   onClose: () => void;
   onOpenWhatsNew?: () => void;
   onCheckForUpdates?: () => Promise<AppReleaseInfo | null>;
-  styles: AboutModalStyles;
+  styles?: AboutModalStyles;
   isLandscape?: boolean;
   height?: number;
 }
@@ -67,10 +68,16 @@ export const AboutModal: React.FC<AboutModalProps> = React.memo(
     onClose,
     onOpenWhatsNew,
     onCheckForUpdates,
-    styles,
+    styles: passedStyles,
     isLandscape = false,
     height = 700,
   }) => {
+    const metrics = useScaleMetrics();
+    const ownStyles = useMemo(
+      () => (visible ? getAboutModalStyles(metrics) : ({} as AboutModalStyles)),
+      [visible, metrics],
+    );
+    const styles = passedStyles ?? ownStyles;
     const appVersion = getAppVersion();
     const { slideAnim, fadeAnim, sheetHeight } = useBottomSheetAnimation({
       visible,

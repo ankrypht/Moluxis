@@ -1,6 +1,11 @@
 import { StyleSheet } from "react-native";
 import { COLORS, addOpacity } from "../constants/colors";
 import {
+  BREAKPOINTS,
+  getResponsiveContainerMaxWidth,
+  createFloatingIslandStyle,
+} from "../constants/theme";
+import {
   ScaleMetrics,
   REFERENCE_WIDTH,
   REFERENCE_HEIGHT,
@@ -17,22 +22,13 @@ export const getFloatingHeaderStyles = ({
   const safeWidth = width ?? (isLandscape ? REFERENCE_HEIGHT : REFERENCE_WIDTH);
   const safeHeight =
     height ?? (isLandscape ? REFERENCE_WIDTH : REFERENCE_HEIGHT);
-  const isTablet = Math.min(safeWidth, safeHeight) >= 600;
-  const isTabletPortrait = !isLandscape && isTablet;
+  const isTablet = Math.min(safeWidth, safeHeight) >= BREAKPOINTS.TABLET;
   const isTabletLandscape = isLandscape && isTablet;
-
-  // Unified container maxWidths across breakpoints:
-  // - Phone Portrait (!isLandscape && width < 600): maxWidth: 500
-  // - Tablet Portrait (!isLandscape && width >= 600): maxWidth: 680
-  // - Phone Landscape (isLandscape && height < 600): maxWidth: 520
-  // - Tablet Landscape (isLandscape && height >= 600): maxWidth: 860
-  const headerMaxWidth = isLandscape
-    ? isTabletLandscape
-      ? 860
-      : 520
-    : isTabletPortrait
-      ? 680
-      : 500;
+  const headerMaxWidth = getResponsiveContainerMaxWidth(
+    safeWidth,
+    safeHeight,
+    isLandscape,
+  );
 
   return StyleSheet.create({
     floatingHeaderContainer: {
@@ -52,14 +48,12 @@ export const getFloatingHeaderStyles = ({
       paddingBottom: scaleSize(8),
     },
     headerIsland: {
-      backgroundColor: addOpacity(COLORS.surface, 0.85),
-      borderRadius: scaleSize(24),
-      padding: scaleSize(16),
-      borderWidth: 1,
-      borderColor: COLORS.surfaceElevated,
-      shadowColor: COLORS.shadow,
-      shadowOffset: { width: 0, height: 8 },
-      shadowOpacity: 0.3,
+      ...createFloatingIslandStyle({
+        scaleSize,
+        bgOpacity: 0.85,
+        borderRadius: 24,
+        padding: 16,
+      }),
       shadowRadius: 16,
       elevation: 10,
       zIndex: 100,

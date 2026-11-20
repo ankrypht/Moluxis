@@ -1,5 +1,9 @@
 import { StyleSheet } from "react-native";
 import { COLORS, addOpacity } from "../constants/colors";
+import {
+  createModalBackdropStyle,
+  createDialogCardStyle,
+} from "../constants/theme";
 import { ScaleMetrics } from "../utils/scaling";
 
 export const getWhatsNewModalStyles = ({
@@ -23,32 +27,18 @@ export const getWhatsNewModalStyles = ({
         : scaleSize(20),
       paddingVertical: scaleSize(16),
     },
-    whatsNewBackdrop: {
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: addOpacity(COLORS.background, 0.8),
-    },
-    whatsNewCard: {
-      width: "100%",
+    whatsNewBackdrop: createModalBackdropStyle(0.8),
+    whatsNewCard: createDialogCardStyle({
       maxWidth: isLandscape ? scaleSize(480) : scaleSize(360),
+      scaleSize,
       maxHeight: isLandscape ? Math.round(height * 0.9) : "82%",
-      backgroundColor: COLORS.surface,
-      borderRadius: scaleSize(24),
-      borderWidth: 1,
-      borderColor: addOpacity(COLORS.border, 0.8),
-      paddingHorizontal: scaleSize(20),
-      paddingTop: scaleSize(20),
-      paddingBottom: scaleSize(16),
-      shadowColor: COLORS.shadow,
-      shadowOffset: { width: 0, height: 16 },
-      shadowOpacity: 0.7,
-      shadowRadius: 32,
-      elevation: 30,
+      borderOpacity: 0.8,
+      borderRadius: 24,
+      paddingHorizontal: 20,
+      paddingTop: 20,
+      paddingBottom: 16,
       zIndex: 9110,
-    },
+    }),
     whatsNewHeader: {
       alignItems: "center",
       marginBottom: scaleSize(12),

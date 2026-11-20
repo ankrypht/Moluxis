@@ -1,17 +1,22 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { TouchableOpacity } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { COLORS } from "../constants/colors";
-import { OverlaysStyles } from "./Overlays.styles";
+import { OverlaysStyles, getOverlaysStyles } from "./Overlays.styles";
 import { triggerZenModeHaptic } from "../utils/haptics";
+import { useScaleMetrics } from "../utils/scaling";
 
 export interface ExitFullScreenButtonProps {
   onPress: () => void;
-  styles: OverlaysStyles;
+  styles?: OverlaysStyles;
 }
 
 export const ExitFullScreenButton: React.FC<ExitFullScreenButtonProps> =
-  React.memo(({ onPress, styles }) => {
+  React.memo(({ onPress, styles: passedStyles }) => {
+    const metrics = useScaleMetrics();
+    const ownStyles = useMemo(() => getOverlaysStyles(metrics), [metrics]);
+    const styles = passedStyles ?? ownStyles;
+
     return (
       <TouchableOpacity
         style={styles.exitFullScreenButton}

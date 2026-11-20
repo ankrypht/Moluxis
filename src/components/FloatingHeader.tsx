@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useEffect } from "react";
+import React, { useCallback, useRef, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -19,10 +19,14 @@ import { MoleculeInfo } from "../types";
 import { COLORS } from "../constants/colors";
 import { SuggestionItem } from "./SuggestionItem";
 import { StructureControls } from "./StructureControls";
-import { FloatingHeaderStyles } from "./FloatingHeader.styles";
+import {
+  FloatingHeaderStyles,
+  getFloatingHeaderStyles,
+} from "./FloatingHeader.styles";
 import { StructureControlsStyles } from "./StructureControls.styles";
 import { triggerImpactLight, triggerSelectionHaptic } from "../utils/haptics";
 import { useAutocomplete } from "../hooks/useAutocomplete";
+import { useScaleMetrics } from "../utils/scaling";
 
 export interface FloatingHeaderProps {
   searchInputRef?: React.RefObject<TextInputInstance | null>;
@@ -36,7 +40,7 @@ export interface FloatingHeaderProps {
   isAnimated: boolean;
   structureFormat: "3d" | "2d";
   containerStyle?: StyleProp<ViewStyle>;
-  styles: FloatingHeaderStyles & StructureControlsStyles;
+  styles?: FloatingHeaderStyles & Partial<StructureControlsStyles>;
   onTextChange?: (text: string) => void;
   onFocus?: () => void;
   onSearch: (query?: string) => void;
@@ -63,7 +67,7 @@ export const FloatingHeader: React.FC<FloatingHeaderProps> = React.memo(
       isAnimated,
       structureFormat,
       containerStyle,
-      styles,
+      styles: passedStyles,
       onSearch,
       onSelectSuggestion,
       onToggleAnimation,
@@ -79,6 +83,13 @@ export const FloatingHeader: React.FC<FloatingHeaderProps> = React.memo(
 
     const localInputRef = useRef<TextInputInstance>(null);
     const inputRef = searchInputRef || localInputRef;
+
+    const metrics = useScaleMetrics();
+    const ownStyles = useMemo(
+      () => getFloatingHeaderStyles(metrics),
+      [metrics],
+    );
+    const styles = passedStyles ?? ownStyles;
 
     const autocomplete = useAutocomplete();
     const isControlled = props.searchText !== undefined;
@@ -404,7 +415,11 @@ export const FloatingHeader: React.FC<FloatingHeaderProps> = React.memo(
                     structureFormat={structureFormat}
                     onToggleAnimation={onToggleAnimation}
                     onSelectFormat={onSelectFormat}
-                    styles={styles}
+                    styles={
+                      passedStyles && "toggleContainer" in passedStyles
+                        ? (passedStyles as any)
+                        : undefined
+                    }
                   />
                 </View>
               )}

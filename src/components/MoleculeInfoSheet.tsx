@@ -13,12 +13,15 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 
 import { MoleculeInfo } from "../types";
 import { COLORS, addOpacity } from "../constants/colors";
-import { Insets } from "../utils/scaling";
+import { Insets, getScaleMetrics } from "../utils/scaling";
 import { ChemicalFormula } from "./ChemicalFormula";
 import { CollapsibleSection } from "./CollapsibleSection";
 import { PropertyRow } from "./PropertyRow";
 import { isValidId } from "../services/pubchem/utils";
-import { MoleculeInfoSheetStyles } from "./MoleculeInfoSheet.styles";
+import {
+  MoleculeInfoSheetStyles,
+  getMoleculeInfoSheetStyles,
+} from "./MoleculeInfoSheet.styles";
 import { triggerImpactLight, triggerSelectionHaptic } from "../utils/haptics";
 
 export interface MoleculeInfoSheetProps {
@@ -28,7 +31,7 @@ export interface MoleculeInfoSheetProps {
   width: number;
   height: number;
   insets: Insets;
-  styles: MoleculeInfoSheetStyles;
+  styles?: MoleculeInfoSheetStyles;
   onClose: () => void;
   onOpenShare?: () => void;
 }
@@ -41,10 +44,19 @@ export const MoleculeInfoSheet: React.FC<MoleculeInfoSheetProps> = React.memo(
     width,
     height,
     insets,
-    styles,
+    styles: passedStyles,
     onClose,
     onOpenShare,
   }) => {
+    const metrics = useMemo(
+      () => getScaleMetrics(width, height, insets),
+      [width, height, insets],
+    );
+    const ownStyles = useMemo(
+      () => getMoleculeInfoSheetStyles(metrics),
+      [metrics],
+    );
+    const styles = passedStyles ?? ownStyles;
     const sheetHeight = isLandscape ? width * 0.45 : height * 0.7;
     const slideAnim = useAnimatedValue(showInfo ? 0 : sheetHeight);
 

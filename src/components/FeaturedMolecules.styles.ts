@@ -1,5 +1,10 @@
 import { StyleSheet } from "react-native";
 import { COLORS, addOpacity } from "../constants/colors";
+import {
+  BREAKPOINTS,
+  getResponsiveContainerMaxWidth,
+  SHADOWS,
+} from "../constants/theme";
 import { ScaleMetrics } from "../utils/scaling";
 
 export const getFeaturedMoleculesStyles = ({
@@ -10,18 +15,12 @@ export const getFeaturedMoleculesStyles = ({
   scaleSize,
   hScaleSize,
 }: ScaleMetrics) => {
-  const isPhoneLandscape = isLandscape && height < 600;
-  const isTabletLandscape = isLandscape && height >= 600;
-  const isTabletPortrait = !isLandscape && width >= 600;
-
-  // Harmonious aligned container maxWidths across all breakpoints
-  const containerMaxWidth = isTabletLandscape
-    ? 860
-    : isTabletPortrait
-      ? 680
-      : isPhoneLandscape
-        ? 520
-        : 500;
+  const isPhoneLandscape = isLandscape && height < BREAKPOINTS.TABLET;
+  const containerMaxWidth = getResponsiveContainerMaxWidth(
+    width,
+    height,
+    isLandscape,
+  );
 
   const sectionGap = isPhoneLandscape ? scaleSize(8) : scaleSize(16);
 
@@ -262,11 +261,7 @@ export const getFeaturedMoleculesStyles = ({
       borderColor: addOpacity(COLORS.border, 0.7),
       padding: isPhoneLandscape ? scaleSize(9) : scaleSize(13),
       justifyContent: "space-between",
-      shadowColor: COLORS.shadow,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.25,
-      shadowRadius: 10,
-      elevation: 4,
+      ...SHADOWS.card,
     },
     cardTopRow: {
       flexDirection: "row",

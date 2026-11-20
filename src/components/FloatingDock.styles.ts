@@ -1,5 +1,6 @@
 import { StyleSheet } from "react-native";
 import { COLORS, addOpacity } from "../constants/colors";
+import { createFloatingIslandStyle } from "../constants/theme";
 import { ScaleMetrics } from "../utils/scaling";
 
 export const getFloatingDockStyles = ({
@@ -24,16 +25,13 @@ export const getFloatingDockStyles = ({
     },
     dock: {
       flexDirection: isLandscape ? "column" : "row",
-      backgroundColor: addOpacity(COLORS.surface, 0.88),
-      borderRadius: isLandscape ? scaleSize(22) : scaleSize(32),
-      padding: scaleSize(5),
-      borderWidth: 1,
-      borderColor: COLORS.surfaceElevated,
-      shadowColor: COLORS.shadow,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.3,
-      shadowRadius: 12,
-      elevation: 8,
+      ...createFloatingIslandStyle({
+        scaleSize,
+        bgOpacity: 0.88,
+        borderRadius: isLandscape ? 22 : 32,
+        padding: 5,
+        shadowPreset: "dock",
+      }),
       width: isLandscape ? "auto" : "94%",
       maxWidth: isLandscape ? scaleSize(68) : scaleSize(390),
       alignItems: "center",

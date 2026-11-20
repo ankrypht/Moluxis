@@ -1,5 +1,11 @@
 import { StyleSheet } from "react-native";
 import { COLORS, addOpacity } from "../constants/colors";
+import {
+  createModalBackdropStyle,
+  createBottomSheetContainerStyle,
+  createBottomSheetLandscapeStyle,
+  createCircularCloseButtonStyle,
+} from "../constants/theme";
 import { ScaleMetrics } from "../utils/scaling";
 
 export const getHistoryBookmarksModalStyles = ({
@@ -8,42 +14,20 @@ export const getHistoryBookmarksModalStyles = ({
   scaleSize,
 }: ScaleMetrics) =>
   StyleSheet.create({
-    backdrop: {
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: addOpacity(COLORS.background, 0.75),
+    backdrop: createModalBackdropStyle(0.75, {
       zIndex: 250,
       justifyContent: "flex-end",
-    },
-    modalContainer: {
-      backgroundColor: COLORS.surface,
-      borderTopLeftRadius: scaleSize(28),
-      borderTopRightRadius: scaleSize(28),
-      borderWidth: 1,
-      borderColor: COLORS.border,
+    }),
+    modalContainer: createBottomSheetContainerStyle({
+      scaleSize,
+      radius: 28,
       zIndex: 260,
-      shadowColor: COLORS.shadow,
-      shadowOffset: { width: 0, height: -12 },
-      shadowOpacity: 0.5,
-      shadowRadius: 24,
-      elevation: 25,
-      overflow: "hidden",
-      width: "100%",
-    },
-    modalContainerLandscape: {
-      position: "absolute",
-      top: 0,
-      bottom: 0,
-      right: 0,
-      left: "48%", // Take right 52% in landscape
+    }),
+    modalContainerLandscape: createBottomSheetLandscapeStyle(scaleSize, {
+      left: "48%",
       width: "52%",
-      borderBottomLeftRadius: scaleSize(28),
-      borderTopRightRadius: 0,
-      borderBottomRightRadius: 0,
-    },
+      radius: 28,
+    }),
     modalHeader: {
       paddingLeft: scaleSize(18),
       paddingRight: isLandscape
@@ -142,16 +126,7 @@ export const getHistoryBookmarksModalStyles = ({
       color: COLORS.danger,
       fontWeight: "700",
     },
-    closeButton: {
-      width: scaleSize(32),
-      height: scaleSize(32),
-      borderRadius: scaleSize(16),
-      backgroundColor: addOpacity(COLORS.surfaceElevated, 0.9),
-      borderWidth: 1,
-      borderColor: addOpacity(COLORS.border, 0.6),
-      justifyContent: "center",
-      alignItems: "center",
-    },
+    closeButton: createCircularCloseButtonStyle(scaleSize, 0.9, 32),
     listContent: {
       paddingLeft: scaleSize(20),
       paddingRight: isLandscape

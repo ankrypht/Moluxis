@@ -19,7 +19,11 @@ import {
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { MoleculeInfo } from "../types";
 import { COLORS, addOpacity } from "../constants/colors";
-import { ShareExportModalStyles } from "./ShareExportModal.styles";
+import {
+  ShareExportModalStyles,
+  getShareExportModalStyles,
+} from "./ShareExportModal.styles";
+import { useScaleMetrics } from "../utils/scaling";
 import { ChemicalFormula } from "./ChemicalFormula";
 import {
   getCompoundPubChemUrl,
@@ -45,7 +49,7 @@ export interface ShareExportModalProps {
   onRefreshSnapshot: () => void;
   onCaptureFullSnapshot?: () => Promise<string | null>;
   onResetSnapshot?: () => void;
-  styles: ShareExportModalStyles;
+  styles?: ShareExportModalStyles;
   isLandscape?: boolean;
   height?: number;
 }
@@ -60,10 +64,19 @@ export const ShareExportModal: React.FC<ShareExportModalProps> = React.memo(
     onRefreshSnapshot,
     onCaptureFullSnapshot,
     onResetSnapshot,
-    styles,
+    styles: passedStyles,
     isLandscape = false,
     height = 700,
   }) => {
+    const metrics = useScaleMetrics();
+    const ownStyles = useMemo(
+      () =>
+        visible
+          ? getShareExportModalStyles(metrics)
+          : ({} as ShareExportModalStyles),
+      [visible, metrics],
+    );
+    const styles = passedStyles ?? ownStyles;
     const { slideAnim, sheetHeight } = useBottomSheetAnimation({
       visible,
       height,

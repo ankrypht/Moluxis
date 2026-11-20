@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -15,19 +15,30 @@ import {
 } from "../services/updates/updateNoticeService";
 import { COLORS } from "../constants/colors";
 import { triggerImpactLight } from "../utils/haptics";
-import { WhatsNewModalStyles } from "./WhatsNewModal.styles";
+import {
+  WhatsNewModalStyles,
+  getWhatsNewModalStyles,
+} from "./WhatsNewModal.styles";
 import { useDialogScaleAnimation } from "../hooks/useModalAnimation";
+import { useScaleMetrics } from "../utils/scaling";
 
 export interface WhatsNewModalProps {
   visible: boolean;
   releaseNotes?: ReleaseHighlight | null;
   onClose: () => void;
-  styles: WhatsNewModalStyles;
+  styles?: WhatsNewModalStyles;
 }
 
 export const WhatsNewModal: React.FC<WhatsNewModalProps> = React.memo(
-  ({ visible, releaseNotes, onClose, styles }) => {
+  ({ visible, releaseNotes, onClose, styles: passedStyles }) => {
     const notes = releaseNotes || CURRENT_RELEASE_NOTES;
+    const metrics = useScaleMetrics();
+    const ownStyles = useMemo(
+      () =>
+        visible ? getWhatsNewModalStyles(metrics) : ({} as WhatsNewModalStyles),
+      [visible, metrics],
+    );
+    const styles = passedStyles ?? ownStyles;
     const { fadeAnim, scaleAnim } = useDialogScaleAnimation(visible);
 
     const handleDismiss = useCallback(async () => {

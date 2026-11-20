@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -14,18 +14,31 @@ import {
 } from "../services/updates/appUpdateChecker";
 import { COLORS } from "../constants/colors";
 import { triggerImpactLight, triggerSelectionHaptic } from "../utils/haptics";
-import { UpdateAvailableModalStyles } from "./UpdateAvailableModal.styles";
+import {
+  UpdateAvailableModalStyles,
+  getUpdateAvailableModalStyles,
+} from "./UpdateAvailableModal.styles";
 import { useDialogScaleAnimation } from "../hooks/useModalAnimation";
+import { useScaleMetrics } from "../utils/scaling";
 
 export interface UpdateAvailableModalProps {
   visible: boolean;
   releaseInfo: AppReleaseInfo | null;
   onDismiss: () => void;
-  styles: UpdateAvailableModalStyles;
+  styles?: UpdateAvailableModalStyles;
 }
 
 export const UpdateAvailableModal: React.FC<UpdateAvailableModalProps> =
-  React.memo(({ visible, releaseInfo, onDismiss, styles }) => {
+  React.memo(({ visible, releaseInfo, onDismiss, styles: passedStyles }) => {
+    const metrics = useScaleMetrics();
+    const ownStyles = useMemo(
+      () =>
+        visible && releaseInfo
+          ? getUpdateAvailableModalStyles(metrics)
+          : ({} as UpdateAvailableModalStyles),
+      [visible, releaseInfo, metrics],
+    );
+    const styles = passedStyles ?? ownStyles;
     const { fadeAnim, scaleAnim } = useDialogScaleAnimation(visible);
 
     const handleRemindLater = useCallback(async () => {

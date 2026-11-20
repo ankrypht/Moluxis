@@ -1,4 +1,6 @@
-import { PixelRatio } from "react-native";
+import { useMemo } from "react";
+import { PixelRatio, useWindowDimensions } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 // Reference dimensions from Samsung S24
 export const REFERENCE_WIDTH = 360;
@@ -62,4 +64,14 @@ export const getScaleMetrics = (
     scaleSize: scaleSizeFn,
     hScaleSize,
   };
+};
+
+export const useScaleMetrics = (overrideInsets?: Insets): ScaleMetrics => {
+  const { width, height } = useWindowDimensions();
+  const contextInsets = useSafeAreaInsets();
+  const insets = overrideInsets ?? contextInsets;
+  return useMemo(
+    () => getScaleMetrics(width, height, insets),
+    [width, height, insets],
+  );
 };

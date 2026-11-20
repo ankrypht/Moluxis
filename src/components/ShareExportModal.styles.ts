@@ -1,5 +1,12 @@
 import { StyleSheet } from "react-native";
 import { COLORS, addOpacity } from "../constants/colors";
+import {
+  createModalBackdropStyle,
+  createBottomSheetContainerStyle,
+  createBottomSheetLandscapeStyle,
+  createCircularCloseButtonStyle,
+  SHADOWS,
+} from "../constants/theme";
 import { ScaleMetrics } from "../utils/scaling";
 
 export const getShareExportModalStyles = ({
@@ -9,42 +16,20 @@ export const getShareExportModalStyles = ({
   hScaleSize,
 }: ScaleMetrics) =>
   StyleSheet.create({
-    shareBackdrop: {
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: addOpacity(COLORS.background, 0.78),
+    shareBackdrop: createModalBackdropStyle(0.78, {
       zIndex: 250,
       justifyContent: "flex-end",
-    },
-    shareModalContainer: {
-      backgroundColor: COLORS.surface,
-      borderTopLeftRadius: scaleSize(28),
-      borderTopRightRadius: scaleSize(28),
-      borderWidth: 1,
-      borderColor: COLORS.border,
+    }),
+    shareModalContainer: createBottomSheetContainerStyle({
+      scaleSize,
+      radius: 28,
       zIndex: 260,
-      shadowColor: COLORS.shadow,
-      shadowOffset: { width: 0, height: -12 },
-      shadowOpacity: 0.5,
-      shadowRadius: 24,
-      elevation: 25,
-      overflow: "hidden",
-      width: "100%",
-    },
-    shareModalContainerLandscape: {
-      position: "absolute",
-      top: 0,
-      bottom: 0,
-      right: 0,
+    }),
+    shareModalContainerLandscape: createBottomSheetLandscapeStyle(scaleSize, {
       left: "48%",
       width: "52%",
-      borderBottomLeftRadius: scaleSize(28),
-      borderTopRightRadius: 0,
-      borderBottomRightRadius: 0,
-    },
+      radius: 28,
+    }),
     shareModalHeader: {
       paddingLeft: scaleSize(18),
       paddingRight: isLandscape
@@ -91,16 +76,7 @@ export const getShareExportModalStyles = ({
       fontWeight: "500",
       marginTop: scaleSize(2),
     },
-    shareCloseButton: {
-      width: scaleSize(32),
-      height: scaleSize(32),
-      borderRadius: scaleSize(16),
-      backgroundColor: addOpacity(COLORS.surfaceElevated, 0.8),
-      justifyContent: "center",
-      alignItems: "center",
-      borderWidth: 1,
-      borderColor: addOpacity(COLORS.border, 0.6),
-    },
+    shareCloseButton: createCircularCloseButtonStyle(scaleSize, 0.8, 32),
     shareContentScroll: {
       flex: 1,
       paddingLeft: scaleSize(16),
@@ -121,11 +97,8 @@ export const getShareExportModalStyles = ({
       borderColor: addOpacity(COLORS.border, 0.7),
       padding: scaleSize(14),
       marginBottom: scaleSize(10),
-      shadowColor: COLORS.shadow,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.25,
+      ...SHADOWS.card,
       shadowRadius: 8,
-      elevation: 4,
     },
     sharePreviewTopRow: {
       flexDirection: "row",

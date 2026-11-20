@@ -179,13 +179,14 @@ export const CustomAlertModal: React.FC<CustomAlertModalProps> = React.memo(
     );
 
     const styles = useMemo(() => {
+      if (!alertData) return {} as CustomAlertStyles;
       const defaultStyles = getCustomAlertStyles(metrics);
       if (!passedStyles) return defaultStyles;
       return {
         ...defaultStyles,
         ...passedStyles,
       };
-    }, [metrics, passedStyles]);
+    }, [alertData, metrics, passedStyles]);
 
     useEffect(() => {
       const unsubscribe = customAlertManager.subscribe((incoming) => {

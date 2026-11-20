@@ -29,7 +29,7 @@ export type AppModalsStyles = HistoryBookmarksModalStyles &
   CustomAlertStyles;
 
 export interface AppModalsProps {
-  styles: AppModalsStyles;
+  styles?: Partial<AppModalsStyles>;
   insets: EdgeInsets;
   height: number;
   isLandscape: boolean;
@@ -141,7 +141,7 @@ export const AppModals: React.FC<AppModalsProps> = React.memo(
             onClearBookmarks={onClearBookmarks}
             isBookmarked={isBookmarked}
             initialTab={historyModalTab}
-            styles={styles}
+            styles={styles ? (styles as any) : undefined}
             isLandscape={isLandscape}
             height={height}
           />
@@ -158,7 +158,7 @@ export const AppModals: React.FC<AppModalsProps> = React.memo(
             onRefreshSnapshot={onRefreshSnapshot}
             onCaptureFullSnapshot={onCaptureFullSnapshot}
             onResetSnapshot={onResetSnapshot}
-            styles={styles}
+            styles={styles ? (styles as any) : undefined}
             isLandscape={isLandscape}
             height={height}
           />
@@ -171,7 +171,7 @@ export const AppModals: React.FC<AppModalsProps> = React.memo(
             onClose={onCloseAboutModal}
             onOpenWhatsNew={onOpenWhatsNew}
             onCheckForUpdates={onCheckForUpdates}
-            styles={styles}
+            styles={styles ? (styles as any) : undefined}
             isLandscape={isLandscape}
             height={height}
           />
@@ -183,7 +183,7 @@ export const AppModals: React.FC<AppModalsProps> = React.memo(
             visible={showUpdateModal}
             releaseInfo={releaseInfo}
             onDismiss={dismissUpdateModal}
-            styles={styles}
+            styles={styles ? (styles as any) : undefined}
           />
         )}
 
@@ -193,7 +193,7 @@ export const AppModals: React.FC<AppModalsProps> = React.memo(
             visible={showWhatsNewModal}
             releaseNotes={whatsNewNotes}
             onClose={dismissWhatsNewModal}
-            styles={styles}
+            styles={styles ? (styles as any) : undefined}
           />
         )}
 
@@ -202,7 +202,7 @@ export const AppModals: React.FC<AppModalsProps> = React.memo(
           <DevTestModal
             visible={showDevTestModal}
             onClose={onCloseDevTestModal}
-            styles={styles}
+            styles={styles ? (styles as any) : undefined}
             bookmarks={bookmarks}
             onPreviewUpdateModal={openPreviewUpdateModal}
             onPreviewWhatsNewModal={openPreviewWhatsNewModal}
@@ -212,7 +212,10 @@ export const AppModals: React.FC<AppModalsProps> = React.memo(
         )}
 
         {/* THEMED CUSTOM ALERT POPUP */}
-        <CustomAlertModal styles={styles} insets={insets} />
+        <CustomAlertModal
+          styles={styles ? (styles as any) : undefined}
+          insets={insets}
+        />
       </>
     );
   },

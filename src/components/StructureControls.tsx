@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -10,7 +10,11 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { Alert } from "./CustomAlert";
 import { MoleculeInfo } from "../types";
 import { COLORS, addOpacity } from "../constants/colors";
-import { StructureControlsStyles } from "./StructureControls.styles";
+import {
+  StructureControlsStyles,
+  getStructureControlsStyles,
+} from "./StructureControls.styles";
+import { useScaleMetrics } from "../utils/scaling";
 import { triggerSelectionHaptic, triggerWarningHaptic } from "../utils/haptics";
 import { fetchSdf } from "../services/pubchem/api";
 import { saveCachedMolecule } from "../services/storage/moleculeDiskCache";
@@ -22,7 +26,7 @@ export interface StructureControlsProps {
   structureFormat: "3d" | "2d";
   onToggleAnimation: () => void;
   onSelectFormat: (format: "3d" | "2d") => void;
-  styles: StructureControlsStyles;
+  styles?: StructureControlsStyles;
   isLandscape?: boolean;
   isCompact?: boolean;
   showInfo?: boolean;
@@ -35,11 +39,18 @@ export const StructureControls: React.FC<StructureControlsProps> = React.memo(
     structureFormat,
     onToggleAnimation,
     onSelectFormat,
-    styles,
+    styles: passedStyles,
     isLandscape = false,
     isCompact: isCompactProp,
     showInfo = false,
   }) => {
+    const metrics = useScaleMetrics();
+    const ownStyles = useMemo(
+      () => getStructureControlsStyles(metrics),
+      [metrics],
+    );
+    const styles =
+      passedStyles && passedStyles.toggleContainer ? passedStyles : ownStyles;
     const [isLoading2d, setIsLoading2d] = useState(false);
 
     const isCompact = Boolean(isLandscape && (isCompactProp ?? showInfo));

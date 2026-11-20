@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -40,12 +40,16 @@ import {
   registerBackgroundUpdateTask,
   triggerBackgroundUpdateTaskForTesting,
 } from "../services/updates/backgroundUpdateTask";
-import { DevTestModalStyles } from "./DevTestModal.styles";
+import {
+  DevTestModalStyles,
+  getDevTestModalStyles,
+} from "./DevTestModal.styles";
+import { useScaleMetrics } from "../utils/scaling";
 
 export interface DevTestModalProps {
   visible: boolean;
   onClose: () => void;
-  styles: DevTestModalStyles;
+  styles?: DevTestModalStyles;
   bookmarks: SavedCompoundItem[];
   onPreviewUpdateModal: () => void;
   onPreviewWhatsNewModal: (notes: ReleaseHighlight) => void;
@@ -77,13 +81,20 @@ export const DevTestModal: React.FC<DevTestModalProps> = React.memo(
   ({
     visible,
     onClose,
-    styles,
+    styles: passedStyles,
     bookmarks,
     onPreviewUpdateModal,
     onPreviewWhatsNewModal,
     onRunLiveUpdateCheck,
     onRefreshVersionNotice,
   }) => {
+    const metrics = useScaleMetrics();
+    const ownStyles = useMemo(
+      () =>
+        visible ? getDevTestModalStyles(metrics) : ({} as DevTestModalStyles),
+      [visible, metrics],
+    );
+    const styles = passedStyles ?? ownStyles;
     const [diag, setDiag] = useState<DiagnosticsState>(INITIAL_DIAGNOSTICS);
     const [statusMessage, setStatusMessage] = useState<string | null>(null);
 

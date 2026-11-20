@@ -30,10 +30,14 @@ import {
 } from "../types";
 import { getViewerSource } from "../constants/viewerHtml";
 import { COLORS } from "../constants/colors";
-import { MoleculeViewerStyles } from "./MoleculeViewer.styles";
+import {
+  MoleculeViewerStyles,
+  getMoleculeViewerStyles,
+} from "./MoleculeViewer.styles";
 import { FeaturedMolecules } from "./FeaturedMolecules";
 import { FeaturedMoleculesStyles } from "./FeaturedMolecules.styles";
 import { triggerImpactLight } from "../utils/haptics";
+import { useScaleMetrics } from "../utils/scaling";
 
 // In react-native-webview 14.x typings with React 19, the default generic P=undefined causes props to resolve as never
 const WebViewComponent = WebView as unknown as React.ComponentType<any>;
@@ -80,7 +84,7 @@ export interface MoleculeViewerProps {
   measurementMode?: MeasurementMode;
   onAtomPicked?: (atom: PickedAtom) => void;
   containerStyle?: StyleProp<ViewStyle>;
-  styles: MoleculeViewerStyles & FeaturedMoleculesStyles;
+  styles?: MoleculeViewerStyles & Partial<FeaturedMoleculesStyles>;
   onSelectMolecule?: (query: string) => void;
   topOffset?: number;
   initialScrollOffset?: number;
@@ -107,7 +111,7 @@ export const MoleculeViewer = React.memo(
         measurementMode = "distance",
         onAtomPicked,
         containerStyle,
-        styles,
+        styles: passedStyles,
         onSelectMolecule,
         topOffset,
         initialScrollOffset,
@@ -131,6 +135,12 @@ export const MoleculeViewer = React.memo(
       );
       const [isViewerReady, setIsViewerReady] = useState(false);
       const [hasRenderCrashed, setHasRenderCrashed] = useState(false);
+      const metrics = useScaleMetrics();
+      const ownStyles = useMemo(
+        () => getMoleculeViewerStyles(metrics),
+        [metrics],
+      );
+      const styles = passedStyles ?? ownStyles;
       const crashCountRef = useRef(0);
       const pendingSnapshotsRef = useRef<
         Map<
@@ -702,7 +712,11 @@ export const MoleculeViewer = React.memo(
           {!moleculeData && !isLoading && (
             <FeaturedMolecules
               onSelectMolecule={onSelectMolecule || (() => {})}
-              styles={styles}
+              styles={
+                passedStyles && "featuredContainer" in passedStyles
+                  ? (passedStyles as any)
+                  : undefined
+              }
               topOffset={topOffset}
               initialScrollOffset={initialScrollOffset}
               onScrollOffsetChange={onScrollOffsetChange}

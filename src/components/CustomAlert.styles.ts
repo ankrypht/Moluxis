@@ -1,5 +1,10 @@
 import { StyleSheet } from "react-native";
 import { COLORS, addOpacity } from "../constants/colors";
+import {
+  createModalBackdropStyle,
+  createDialogCardStyle,
+  SHADOWS,
+} from "../constants/theme";
 import { ScaleMetrics } from "../utils/scaling";
 
 export const getCustomAlertStyles = ({
@@ -18,32 +23,18 @@ export const getCustomAlertStyles = ({
       alignItems: "center",
       paddingHorizontal: scaleSize(24),
     },
-    alertBackdrop: {
-      position: "absolute",
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      backgroundColor: addOpacity(COLORS.background, 0.78),
-    },
-    alertCard: {
-      backgroundColor: COLORS.surface,
-      borderRadius: scaleSize(24),
-      borderWidth: 1,
-      borderColor: addOpacity(COLORS.border, 0.75),
-      paddingHorizontal: scaleSize(22),
-      paddingTop: scaleSize(24),
-      paddingBottom: scaleSize(20),
-      width: "100%",
+    alertBackdrop: createModalBackdropStyle(0.78),
+    alertCard: createDialogCardStyle({
       maxWidth: isLandscape ? scaleSize(380) : scaleSize(330),
+      scaleSize,
+      borderOpacity: 0.75,
+      borderRadius: 24,
+      paddingHorizontal: 22,
+      paddingTop: 24,
+      paddingBottom: 20,
       alignItems: "center",
-      shadowColor: COLORS.shadow,
-      shadowOffset: { width: 0, height: 16 },
-      shadowOpacity: 0.7,
-      shadowRadius: 32,
-      elevation: 30,
       zIndex: 10000,
-    },
+    }),
     alertIconBadge: {
       width: scaleSize(54),
       height: scaleSize(54),
@@ -101,10 +92,7 @@ export const getCustomAlertStyles = ({
     alertButtonPrimary: {
       backgroundColor: COLORS.primary,
       shadowColor: COLORS.primary,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.35,
-      shadowRadius: 6,
-      elevation: 4,
+      ...SHADOWS.pill,
     },
     alertButtonSecondary: {
       backgroundColor: COLORS.surfaceElevated,
@@ -114,10 +102,7 @@ export const getCustomAlertStyles = ({
     alertButtonDestructive: {
       backgroundColor: COLORS.danger,
       shadowColor: COLORS.danger,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.35,
-      shadowRadius: 6,
-      elevation: 4,
+      ...SHADOWS.pill,
     },
     alertButtonText: {
       fontSize: scaleSize(14.5),
