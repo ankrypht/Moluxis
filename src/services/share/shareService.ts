@@ -107,8 +107,8 @@ export async function shareNameAndFormula(
   }
 }
 
-export const SHARE_SNAPSHOT_PREFIX = "moluxis-share-";
-export const SHARE_SNAPSHOT_MAX_AGE_MS = 10 * 60 * 1000; // 10 minutes
+const SHARE_SNAPSHOT_PREFIX = "moluxis-share-";
+const SHARE_SNAPSHOT_MAX_AGE_MS = 10 * 60 * 1000; // 10 minutes
 
 /**
  * Safely removes temporary moluxis-share-* files older than 10 minutes.

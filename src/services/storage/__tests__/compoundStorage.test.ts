@@ -7,7 +7,6 @@ import {
   flushRecentHistory,
   _resetCompoundStorageForTests,
   getBookmarks,
-  addBookmark,
   removeBookmark,
   toggleBookmark,
   clearBookmarks,
@@ -205,22 +204,9 @@ describe("compoundStorage", () => {
       expect(items).toEqual([]);
     });
 
-    it("adds a bookmark and avoids duplicate additions", async () => {
-      await addBookmark({ name: "Glucose", formula: "C6H12O6" });
-      const bookmarks = await addBookmark({ name: "glucose" });
-
-      expect(bookmarks).toHaveLength(1);
-      expect(bookmarks[0].name).toBe("glucose");
-      expect(bookmarks[0].formula).toBe("C6H12O6");
-      expect(AsyncStorage.setItem).toHaveBeenCalledWith(
-        BOOKMARKS_STORAGE_KEY,
-        expect.any(String),
-      );
-    });
-
     it("removes a bookmark", async () => {
-      await addBookmark({ name: "Dopamine" });
-      await addBookmark({ name: "Serotonin" });
+      await toggleBookmark({ name: "Dopamine" });
+      await toggleBookmark({ name: "Serotonin" });
 
       const remaining = await removeBookmark("dopamine");
       expect(remaining).toHaveLength(1);
@@ -228,7 +214,7 @@ describe("compoundStorage", () => {
     });
 
     it("safely handles empty or whitespace names in removeBookmark", async () => {
-      await addBookmark({ name: "Dopamine" });
+      await toggleBookmark({ name: "Dopamine" });
       const remaining = await removeBookmark("   ");
       expect(remaining).toHaveLength(1);
       expect(remaining[0].name).toBe("Dopamine");
@@ -245,7 +231,7 @@ describe("compoundStorage", () => {
     });
 
     it("clears all bookmarks", async () => {
-      await addBookmark({ name: "Methane" });
+      await toggleBookmark({ name: "Methane" });
       await clearBookmarks();
       expect(AsyncStorage.removeItem).toHaveBeenCalledWith(
         BOOKMARKS_STORAGE_KEY,
@@ -266,9 +252,10 @@ describe("compoundStorage", () => {
       (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce(
         new Error("Write error"),
       );
-      const res = await addBookmark({ name: "Caffeine" });
-      expect(res).toHaveLength(1);
-      expect(res[0].name).toBe("Aspirin");
+      const res = await toggleBookmark({ name: "Caffeine" });
+      expect(res.bookmarks).toHaveLength(1);
+      expect(res.bookmarks[0].name).toBe("Aspirin");
+      expect(res.isBookmarked).toBe(false);
     });
   });
 });

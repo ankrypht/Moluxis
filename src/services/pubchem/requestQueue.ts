@@ -341,7 +341,7 @@ export class RequestQueue {
 }
 
 // Global singleton instance
-export const pubChemRequestQueue = new RequestQueue();
+const pubChemRequestQueue = new RequestQueue();
 
 /**
  * Global rate-limited fetch replacement for PubChem API calls.

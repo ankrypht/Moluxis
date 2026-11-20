@@ -8,7 +8,7 @@ import {
   LayoutAnimation,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { getResponsiveSize } from "../utils/responsive";
+import { scaleSize } from "../utils/scaling";
 import { COLORS, addOpacity } from "../constants/colors";
 import { triggerSelectionHaptic } from "../utils/haptics";
 
@@ -30,17 +30,17 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = React.memo(
     const activeColor = iconColor || COLORS.primary;
     const activeBg = iconBg || addOpacity(activeColor, 0.15);
 
-    // Memoize all responsive sizes so getResponsiveSize is not recalculated
+    // Memoize all responsive sizes so scaleSize is not recalculated
     // on every render — only when width/height actually change (e.g. rotation).
     const sizes = useMemo(
       () => ({
-        padding: getResponsiveSize(16, width, height),
-        gap: getResponsiveSize(12, width, height),
-        fontSize: getResponsiveSize(15, width, height),
-        iconSize: getResponsiveSize(17, width, height),
-        iconBadgeSize: getResponsiveSize(30, width, height),
-        iconBadgeRadius: getResponsiveSize(10, width, height),
-        marginBottom: getResponsiveSize(12, width, height),
+        padding: scaleSize(16, width, height),
+        gap: scaleSize(12, width, height),
+        fontSize: scaleSize(15, width, height),
+        iconSize: scaleSize(17, width, height),
+        iconBadgeSize: scaleSize(30, width, height),
+        iconBadgeRadius: scaleSize(10, width, height),
+        marginBottom: scaleSize(12, width, height),
       }),
       [width, height],
     );

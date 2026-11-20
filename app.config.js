@@ -67,6 +67,7 @@ export default {
     "expo-font",
     "expo-sharing",
     "expo-status-bar",
+    "expo-system-ui",
     "expo-background-task",
     [
       "expo-notifications",

@@ -15,7 +15,7 @@ export const SNOOZE_UPDATE_KEY = "@moluxis_update_snooze_until_v1";
 export const NOTIFIED_UPDATE_VERSION_KEY =
   "@moluxis_notified_update_version_v1";
 export const LAST_UPDATE_CHECK_KEY = "@moluxis_last_update_check_timestamp_v1";
-export const UPDATE_CHECK_COOLDOWN_MS = 6 * 60 * 60 * 1000; // 6 hours
+const UPDATE_CHECK_COOLDOWN_MS = 6 * 60 * 60 * 1000; // 6 hours
 
 const UPDATE_FETCH_TIMEOUT_MS = 8000;
 
@@ -51,7 +51,7 @@ export function getInstalledAppVersion(): string {
   return getAppVersion();
 }
 
-export function isUpdateCheckDisabled(): boolean {
+function isUpdateCheckDisabled(): boolean {
   return Boolean(Constants.expoConfig?.extra?.disableUpdateCheck);
 }
 

@@ -20,6 +20,24 @@ export interface ScaleMetrics {
   hScaleSize: (size: number) => number;
 }
 
+export const scaleSize = (
+  size: number,
+  width: number,
+  height: number,
+  factor = 0.5,
+): number => {
+  const isLandscape = width > height;
+  const refWidth = isLandscape ? REFERENCE_HEIGHT : REFERENCE_WIDTH;
+  const refHeight = isLandscape ? REFERENCE_WIDTH : REFERENCE_HEIGHT;
+
+  const wScale = width / refWidth;
+  const hScale = height / refHeight;
+  const s = Math.min(wScale, hScale);
+
+  const scaledSize = size + (s * size - size) * factor;
+  return Math.round(PixelRatio.roundToNearestPixel(scaledSize));
+};
+
 export const getScaleMetrics = (
   width: number,
   height: number,
@@ -29,17 +47,9 @@ export const getScaleMetrics = (
 
   // Swap reference dimensions based on orientation to maintain the 'optimized' look
   const refWidth = isLandscape ? REFERENCE_HEIGHT : REFERENCE_WIDTH;
-  const refHeight = isLandscape ? REFERENCE_WIDTH : REFERENCE_HEIGHT;
 
-  const wScale = width / refWidth;
-  const hScale = height / refHeight;
-  // Use a slightly dampened scale for fonts to avoid extreme sizes
-  const s = Math.min(wScale, hScale);
-
-  const scaleSize = (size: number, factor = 0.5) => {
-    const scaledSize = size + (s * size - size) * factor;
-    return Math.round(PixelRatio.roundToNearestPixel(scaledSize));
-  };
+  const scaleSizeFn = (size: number, factor = 0.5) =>
+    scaleSize(size, width, height, factor);
 
   const hScaleSize = (size: number) =>
     Math.round(PixelRatio.roundToNearestPixel((width / refWidth) * size));
@@ -49,7 +59,7 @@ export const getScaleMetrics = (
     height,
     isLandscape,
     insets,
-    scaleSize,
+    scaleSize: scaleSizeFn,
     hScaleSize,
   };
 };

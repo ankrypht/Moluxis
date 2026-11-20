@@ -12,60 +12,6 @@ export interface ReleaseHighlight {
   fixes: string[];
 }
 
-export interface ReleaseNotesValidationResult {
-  valid: boolean;
-  error?: string;
-}
-
-/**
- * Validates a release notes object against a target version.
- * Used by build gates, CI scripts, and unit tests.
- */
-export function validateReleaseNotes(
-  notes: unknown,
-  expectedVersion?: string,
-): ReleaseNotesValidationResult {
-  if (!notes || typeof notes !== "object") {
-    return {
-      valid: false,
-      error: "Release notes must be a valid JSON object.",
-    };
-  }
-
-  const candidate = notes as Partial<ReleaseHighlight>;
-
-  if (typeof candidate.version !== "string" || !candidate.version.trim()) {
-    return {
-      valid: false,
-      error: "Release notes 'version' is missing or empty.",
-    };
-  }
-
-  if (expectedVersion && candidate.version !== expectedVersion) {
-    return {
-      valid: false,
-      error: `Release notes version (${candidate.version}) does not match expected version (${expectedVersion}).`,
-    };
-  }
-
-  const features = Array.isArray(candidate.features) ? candidate.features : [];
-  const improvements = Array.isArray(candidate.improvements)
-    ? candidate.improvements
-    : [];
-  const fixes = Array.isArray(candidate.fixes) ? candidate.fixes : [];
-
-  const totalHighlights = features.length + improvements.length + fixes.length;
-  if (totalHighlights === 0) {
-    return {
-      valid: false,
-      error:
-        "Release notes must contain at least one feature, improvement, or fix.",
-    };
-  }
-
-  return { valid: true };
-}
-
 export const CURRENT_RELEASE_NOTES: ReleaseHighlight =
   releaseNotesData as ReleaseHighlight;
 

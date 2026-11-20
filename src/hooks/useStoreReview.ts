@@ -2,8 +2,8 @@ import * as StoreReview from "expo-store-review";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useRef } from "react";
 
-export const SEARCH_COUNT_KEY = "@moluxis_search_count";
-export const PROMPT_THRESHOLDS = [3, 10, 30, 100]; // Logarithmic thresholds to avoid excessive prompting
+const SEARCH_COUNT_KEY = "@moluxis_search_count";
+const PROMPT_THRESHOLDS = [3, 10, 30, 100]; // Logarithmic thresholds to avoid excessive prompting
 
 let cachedSearchCount: number | null = null;
 

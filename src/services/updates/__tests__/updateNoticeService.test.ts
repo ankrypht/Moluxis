@@ -1,10 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
-  CURRENT_RELEASE_NOTES,
   LAST_SEEN_VERSION_KEY,
   checkVersionAndTriggerNotice,
   markCurrentVersionSeen,
-  validateReleaseNotes,
 } from "../updateNoticeService";
 
 jest.mock("@react-native-async-storage/async-storage", () => ({
@@ -20,39 +18,6 @@ describe("updateNoticeService", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (AsyncStorage.getItem as jest.Mock).mockResolvedValue(null);
-  });
-
-  describe("validateReleaseNotes", () => {
-    it("validates the bundled release notes against 2.2.0", () => {
-      const result = validateReleaseNotes(CURRENT_RELEASE_NOTES, "2.2.0");
-      expect(result.valid).toBe(true);
-      expect(result.error).toBeUndefined();
-    });
-
-    it("rejects non-object or null input", () => {
-      expect(validateReleaseNotes(null).valid).toBe(false);
-      expect(validateReleaseNotes("invalid").valid).toBe(false);
-    });
-
-    it("rejects mismatched expected version", () => {
-      const result = validateReleaseNotes(
-        { version: "2.1.1", features: ["A"] },
-        "2.2.0",
-      );
-      expect(result.valid).toBe(false);
-      expect(result.error).toContain("does not match expected version");
-    });
-
-    it("rejects release notes without any highlights", () => {
-      const result = validateReleaseNotes({
-        version: "2.2.0",
-        features: [],
-        improvements: [],
-        fixes: [],
-      });
-      expect(result.valid).toBe(false);
-      expect(result.error).toContain("must contain at least one");
-    });
   });
 
   describe("checkVersionAndTriggerNotice", () => {

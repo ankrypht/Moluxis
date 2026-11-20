@@ -85,36 +85,6 @@ export const getStructureControlsStyles = ({
     },
 
     /* LANDSCAPE LEFT RAIL STYLES */
-    floatingLeftRailContainer: {
-      position: "absolute",
-      top: 0,
-      bottom: 0,
-      left: Math.max(insets.left, scaleSize(20)) + scaleSize(16),
-      zIndex: 50,
-      justifyContent: "center",
-      alignItems: "flex-start",
-    },
-    floatingLeftRail: {
-      flexDirection: "column",
-      backgroundColor: addOpacity(COLORS.surface, 0.88),
-      borderRadius: scaleSize(22),
-      padding: scaleSize(5),
-      borderWidth: 1,
-      borderColor: COLORS.surfaceElevated,
-      shadowColor: COLORS.shadow,
-      shadowOffset: { width: 0, height: 8 },
-      shadowOpacity: 0.3,
-      shadowRadius: 12,
-      elevation: 8,
-      alignItems: "center",
-      width: "auto",
-      maxWidth: scaleSize(72),
-    },
-    floatingLeftRailCompact: {
-      borderRadius: scaleSize(18),
-      padding: scaleSize(4),
-      maxWidth: scaleSize(62),
-    },
     leftRailColumn: {
       flexDirection: "column",
       alignItems: "center",

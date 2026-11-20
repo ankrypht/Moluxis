@@ -1,4 +1,4 @@
-import { normalizeCompoundName, areCompoundNamesEqual } from "../compound";
+import { normalizeCompoundName } from "../compound";
 
 describe("compound utilities", () => {
   describe("normalizeCompoundName", () => {
@@ -12,19 +12,6 @@ describe("compound utilities", () => {
       expect(normalizeCompoundName(null)).toBe("");
       expect(normalizeCompoundName(undefined)).toBe("");
       expect(normalizeCompoundName("")).toBe("");
-    });
-  });
-
-  describe("areCompoundNamesEqual", () => {
-    it("returns true for matching names regardless of case and surrounding whitespace", () => {
-      expect(areCompoundNamesEqual("Ethanol", "  ethanol  ")).toBe(true);
-      expect(areCompoundNamesEqual("GLUCOSE", "glucose")).toBe(true);
-    });
-
-    it("returns false for different names or empty/null values", () => {
-      expect(areCompoundNamesEqual("Ethanol", "Methanol")).toBe(false);
-      expect(areCompoundNamesEqual(null, "Ethanol")).toBe(false);
-      expect(areCompoundNamesEqual("", "")).toBe(false);
     });
   });
 });

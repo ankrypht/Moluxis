@@ -6,7 +6,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { getResponsiveSize } from "../utils/responsive";
+import { scaleSize } from "../utils/scaling";
 import { COLORS } from "../constants/colors";
 import { triggerSelectionHaptic } from "../utils/haptics";
 
@@ -23,10 +23,10 @@ export const SuggestionItem = React.memo<SuggestionItemProps>(
     // every FlatList render pass.
     const sizes = useMemo(
       () => ({
-        padding: getResponsiveSize(15, width, height),
-        iconSize: getResponsiveSize(16, width, height),
-        iconMargin: getResponsiveSize(10, width, height),
-        fontSize: getResponsiveSize(16, width, height),
+        padding: scaleSize(15, width, height),
+        iconSize: scaleSize(16, width, height),
+        iconMargin: scaleSize(10, width, height),
+        fontSize: scaleSize(16, width, height),
       }),
       [width, height],
     );

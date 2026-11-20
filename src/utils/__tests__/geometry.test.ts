@@ -2,8 +2,6 @@ import {
   calculateDistance,
   calculateAngle,
   calculateDihedral,
-  getMidpoint,
-  getAngleLabelPosition,
   formatMeasurement,
   getRequiredAtomCount,
   isValidPoint,
@@ -176,45 +174,6 @@ describe("geometry utilities", () => {
       expect(isValidPoint({ x: -Infinity, y: 2, z: 3 })).toBe(false);
       expect(isValidPoint({ x: "1", y: 2, z: 3 })).toBe(false);
       expect(isValidPoint({ x: null, y: 2, z: 3 })).toBe(false);
-    });
-  });
-
-  describe("getMidpoint", () => {
-    it("calculates the accurate 3D midpoint", () => {
-      const a = { x: 2, y: 4, z: 6 };
-      const b = { x: 6, y: 8, z: 10 };
-      expect(getMidpoint(a, b)).toEqual({ x: 4, y: 6, z: 8 });
-    });
-
-    it("handles invalid or missing points gracefully", () => {
-      const valid = { x: 2, y: 4, z: 6 };
-      expect(getMidpoint({ x: NaN, y: 0, z: 0 }, valid)).toEqual(valid);
-      expect(getMidpoint(valid, null as any)).toEqual(valid);
-      expect(getMidpoint(null as any, undefined as any)).toEqual({
-        x: 0,
-        y: 0,
-        z: 0,
-      });
-    });
-  });
-
-  describe("getAngleLabelPosition", () => {
-    it("returns position slightly offset from vertex towards midpoint", () => {
-      const a = { x: 1, y: 0, z: 0 };
-      const b = { x: 0, y: 0, z: 0 };
-      const c = { x: 0, y: 1, z: 0 };
-      const pos = getAngleLabelPosition(a, b, c);
-      expect(pos.x).toBeGreaterThan(0);
-      expect(pos.y).toBeGreaterThan(0);
-      expect(pos.z).toBeCloseTo(0, 5);
-    });
-
-    it("handles collinear case gracefully", () => {
-      const a = { x: -1, y: 0, z: 0 };
-      const b = { x: 0, y: 0, z: 0 };
-      const c = { x: 1, y: 0, z: 0 };
-      const pos = getAngleLabelPosition(a, b, c);
-      expect(pos).toBeDefined();
     });
   });
 

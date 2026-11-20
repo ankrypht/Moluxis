@@ -6,7 +6,7 @@ import {
   StyleProp,
   TextStyle,
 } from "react-native";
-import { getResponsiveSize } from "../utils/responsive";
+import { scaleSize } from "../utils/scaling";
 import { COLORS } from "../constants/colors";
 import { formatSubscriptFormula } from "../utils/formula";
 
@@ -25,7 +25,7 @@ export const ChemicalFormula: React.FC<ChemicalFormulaProps> = React.memo(
     }, [formula]);
 
     const computedStyle = useMemo(() => {
-      const fontSize = getResponsiveSize(18, width, height);
+      const fontSize = scaleSize(18, width, height);
       return style
         ? [styles.statValue, { fontSize }, style]
         : [styles.statValue, { fontSize }];

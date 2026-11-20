@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { View, Text, StyleSheet, useWindowDimensions } from "react-native";
-import { getResponsiveSize } from "../utils/responsive";
+import { scaleSize } from "../utils/scaling";
 import { COLORS } from "../constants/colors";
 
 interface PropertyRowProps {
@@ -13,8 +13,8 @@ export const PropertyRow: React.FC<PropertyRowProps> = React.memo(
     const { width, height } = useWindowDimensions();
 
     const computedStyles = useMemo(() => {
-      const fontSize = getResponsiveSize(14, width, height);
-      const paddingVertical = getResponsiveSize(8, width, height);
+      const fontSize = scaleSize(14, width, height);
+      const paddingVertical = scaleSize(8, width, height);
       return {
         row: [styles.propertyRow, { paddingVertical }],
         label: [styles.propertyLabel, { fontSize }],

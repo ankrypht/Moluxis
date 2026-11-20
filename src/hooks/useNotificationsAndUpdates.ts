@@ -26,7 +26,7 @@ import {
 export const IS_DEV_TEST_ENABLED =
   __DEV__ || Boolean(Constants.expoConfig?.extra?.isDevVariant);
 
-export function createMockReleaseInfo(): AppReleaseInfo {
+function createMockReleaseInfo(): AppReleaseInfo {
   return {
     version: "9.9.0",
     releaseTitle: "Moluxis v9.9.0 (Play Store Preview)",

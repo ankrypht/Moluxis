@@ -6,7 +6,7 @@ import { normalizeCompoundName } from "../../utils/compound";
 export const HISTORY_STORAGE_KEY = "@moluxis_recent_history_v1";
 export const BOOKMARKS_STORAGE_KEY = "@moluxis_bookmarks_v1";
 export const MAX_HISTORY_ITEMS = 30;
-export const MAX_BOOKMARKS_ITEMS = 100;
+const MAX_BOOKMARKS_ITEMS = 100;
 
 let pendingHistoryToWrite: SavedCompoundItem[] | null = null;
 let historyWriteTimer: ReturnType<typeof setTimeout> | null = null;
@@ -219,46 +219,6 @@ export async function getBookmarks(): Promise<SavedCompoundItem[]> {
   } catch (error) {
     console.warn("Failed to load bookmarks:", error);
     return [];
-  }
-}
-
-/**
- * Add a compound to bookmarks.
- */
-export async function addBookmark(
-  item: Omit<SavedCompoundItem, "timestamp"> & { timestamp?: number },
-): Promise<SavedCompoundItem[]> {
-  if (!item || typeof item.name !== "string" || !item.name.trim()) {
-    return getBookmarks();
-  }
-
-  let current: SavedCompoundItem[] = [];
-  try {
-    current = await getBookmarks();
-    const normalizedName = normalizeCompoundName(item.name);
-
-    const existing = current.find(
-      (entry) => normalizeCompoundName(entry.name) === normalizedName,
-    );
-
-    const mergedItem: SavedCompoundItem = {
-      name: item.name.trim(),
-      formula: item.formula || existing?.formula,
-      cid: item.cid || existing?.cid,
-      molecularWeight: item.molecularWeight || existing?.molecularWeight,
-      timestamp: item.timestamp ?? Date.now(),
-    };
-
-    const filtered = current.filter(
-      (entry) => normalizeCompoundName(entry.name) !== normalizedName,
-    );
-
-    const updated = [mergedItem, ...filtered].slice(0, MAX_BOOKMARKS_ITEMS);
-    await AsyncStorage.setItem(BOOKMARKS_STORAGE_KEY, JSON.stringify(updated));
-    return updated;
-  } catch (error) {
-    console.warn("Failed to save bookmark:", error);
-    return current;
   }
 }
 

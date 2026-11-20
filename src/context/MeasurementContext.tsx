@@ -59,10 +59,10 @@ const defaultDetailsValue: MeasurementDetailsContextValue = {
   onPanelLayout: () => {},
 };
 
-export const MeasurementStatusContext =
+const MeasurementStatusContext =
   createContext<MeasurementStatusContextValue>(defaultStatusValue);
 
-export const MeasurementDetailsContext =
+const MeasurementDetailsContext =
   createContext<MeasurementDetailsContextValue>(defaultDetailsValue);
 
 export interface MeasurementProviderProps {

@@ -171,62 +171,6 @@ export function calculateDihedral(
 }
 
 /**
- * Calculates the 3D midpoint between two points.
- */
-export function getMidpoint(a: Point3D, b: Point3D): Point3D {
-  const validA = isValidPoint(a);
-  const validB = isValidPoint(b);
-
-  if (!validA && !validB) {
-    return { x: 0, y: 0, z: 0 };
-  }
-  if (!validA) return { x: b.x, y: b.y, z: b.z };
-  if (!validB) return { x: a.x, y: a.y, z: a.z };
-
-  return {
-    x: (a.x + b.x) / 2,
-    y: (a.y + b.y) / 2,
-    z: (a.z + b.z) / 2,
-  };
-}
-
-/**
- * Calculates an optimal 3D label position for a bond angle measurement near vertex B.
- */
-export function getAngleLabelPosition(
-  a: Point3D,
-  b: Point3D,
-  c: Point3D,
-): Point3D {
-  if (!isValidPoint(b)) {
-    return { x: 0, y: 0, z: 0 };
-  }
-  if (!isValidPoint(a) || !isValidPoint(c)) {
-    return { x: b.x, y: b.y + 0.4, z: b.z };
-  }
-
-  // Vector from B to midpoint of A and C
-  const midAC = getMidpoint(a, c);
-  const dirX = midAC.x - b.x;
-  const dirY = midAC.y - b.y;
-  const dirZ = midAC.z - b.z;
-  const len = Math.sqrt(dirX * dirX + dirY * dirY + dirZ * dirZ);
-
-  // If A, B, C are nearly collinear, offset slightly in Y
-  if (len < 0.001 || !Number.isFinite(len)) {
-    return { x: b.x, y: b.y + 0.4, z: b.z };
-  }
-
-  // Place label ~0.45 Å from vertex B towards the midpoint
-  const offset = 0.45 / len;
-  return {
-    x: b.x + dirX * offset,
-    y: b.y + dirY * offset,
-    z: b.z + dirZ * offset,
-  };
-}
-
-/**
  * Formats a measurement result with chemistry symbols, atom labels, and units.
  */
 export function formatMeasurement(

@@ -3,7 +3,7 @@ import { AppState } from "react-native";
 import { MoleculeInfo } from "../../types";
 
 export const DISK_CACHE_INDEX_KEY = "@moluxis_molecule_cache_index_v2";
-export const DISK_CACHE_PREFIX = "@moluxis_mol_v2_";
+const DISK_CACHE_PREFIX = "@moluxis_mol_v2_";
 export const MAX_DISK_CACHE_ITEMS = 150;
 
 export interface CacheIndexEntry {
