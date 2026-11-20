@@ -5,7 +5,6 @@ import {
   createBottomSheetContainerStyle,
   createBottomSheetLandscapeStyle,
   createCircularCloseButtonStyle,
-  SHADOWS,
 } from "../constants/theme";
 import { ScaleMetrics } from "../utils/scaling";
 
@@ -97,7 +96,6 @@ export const getAboutModalStyles = ({
       borderColor: addOpacity(COLORS.border, 0.7),
       padding: scaleSize(16),
       marginBottom: scaleSize(16),
-      ...SHADOWS.card,
     },
     aboutHeroTopRow: {
       flexDirection: "row",

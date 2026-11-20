@@ -54,8 +54,6 @@ export const getFloatingHeaderStyles = ({
         borderRadius: 24,
         padding: 16,
       }),
-      shadowRadius: 16,
-      elevation: 10,
       zIndex: 100,
       maxWidth: headerMaxWidth,
       alignSelf: "center",

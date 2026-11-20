@@ -254,5 +254,5 @@ export const createFloatingIslandStyle = ({
   padding: scaleSize(padding),
   borderWidth: 1,
   borderColor: COLORS.surfaceElevated,
-  ...(shadowPreset ? SHADOWS[shadowPreset] : {}),
+  ...(shadowPreset && bgOpacity >= 1 ? SHADOWS[shadowPreset] : {}),
 });
