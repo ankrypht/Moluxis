@@ -158,6 +158,7 @@ function MoleculeExplorer() {
     snapshotUri,
     isCapturingSnapshot,
     handleCaptureSnapshot,
+    handleCaptureFullSnapshot,
     handleSnapshotCaptured,
     resetSnapshot,
   } = useSnapshotCapture(moleculeViewerRef, currentMoleculeKey);
@@ -220,6 +221,7 @@ function MoleculeExplorer() {
         snapshotUri={snapshotUri}
         isCapturingSnapshot={isCapturingSnapshot}
         handleCaptureSnapshot={handleCaptureSnapshot}
+        handleCaptureFullSnapshot={handleCaptureFullSnapshot}
         handleSnapshotCaptured={handleSnapshotCaptured}
         resetSnapshot={resetSnapshot}
       />
@@ -271,6 +273,7 @@ interface MoleculeExplorerContentProps {
   snapshotUri: string | null;
   isCapturingSnapshot: boolean;
   handleCaptureSnapshot: () => void;
+  handleCaptureFullSnapshot?: () => Promise<string | null>;
   handleSnapshotCaptured: (dataUri: string | null) => void;
   resetSnapshot: () => void;
 }
@@ -317,6 +320,7 @@ const MoleculeExplorerContent = React.memo(function MoleculeExplorerContent({
   snapshotUri,
   isCapturingSnapshot,
   handleCaptureSnapshot,
+  handleCaptureFullSnapshot,
   handleSnapshotCaptured,
   resetSnapshot,
 }: MoleculeExplorerContentProps) {
@@ -844,6 +848,8 @@ const MoleculeExplorerContent = React.memo(function MoleculeExplorerContent({
         snapshotUri={snapshotUri}
         isCapturingSnapshot={isCapturingSnapshot}
         onRefreshSnapshot={handleCaptureSnapshot}
+        onCaptureFullSnapshot={handleCaptureFullSnapshot}
+        onResetSnapshot={resetSnapshot}
         showAboutModal={showAboutModal}
         onCloseAboutModal={handleCloseAboutModal}
         onOpenWhatsNew={handleOpenWhatsNewFromAbout}

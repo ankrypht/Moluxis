@@ -449,6 +449,81 @@ describe("MoleculeViewer", () => {
     expect(onSnapshotCaptured).toHaveBeenCalledWith(null);
   });
 
+  it("captures snapshot with resolution option and handles captureSnapshotAsync resolution", async () => {
+    const onSnapshotCaptured = jest.fn();
+    const viewerRef = React.createRef<any>();
+
+    const { getByTestId } = render(
+      <MoleculeViewer
+        ref={viewerRef}
+        moleculeData={sampleMolecule}
+        isLoading={false}
+        structureFormat="3d"
+        vizStyle="ballStick"
+        showLabels={false}
+        isAnimated={true}
+        styles={mockStyles}
+        onSnapshotCaptured={onSnapshotCaptured}
+      />,
+    );
+
+    const webview = getByTestId("molecule-webview");
+
+    act(() => {
+      webview.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: "WEBVIEW_READY" }),
+        },
+      });
+    });
+
+    mockPostMessage.mockClear();
+
+    // 1. captureSnapshot with resolution: "preview"
+    act(() => {
+      viewerRef.current?.captureSnapshot({ resolution: "preview" });
+    });
+
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({ type: "CAPTURE_SNAPSHOT", resolution: "preview" }),
+    );
+
+    mockPostMessage.mockClear();
+
+    // 2. captureSnapshotAsync with resolution: "full"
+    let asyncPromise: Promise<string | null>;
+    act(() => {
+      asyncPromise = viewerRef.current?.captureSnapshotAsync({
+        resolution: "full",
+      });
+    });
+
+    expect(mockPostMessage).toHaveBeenCalled();
+    const sentMsg = JSON.parse(mockPostMessage.mock.calls[0][0]);
+    expect(sentMsg.type).toBe("CAPTURE_SNAPSHOT");
+    expect(sentMsg.resolution).toBe("full");
+    expect(sentMsg.id).toBeDefined();
+
+    // Respond with matching id
+    await act(async () => {
+      webview.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: "SNAPSHOT_RESULT",
+            dataUri: "data:image/png;base64,async-full-data",
+            resolution: "full",
+            id: sentMsg.id,
+          }),
+        },
+      });
+    });
+
+    const result = await asyncPromise!;
+    expect(result).toBe("data:image/png;base64,async-full-data");
+    // onSnapshotCaptured should NOT be called for correlated async requests
+    expect(onSnapshotCaptured).not.toHaveBeenCalled();
+  });
+
   it("calls onSnapshotCaptured with null if captureSnapshot is called before webview is ready", () => {
     const onSnapshotCaptured = jest.fn();
     const viewerRef = React.createRef<any>();

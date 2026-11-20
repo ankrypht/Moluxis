@@ -165,4 +165,28 @@ describe("useSnapshotCapture", () => {
     expect(result.current.snapshotUri).toBeNull();
     expect(result.current.isCapturingSnapshot).toBe(false);
   });
+
+  it("handleCaptureFullSnapshot delegates to viewer captureSnapshotAsync with full resolution", async () => {
+    const captureSnapshotAsync = jest
+      .fn()
+      .mockResolvedValue("data:image/png;base64,high-res");
+    const mockRef = {
+      current: {
+        captureSnapshot: jest.fn(),
+        captureSnapshotAsync,
+      } as unknown as MoleculeViewerRef,
+    };
+
+    const { result } = renderHook(() => useSnapshotCapture(mockRef));
+
+    let fullSnapshotUri: string | null = null;
+    await act(async () => {
+      fullSnapshotUri = await result.current.handleCaptureFullSnapshot();
+    });
+
+    expect(captureSnapshotAsync).toHaveBeenCalledWith({ resolution: "full" });
+    expect(fullSnapshotUri).toBe("data:image/png;base64,high-res");
+    // snapshotUri in state must NOT be modified by full capture (avoids heap pressure)
+    expect(result.current.snapshotUri).toBeNull();
+  });
 });

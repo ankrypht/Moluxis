@@ -31,28 +31,44 @@ export function useSnapshotCapture(
     };
   }, []);
 
-  const handleCaptureSnapshot = useCallback(() => {
-    if (snapshotTimeoutRef.current) {
-      clearTimeout(snapshotTimeoutRef.current);
-      snapshotTimeoutRef.current = null;
-    }
-
-    if (!moleculeViewerRef.current) {
-      setIsCapturingSnapshot(false);
-      return;
-    }
-
-    setIsCapturingSnapshot(true);
-    setSnapshotState({ moleculeKey: moleculeKey ?? null, uri: null });
-
-    snapshotTimeoutRef.current = setTimeout(() => {
-      if (isMountedRef.current) {
-        setIsCapturingSnapshot(false);
+  const handleCaptureSnapshot = useCallback(
+    (options?: { resolution?: "preview" | "full" }) => {
+      if (snapshotTimeoutRef.current) {
+        clearTimeout(snapshotTimeoutRef.current);
+        snapshotTimeoutRef.current = null;
       }
-    }, 4000);
 
-    moleculeViewerRef.current.captureSnapshot();
-  }, [moleculeViewerRef, moleculeKey]);
+      if (!moleculeViewerRef.current) {
+        setIsCapturingSnapshot(false);
+        return;
+      }
+
+      setIsCapturingSnapshot(true);
+      setSnapshotState({ moleculeKey: moleculeKey ?? null, uri: null });
+
+      snapshotTimeoutRef.current = setTimeout(() => {
+        if (isMountedRef.current) {
+          setIsCapturingSnapshot(false);
+        }
+      }, 4000);
+
+      const resolution = options?.resolution || "preview";
+      moleculeViewerRef.current.captureSnapshot({ resolution });
+    },
+    [moleculeViewerRef, moleculeKey],
+  );
+
+  const handleCaptureFullSnapshot = useCallback(async (): Promise<
+    string | null
+  > => {
+    if (!moleculeViewerRef.current) return null;
+    if (typeof moleculeViewerRef.current.captureSnapshotAsync === "function") {
+      return moleculeViewerRef.current.captureSnapshotAsync({
+        resolution: "full",
+      });
+    }
+    return null;
+  }, [moleculeViewerRef]);
 
   const handleSnapshotCaptured = useCallback(
     (uri: string | null) => {
@@ -83,6 +99,7 @@ export function useSnapshotCapture(
     snapshotUri,
     isCapturingSnapshot,
     handleCaptureSnapshot,
+    handleCaptureFullSnapshot,
     handleSnapshotCaptured,
     resetSnapshot,
   };

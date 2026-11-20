@@ -218,6 +218,20 @@ describe("shareService", () => {
       );
     });
 
+    it("correctly slices base64 data without using split", async () => {
+      const payload = "ABCDEF1234567890==";
+      const dataUri = `data:image/png;base64,${payload}`;
+      const result = await shareSnapshotImage(dataUri, "Aspirin");
+      expect(result).toBe(true);
+      expect(FileSystem.writeAsStringAsync).toHaveBeenCalledWith(
+        expect.stringMatching(
+          /^file:\/\/\/mock-cache\/moluxis-share-\d+-aspirin\.png$/,
+        ),
+        payload,
+        { encoding: "base64" },
+      );
+    });
+
     it("falls back to Share.share if Sharing is not available", async () => {
       (Sharing.isAvailableAsync as jest.Mock).mockResolvedValueOnce(false);
       const mockUri = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA";

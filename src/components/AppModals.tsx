@@ -55,6 +55,8 @@ export interface AppModalsProps {
   snapshotUri: string | null;
   isCapturingSnapshot: boolean;
   onRefreshSnapshot: () => void;
+  onCaptureFullSnapshot?: () => Promise<string | null>;
+  onResetSnapshot?: () => void;
 
   // About
   showAboutModal: boolean;
@@ -103,6 +105,8 @@ export const AppModals: React.FC<AppModalsProps> = React.memo(
     snapshotUri,
     isCapturingSnapshot,
     onRefreshSnapshot,
+    onCaptureFullSnapshot,
+    onResetSnapshot,
     showAboutModal,
     onCloseAboutModal,
     onOpenWhatsNew,
@@ -152,6 +156,8 @@ export const AppModals: React.FC<AppModalsProps> = React.memo(
             snapshotUri={snapshotUri}
             isCapturingSnapshot={isCapturingSnapshot}
             onRefreshSnapshot={onRefreshSnapshot}
+            onCaptureFullSnapshot={onCaptureFullSnapshot}
+            onResetSnapshot={onResetSnapshot}
             styles={styles}
             isLandscape={isLandscape}
             height={height}

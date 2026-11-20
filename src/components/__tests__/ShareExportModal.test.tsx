@@ -401,4 +401,52 @@ describe("ShareExportModal", () => {
     expect(onRefreshSnapshot).toHaveBeenCalled();
     expect(mockTriggerSelectionHaptic).toHaveBeenCalled();
   });
+
+  it("triggers onCaptureFullSnapshot on-demand when tapping share snapshot", async () => {
+    const onCaptureFullSnapshot = jest
+      .fn()
+      .mockResolvedValue("data:image/png;base64,1440p-full-image");
+
+    const { getByTestId } = render(
+      <ShareExportModal
+        {...defaultProps}
+        onCaptureFullSnapshot={onCaptureFullSnapshot}
+      />,
+    );
+
+    const shareBtn = getByTestId("action-share-snapshot");
+    await act(async () => {
+      fireEvent.press(shareBtn);
+    });
+
+    expect(onCaptureFullSnapshot).toHaveBeenCalledTimes(1);
+    expect(shareService.shareSnapshotImage).toHaveBeenCalledWith(
+      "data:image/png;base64,1440p-full-image",
+      sampleMolecule.name,
+    );
+  });
+
+  it("calls onResetSnapshot when visible becomes false or on unmount", () => {
+    const onResetSnapshot = jest.fn();
+    const { rerender, unmount } = render(
+      <ShareExportModal
+        {...defaultProps}
+        visible={true}
+        onResetSnapshot={onResetSnapshot}
+      />,
+    );
+
+    rerender(
+      <ShareExportModal
+        {...defaultProps}
+        visible={false}
+        onResetSnapshot={onResetSnapshot}
+      />,
+    );
+    expect(onResetSnapshot).toHaveBeenCalled();
+
+    onResetSnapshot.mockClear();
+    unmount();
+    expect(onResetSnapshot).toHaveBeenCalled();
+  });
 });

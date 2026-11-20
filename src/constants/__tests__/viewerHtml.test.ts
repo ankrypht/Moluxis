@@ -1,15 +1,29 @@
-import { VIEWER_HTML } from "../viewerHtml";
+import { getViewerHtml, getViewerSource } from "../viewerHtml";
 import { THREE_DMOL_SCRIPT } from "../threeDmolScript";
 import { COLORS } from "../colors";
 
+const VIEWER_HTML = getViewerHtml();
+
 describe("VIEWER_HTML", () => {
-  it("should be a string containing essential HTML elements", () => {
-    expect(typeof VIEWER_HTML).toBe("string");
-    expect(VIEWER_HTML).toContain("<!DOCTYPE html>");
-    expect(VIEWER_HTML).toContain("<html>");
-    expect(VIEWER_HTML).toContain("<head>");
-    expect(VIEWER_HTML).toContain("<body>");
-    expect(VIEWER_HTML).toContain('<div id="container"></div>');
+  it("should be a string containing essential HTML elements via getViewerHtml", () => {
+    const html = getViewerHtml();
+    expect(typeof html).toBe("string");
+    expect(html).toContain("<!DOCTYPE html>");
+    expect(html).toContain("<html>");
+    expect(html).toContain("<head>");
+    expect(html).toContain("<body>");
+    expect(html).toContain('<div id="container"></div>');
+  });
+
+  it("should memoize getViewerHtml and getViewerSource singletons", () => {
+    const html1 = getViewerHtml();
+    const html2 = getViewerHtml();
+    expect(html1).toBe(html2);
+    const source1 = getViewerSource();
+    const source2 = getViewerSource();
+    expect(source1).toBe(source2);
+    expect(source1.html).toBe(html1);
+    expect(source1.baseUrl).toBe("about:blank");
   });
 
   it("should contain the correct Content-Security-Policy without external script origins", () => {
@@ -72,9 +86,11 @@ describe("VIEWER_HTML", () => {
     expect(VIEWER_HTML).toContain("startAnimation()");
   });
 
-  it("should handle CAPTURE_SNAPSHOT messages with offscreen canvas downscaling capped to 1440px", () => {
+  it("should handle CAPTURE_SNAPSHOT messages with offscreen canvas downscaling capped to 1440px or 256px for preview", () => {
     expect(VIEWER_HTML).toContain("message.type === 'CAPTURE_SNAPSHOT'");
     expect(VIEWER_HTML).toContain("var maxDim = 1440");
+    expect(VIEWER_HTML).toContain("if (resolution === 'preview')");
+    expect(VIEWER_HTML).toContain("maxDim = 256");
     expect(VIEWER_HTML).toContain("imageSmoothingQuality = 'high'");
     expect(VIEWER_HTML).toContain("offscreenCanvas.toDataURL('image/png')");
     expect(VIEWER_HTML).toContain("viewer.pngURI()");

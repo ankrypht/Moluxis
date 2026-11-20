@@ -28,7 +28,7 @@ import {
   MeasurementMode,
   PickedAtom,
 } from "../types";
-import { VIEWER_HTML } from "../constants/viewerHtml";
+import { getViewerSource } from "../constants/viewerHtml";
 import { COLORS } from "../constants/colors";
 import { MoleculeViewerStyles } from "./MoleculeViewer.styles";
 import { FeaturedMolecules } from "./FeaturedMolecules";
@@ -54,7 +54,11 @@ const UPDATE_DELAY_MS = 150;
 const MAX_RENDER_RETRIES = 1;
 
 export interface MoleculeViewerRef {
-  captureSnapshot: () => void;
+  captureSnapshot: (options?: { resolution?: "preview" | "full" }) => void;
+  captureSnapshotAsync?: (options?: {
+    resolution?: "preview" | "full";
+    timeoutMs?: number;
+  }) => Promise<string | null>;
   drawMeasurements: (
     mode: MeasurementMode,
     atoms: PickedAtom[],
@@ -128,6 +132,26 @@ export const MoleculeViewer = React.memo(
       const [isViewerReady, setIsViewerReady] = useState(false);
       const [hasRenderCrashed, setHasRenderCrashed] = useState(false);
       const crashCountRef = useRef(0);
+      const pendingSnapshotsRef = useRef<
+        Map<
+          string,
+          {
+            resolve: (uri: string | null) => void;
+            timer: ReturnType<typeof setTimeout> | null;
+          }
+        >
+      >(new Map());
+
+      useEffect(() => {
+        const pendingSnapshots = pendingSnapshotsRef.current;
+        return () => {
+          pendingSnapshots.forEach((pending) => {
+            if (pending.timer) clearTimeout(pending.timer);
+            pending.resolve(null);
+          });
+          pendingSnapshots.clear();
+        };
+      }, []);
 
       useEffect(() => {
         isAnimatedRef.current = isAnimated;
@@ -149,12 +173,53 @@ export const MoleculeViewer = React.memo(
       useImperativeHandle(
         ref,
         () => ({
-          captureSnapshot: () => {
+          captureSnapshot: (options?: { resolution?: "preview" | "full" }) => {
             if (isWebViewReadyRef.current) {
-              postToWebView(JSON.stringify({ type: "CAPTURE_SNAPSHOT" }));
+              if (options && options.resolution) {
+                postToWebView(
+                  JSON.stringify({
+                    type: "CAPTURE_SNAPSHOT",
+                    resolution: options.resolution,
+                  }),
+                );
+              } else {
+                postToWebView(JSON.stringify({ type: "CAPTURE_SNAPSHOT" }));
+              }
             } else {
               onSnapshotCaptured?.(null);
             }
+          },
+          captureSnapshotAsync: (options?: {
+            resolution?: "preview" | "full";
+            timeoutMs?: number;
+          }) => {
+            return new Promise<string | null>((resolve) => {
+              if (!isWebViewReadyRef.current) {
+                resolve(null);
+                return;
+              }
+
+              const resolution = options?.resolution || "full";
+              const timeoutMs = options?.timeoutMs || 5000;
+              const id = `snap_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+
+              const timer = setTimeout(() => {
+                if (pendingSnapshotsRef.current.has(id)) {
+                  pendingSnapshotsRef.current.delete(id);
+                  resolve(null);
+                }
+              }, timeoutMs);
+
+              pendingSnapshotsRef.current.set(id, { resolve, timer });
+
+              postToWebView(
+                JSON.stringify({
+                  type: "CAPTURE_SNAPSHOT",
+                  resolution,
+                  id,
+                }),
+              );
+            });
           },
           drawMeasurements: (
             mode: MeasurementMode,
@@ -205,13 +270,11 @@ export const MoleculeViewer = React.memo(
         }
       }, [isMeasuring, measurementMode, postToWebView]);
 
-      const webViewSource = useMemo(
-        () => ({
-          html: VIEWER_HTML,
-          baseUrl: "about:blank",
-        }),
-        [],
-      );
+      const isWebViewActive = Boolean(moleculeData || isLoading);
+      const webViewSource = useMemo(() => {
+        if (!isWebViewActive) return undefined;
+        return getViewerSource();
+      }, [isWebViewActive]);
 
       // Pause WebGL rendering when app is backgrounded or inactive, or on unmount, to prevent RenderThread deadlocks
       useEffect(() => {
@@ -424,17 +487,6 @@ export const MoleculeViewer = React.memo(
         (event: any) => {
           try {
             const rawData = event?.nativeEvent?.data;
-
-            // Fast path for SNAPSHOT_RESULT to avoid expensive JSON.parse on multi-megabyte payloads
-            if (typeof rawData === "string") {
-              const prefix = '{"type":"SNAPSHOT_RESULT","dataUri":"';
-              if (rawData.startsWith(prefix) && rawData.endsWith('"}')) {
-                const dataUri = rawData.slice(prefix.length, -2);
-                onSnapshotCaptured?.(dataUri);
-                return;
-              }
-            }
-
             const data =
               typeof rawData === "string" ? JSON.parse(rawData) : rawData;
             if (
@@ -442,10 +494,26 @@ export const MoleculeViewer = React.memo(
               data.type === "SNAPSHOT_RESULT" &&
               typeof data.dataUri === "string"
             ) {
+              const id = data.id;
+              if (id && pendingSnapshotsRef.current.has(id)) {
+                const pending = pendingSnapshotsRef.current.get(id);
+                pendingSnapshotsRef.current.delete(id);
+                if (pending?.timer) clearTimeout(pending.timer);
+                pending?.resolve(data.dataUri);
+                return;
+              }
               onSnapshotCaptured?.(data.dataUri);
               return;
             }
             if (data && data.type === "SNAPSHOT_ERROR") {
+              const id = data.id;
+              if (id && pendingSnapshotsRef.current.has(id)) {
+                const pending = pendingSnapshotsRef.current.get(id);
+                pendingSnapshotsRef.current.delete(id);
+                if (pending?.timer) clearTimeout(pending.timer);
+                pending?.resolve(null);
+                return;
+              }
               onSnapshotCaptured?.(null);
               return;
             }
@@ -540,6 +608,11 @@ export const MoleculeViewer = React.memo(
                 isWebViewReadyRef.current = false;
                 setIsViewerReady(false);
                 lastLoadedSignatureRef.current = null;
+                pendingSnapshotsRef.current.forEach((pending) => {
+                  if (pending.timer) clearTimeout(pending.timer);
+                  pending.resolve(null);
+                });
+                pendingSnapshotsRef.current.clear();
               }}
               onRenderProcessGone={(
                 syntheticEvent: WebViewRenderProcessGoneEvent,
@@ -556,6 +629,11 @@ export const MoleculeViewer = React.memo(
                 isWebViewReadyRef.current = false;
                 setIsViewerReady(false);
                 lastLoadedSignatureRef.current = null;
+                pendingSnapshotsRef.current.forEach((pending) => {
+                  if (pending.timer) clearTimeout(pending.timer);
+                  pending.resolve(null);
+                });
+                pendingSnapshotsRef.current.clear();
 
                 if (crashCountRef.current < MAX_RENDER_RETRIES) {
                   crashCountRef.current += 1;

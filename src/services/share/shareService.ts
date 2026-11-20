@@ -171,7 +171,12 @@ export async function shareSnapshotImage(
     // Clean up temporary snapshots older than 10 minutes in a non-blocking sweep
     await cleanupOldShareSnapshots(normalizedDir);
 
-    const base64Data = dataUri.split("base64,")[1];
+    const marker = "base64,";
+    const markerIndex = dataUri.indexOf(marker);
+    if (markerIndex === -1) {
+      throw new Error("Invalid image data URI");
+    }
+    const base64Data = dataUri.slice(markerIndex + marker.length);
     const safeName = moleculeName.replace(/[^a-zA-Z0-9_-]/g, "_").toLowerCase();
     const filename = `${SHARE_SNAPSHOT_PREFIX}${Date.now()}-${safeName || "compound"}.png`;
     const fileUri = `${normalizedDir}${filename}`;

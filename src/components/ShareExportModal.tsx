@@ -43,6 +43,8 @@ export interface ShareExportModalProps {
   snapshotUri: string | null;
   isCapturingSnapshot: boolean;
   onRefreshSnapshot: () => void;
+  onCaptureFullSnapshot?: () => Promise<string | null>;
+  onResetSnapshot?: () => void;
   styles: ShareExportModalStyles;
   isLandscape?: boolean;
   height?: number;
@@ -56,6 +58,8 @@ export const ShareExportModal: React.FC<ShareExportModalProps> = React.memo(
     snapshotUri,
     isCapturingSnapshot,
     onRefreshSnapshot,
+    onCaptureFullSnapshot,
+    onResetSnapshot,
     styles,
     isLandscape = false,
     height = 700,
@@ -85,8 +89,15 @@ export const ShareExportModal: React.FC<ShareExportModalProps> = React.memo(
         setPendingShareSnapshot(false);
       } else {
         hasAttemptedCaptureRef.current = false;
+        onResetSnapshot?.();
       }
-    }, [visible]);
+    }, [visible, onResetSnapshot]);
+
+    useEffect(() => {
+      return () => {
+        onResetSnapshot?.();
+      };
+    }, [onResetSnapshot]);
 
     // Auto-request snapshot if not yet captured when modal is visible (once per session)
     useEffect(() => {
@@ -128,19 +139,31 @@ export const ShareExportModal: React.FC<ShareExportModalProps> = React.memo(
       if (!moleculeData) return;
       triggerSuccessHaptic();
 
-      if (snapshotUri) {
-        setIsSharingImage(true);
-        try {
-          await shareSnapshotImage(snapshotUri, moleculeData.name);
-        } finally {
-          setIsSharingImage(false);
+      setIsSharingImage(true);
+      try {
+        let imageUriToShare: string | null = null;
+        if (onCaptureFullSnapshot) {
+          imageUriToShare = await onCaptureFullSnapshot();
+        } else if (snapshotUri) {
+          imageUriToShare = snapshotUri;
         }
-      } else {
-        // Trigger capture and wait
-        setPendingShareSnapshot(true);
-        onRefreshSnapshot();
+
+        // Fall back to preview snapshotUri if on-demand capture returned null (e.g., timeout or unready viewer)
+        if (!imageUriToShare && snapshotUri) {
+          imageUriToShare = snapshotUri;
+        }
+
+        if (imageUriToShare) {
+          await shareSnapshotImage(imageUriToShare, moleculeData.name);
+        } else if (!onCaptureFullSnapshot && !snapshotUri) {
+          // Trigger capture and wait (legacy fallback)
+          setPendingShareSnapshot(true);
+          onRefreshSnapshot();
+        }
+      } finally {
+        setIsSharingImage(false);
       }
-    }, [moleculeData, snapshotUri, onRefreshSnapshot]);
+    }, [moleculeData, onCaptureFullSnapshot, snapshotUri, onRefreshSnapshot]);
 
     const handleSharePubChem = useCallback(async () => {
       if (!moleculeData) return;

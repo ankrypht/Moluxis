@@ -1,7 +1,10 @@
 import { ATOM_MESH_COLORS, COLORS } from "./colors";
-import { THREE_DMOL_SCRIPT } from "./threeDmolScript";
 
-export const VIEWER_HTML = `
+let cachedViewerHtml: string | null = null;
+let cachedViewerSource: { html: string; baseUrl: string } | null = null;
+
+function buildViewerHtml(threeDmolScript: string): string {
+  return `
 <!DOCTYPE html>
 <html>
 <head>
@@ -13,7 +16,7 @@ export const VIEWER_HTML = `
     #container { width: 100%; height: 100%; position: relative; }
   </style>
   <script>
-${THREE_DMOL_SCRIPT}
+${threeDmolScript}
   </script>
 </head>
 <body>
@@ -519,6 +522,12 @@ ${THREE_DMOL_SCRIPT}
           try {
             if (viewer) {
               viewer.render();
+              var resolution = message.resolution || 'full';
+              var reqId = message.id || null;
+              var maxDim = 1440;
+              if (resolution === 'preview') {
+                maxDim = 256;
+              }
               var dataUri = null;
               try {
                 var sourceCanvas = (typeof viewer.getCanvas === 'function')
@@ -526,7 +535,6 @@ ${THREE_DMOL_SCRIPT}
                   : document.querySelector('#container canvas');
 
                 if (sourceCanvas && sourceCanvas.width > 0 && sourceCanvas.height > 0) {
-                  var maxDim = 1440;
                   var srcW = sourceCanvas.width;
                   var srcH = sourceCanvas.height;
                   var longest = Math.max(srcW, srcH);
@@ -558,6 +566,8 @@ ${THREE_DMOL_SCRIPT}
               if (window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === 'function') {
                 window.ReactNativeWebView.postMessage(JSON.stringify({
                   type: 'SNAPSHOT_RESULT',
+                  resolution: resolution,
+                  id: reqId,
                   dataUri: dataUri
                 }));
               }
@@ -565,7 +575,9 @@ ${THREE_DMOL_SCRIPT}
               if (window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === 'function') {
                 window.ReactNativeWebView.postMessage(JSON.stringify({
                   type: 'SNAPSHOT_ERROR',
-                  error: 'Viewer not initialized'
+                  error: 'Viewer not initialized',
+                  resolution: message.resolution || 'full',
+                  id: message.id || null
                 }));
               }
             }
@@ -574,7 +586,9 @@ ${THREE_DMOL_SCRIPT}
             if (window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === 'function') {
               window.ReactNativeWebView.postMessage(JSON.stringify({
                 type: 'SNAPSHOT_ERROR',
-                error: String(captureErr)
+                error: String(captureErr),
+                resolution: message.resolution || 'full',
+                id: message.id || null
               }));
             }
           }
@@ -661,3 +675,23 @@ ${THREE_DMOL_SCRIPT}
 </body>
 </html>
 `;
+}
+
+export function getViewerHtml(): string {
+  if (!cachedViewerHtml) {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { THREE_DMOL_SCRIPT } = require("./threeDmolScript");
+    cachedViewerHtml = buildViewerHtml(THREE_DMOL_SCRIPT);
+  }
+  return cachedViewerHtml;
+}
+
+export function getViewerSource(): { html: string; baseUrl: string } {
+  if (!cachedViewerSource) {
+    cachedViewerSource = {
+      html: getViewerHtml(),
+      baseUrl: "about:blank",
+    };
+  }
+  return cachedViewerSource;
+}

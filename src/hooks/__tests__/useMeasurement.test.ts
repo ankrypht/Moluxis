@@ -68,6 +68,7 @@ describe("useMeasurement", () => {
     mockViewerRef = {
       current: {
         captureSnapshot: jest.fn(),
+        captureSnapshotAsync: jest.fn().mockResolvedValue(null),
         drawMeasurements: jest.fn(),
         clearMeasurements: jest.fn(),
         setMeasurementMode: jest.fn(),
