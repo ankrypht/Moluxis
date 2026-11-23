@@ -15,6 +15,7 @@ This document captures Android-focused architectural patterns, future blueprints
   - [🖨️ 3D Printing STL / GLTF Model Export](#️-3d-printing-stl--gltf-model-export)
   - [🌐 Electrostatic Potential (ESP) & Molecular Surfaces](#-electrostatic-potential-esp--molecular-surfaces)
   - [⚖️ Dual-Molecule Split Comparison Mode](#️-dual-molecule-split-comparison-mode)
+  - [💎 Elemental Crystal Lattices & Solid-State Supercells (Diamond, Graphite, Silicon & Metals)](#-elemental-crystal-lattices--solid-state-supercells-diamond-graphite-silicon--metals)
 - [🤖 Part 3: Android-Native Integrations (Planned)](#-part-3-android-native-integrations-planned)
   - [⚡ Android App Launcher Quick Actions (`expo-quick-actions`)](#-android-app-launcher-quick-actions-expo-quick-actions)
   - [👓 Augmented Reality (AR) Tabletop Mode (Android Scene Viewer)](#-augmented-reality-ar-tabletop-mode-android-scene-viewer)
@@ -433,6 +434,110 @@ These features extend Moluxis beyond 3D visualization into an active scientific 
 
 ---
 
+### 💎 Elemental Crystal Lattices & Solid-State Supercells (Diamond, Graphite, Silicon & Metals)
+
+- **Concept**: Expand Moluxis beyond discrete, finite molecules into solid-state crystallography and extended covalent network solids. Enable interactive exploration of elemental crystal lattices (such as the diamond cubic lattice of Carbon, planar graphite sheets, semiconductor silicon, and close-packed metallic lattices) with real-time unit cell boundary rendering and supercell lattice expansion.
+
+#### The Problem: Discrete Molecules vs. Infinite Network Solids
+
+1. **PubChem Compound Limitations**:
+   - PubChem PUG REST is engineered around discrete organic molecules. Searching for `"Diamond"` (CID 5462310 or CID 24261) returns either an empty 3D conformer, a single isolated carbon atom ($C$), or arbitrary non-periodic fragments.
+   - PubChem cannot natively convey the 3D connectivity of infinite covalent network solids or Bravais lattices.
+2. **The Single Unit Cell Dilemma**:
+   - A single primitive unit cell ($1 \times 1 \times 1$) of diamond ($Fd\bar{3}m$, space group No. 227) contains 8 carbon atoms located at face-centered cubic positions and tetrahedral interstitial sites.
+   - Because covalent bonds truncate abruptly at the unit cell boundary, viewing only $1 \times 1 \times 1$ leaves students and researchers with disjointed, hanging bonds where the iconic interlocking tetrahedral cage network is invisible.
+   - To truly understand diamond, users need an interactive **Supercell Replication Engine** ($2 \times 2 \times 2$ yielding 64 atoms, or $3 \times 3 \times 3$ yielding 216 atoms) that reconstructs the continuous crystalline architecture with complete rings and coordination polyhedra.
+
+#### Crystallographic Data Architecture & Sourcing
+
+- **Primary Data Format**: Crystallographic Information File (**CIF**), supported natively by 3Dmol.js.
+- **Pre-Bundled Elemental Allotrope & Mineral Registry**:
+  Add verified, zero-latency CIF records to `src/constants/bundledMoleculeData.ts`:
+  - **Diamond** (Carbon allotrope): Space group $Fd\bar{3}m$ (No. 227), $a = b = c = 3.567\text{ \AA}$, $\alpha = \beta = \gamma = 90^\circ$, tetrahedral $sp^3$ covalent network (COD ID: `9008564` / `1011033`).
+  - **Graphite** (Carbon allotrope): Hexagonal system, space group $P6_3/mmc$ (No. 194), $a = b = 2.464\text{ \AA}, c = 6.711\text{ \AA}$, $\alpha = \beta = 90^\circ, \gamma = 120^\circ$, planar $sp^2$ aromatic sheets with weak interlayer van der Waals spacing ($3.35\text{ \AA}$) (COD ID: `1200018`).
+  - **Lonsdaleite** (Hexagonal diamond): Space group $P6_3/mmc$ (No. 194), high-pressure meteorite impact polymorph of carbon (COD ID: `9008566`).
+  - **Silicon (Si)**: Diamond cubic semiconductor lattice, space group $Fd\bar{3}m$ (No. 227), $a = 5.431\text{ \AA}$ (COD ID: `9008565`).
+  - **Germanium (Ge)**: Diamond cubic semiconductor lattice, space group $Fd\bar{3}m$ (No. 227), $a = 5.658\text{ \AA}$ (COD ID: `9008567`).
+  - **Native Gold (Au)**: Face-Centered Cubic (FCC) close-packed metal, space group $Fm\bar{3}m$ (No. 225), $a = 4.078\text{ \AA}$, coordination number $CN = 12$ (COD ID: `9008463`).
+  - **$\alpha$-Iron (Ferrite)**: Body-Centered Cubic (BCC) metal, space group $Im\bar{3}m$ (No. 229), $a = 2.866\text{ \AA}$, coordination number $CN = 8$ (COD ID: `9008536`).
+  - **Copper (Cu)**: Face-Centered Cubic (FCC) metal, space group $Fm\bar{3}m$ (No. 225), $a = 3.615\text{ \AA}$ (COD ID: `9008460`).
+- **Intelligent Query Interceptor & COD Gateway (`searchHelper.ts` / `api.ts`)**:
+  - Detect searches matching elemental allotropes, Bravais lattices, and native minerals (`"diamond"`, `"graphite"`, `"silicon lattice"`, `"fcc gold"`, `"bcc iron"`).
+  - Automatically query the Crystallography Open Database (COD) REST endpoint (`https://www.crystallography.net/cod/{codId}.cif`) or fall back to pre-bundled records whenever PubChem returns no 3D SDF conformers or a single-atom non-crystallographic record.
+
+#### 3Dmol.js Supercell & Crystallography Engine Blueprint
+
+1. **Unit Cell Assembly**:
+   ```javascript
+   // Load CIF structure with symmetry equivalent positions
+   currentModel = viewer.addModel(cifData, "cif", { duplicateAssembly: true });
+   ```
+2. **Dynamic Supercell Replication**:
+   - Utilize 3Dmol.js's native `replicateUnitCell(nx, ny, nz, model, assignBonds)` method:
+     ```javascript
+     // Replicate unit cell along a, b, c axes and recalculate covalent bonds across cell boundaries
+     viewer.replicateUnitCell(supercellX, supercellY, supercellZ, currentModel, true);
+     ```
+   - **$1 \times 1 \times 1$**: Shows the primitive unit cell with fractional coordinate boundary atoms.
+   - **$2 \times 2 \times 2$**: Generates 64 atoms for diamond, completing closed interlocking tetrahedral cages and puckered chair-conformation 6-carbon rings.
+   - **$3 \times 3 \times 3$**: Generates 216 atoms for macroscopic crystal lattice inspection.
+3. **Unit Cell Wireframe & Crystallographic Basis Vectors (`addUnitCell`)**:
+   - Render the bounding parallelepiped box with color-coded crystallographic axes:
+     ```javascript
+     viewer.addUnitCell(currentModel, {
+       box: { color: 0x06B6D4 },      // Cyan bounding box
+       astyle: { color: 0xEF4444 },    // Red a-axis vector
+       bstyle: { color: 0x10B981 },    // Emerald b-axis vector
+       cstyle: { color: 0x3B82F6 },    // Blue c-axis vector
+       alabel: "a",
+       blabel: "b",
+       clabel: "c"
+     });
+     ```
+   - The unit cell wireframe remains visible inside the expanded $2 \times 2 \times 2$ or $3 \times 3 \times 3$ supercell, allowing users to visually distinguish between the single repeating unit cell and the macro-lattice.
+4. **Miller Indices & Crystallographic Cleavage Planes $(hkl)$**:
+   - Provide visual plane slices intersecting the supercell:
+     - **Diamond $\{111\}$**: The easiest octahedral cleavage plane (lowest bond density per unit area), fundamental to gemstone cutting.
+     - **Diamond $\{100\}$**: Cubic faces.
+     - **Graphite $(001)$**: Basal slip planes explaining dry lubricity and exfoliation into graphene.
+     - **Silicon $\{100\}$ vs $\{111\}$**: Essential for understanding semiconductor wafer fabrication and anisotropic etching.
+
+#### Interactive UI & Controls (Lattice Controls Drawer)
+
+- **Dedicated Lattice Toggle**: When `moleculeData.useCif === true`, `FloatingDock.tsx` highlights a dedicated **Lattice** button (cube/gem icon).
+- **`LatticeControls.tsx` Drawer**:
+  - **Supercell Multiplier**: Stepper/segmented control for $1 \times 1 \times 1$ (Unit Cell), $2 \times 2 \times 2$ (Standard Cage), $3 \times 3 \times 3$ (Expanded Lattice).
+  - **Wireframe Boundary Toggle**: Toggle unit cell bounding box on/off.
+  - **Basis Vectors Toggle**: Toggle crystallographic axes ($\vec{a}, \vec{b}, \vec{c}$) with live length readouts.
+  - **Miller Cleavage Plane Selector**: Toggle overlays for $(100)$, $(110)$, or $(111)$ planes.
+  - **Allotrope Polymorph Switcher**: When viewing Carbon, 1-tap tabs to switch between **Diamond** $\leftrightarrow$ **Graphite** $\leftrightarrow$ **Lonsdaleite** $\leftrightarrow$ **Fullerene ($C_{60}$)**.
+- **Crystallographic Properties Card (`MoleculeInfoSheet.tsx`)**:
+  - **Space Group**: Hermann-Mauguin symbol, Hall notation, and space group number (e.g. $Fd\bar{3}m$, No. 227 for Diamond; $P6_3/mmc$, No. 194 for Graphite).
+  - **Crystal System & Bravais Lattice**: Cubic (FCC), Hexagonal (HCP), Tetragonal, Orthorhombic, Monoclinic, Triclinic, Trigonal.
+  - **Lattice Parameters**: Edge lengths ($a, b, c$ in Å), inter-axial angles ($\alpha, \beta, \gamma$ in degrees), and unit cell volume ($\text{\AA}^3$).
+  - **Coordination & Packing**: Atomic Packing Factor (APF) and Coordination Number ($CN = 4$, $34.01\%$ APF for Diamond; $CN = 12$, $74.05\%$ APF for FCC Gold; $CN = 8$, $68.02\%$ APF for BCC Iron).
+
+#### WebView Bridge Protocol & Measurement Integration
+
+- **Bridge Commands (React Native ➔ WebView)**:
+  - `SET_SUPERCELL`: `{ type: 'SET_SUPERCELL', nx: 2, ny: 2, nz: 2, showBox: true, showAxes: true }`
+  - `SET_MILLER_PLANE`: `{ type: 'SET_MILLER_PLANE', hkl: [1, 1, 1], visible: true }`
+- **Atom Picking Across Supercells**:
+  - Atoms in replicated unit cells receive deterministic indices (`supercellAtomIndex = cellOffset + atomIndex`).
+  - Users can use the existing geometric measurement calculator to verify:
+    - $C-C$ covalent bond length in diamond: **$1.54\text{ \AA}$** ($sp^3$ single bond).
+    - $C-C-C$ bond angle in diamond: **$109.47^\circ$** (ideal tetrahedral angle).
+    - $C-C$ in-plane bond length in graphite: **$1.42\text{ \AA}$** ($sp^2$ resonance).
+    - Interlayer distance in graphite: **$3.35\text{ \AA}$** (van der Waals spacing).
+
+#### Cross-Feature Synergies
+
+- **🖨️ 3D Printing STL Export**: Export full $2 \times 2 \times 2$ diamond crystal lattices as printable physical classroom models.
+- **🧪 Interactive Periodic Table**: 1-tap button on solid elements (Carbon, Silicon, Gold, Iron, Copper, Titanium) to launch directly into their room-temperature crystal lattice.
+- **⚖️ Dual-Molecule Comparison**: Compare Carbon allotropes side-by-side (e.g. Diamond vs. Graphite or Diamond vs. Silicon).
+
+---
+
 # 🤖 PART 3: Android-Native Integrations (Planned)
 
 Features taking full advantage of the Android operating system to make Moluxis feel like a first-party Android experience.
@@ -492,6 +597,7 @@ Transforming Moluxis into the ultimate educational and discovery platform for ch
   - Color-coded by element family (Alkali metals, Halogens, Noble gases, Transition metals, Actinides, Lanthanides).
   - Tapping an element (e.g. **Titanium (Ti)**) displays:
     - Atomic number, mass, electron configuration, electronegativity, oxidation states.
+    - **"Room-Temperature Crystal Structure"**: 1-tap shortcut to launch solid elements directly into the 3D Lattice Viewer (e.g., Carbon $\to$ Diamond or Graphite, Silicon $\to$ Diamond cubic, Iron $\to$ BCC $\alpha$-ferrite, Gold $\to$ FCC).
     - **"Iconic Compounds Containing Ti"**: 1-tap shortcuts to inspect Titanium Dioxide ($TiO_2$), Rutile crystal lattice, Titanocene, etc.
 
 ---
@@ -502,7 +608,7 @@ Transforming Moluxis into the ultimate educational and discovery platform for ch
   - **Pack 1: The Essential 20 Amino Acids** (Alanine to Valine with stereochemistry).
   - **Pack 2: Neurotransmitters & Hormones** (Dopamine, Serotonin, Epinephrine, Oxytocin).
   - **Pack 3: Top 100 Prescription Pharmaceuticals** (Penicillin, Metformin, Atorvastatin, Paracetamol).
-  - **Pack 4: Iconic Gemstones & Minerals** (Diamond, Ruby, Emerald, Quartz, Pyrite unit cells).
+  - **Pack 4: Iconic Gemstones & Minerals** (Diamond, Ruby, Emerald, Quartz, Pyrite unit cells and supercells).
 - **Storage**: Cached locally as pre-bundled JSON structures for instant zero-latency loading.
 
 ---
@@ -525,6 +631,16 @@ Transforming Moluxis into the ultimate educational and discovery platform for ch
 - [ ] Add Electrostatic Potential (ESP) and Van der Waals surface options in style selector.
 - [ ] Implement STL 3D-printing mesh export in `ShareExportModal.tsx`.
 - [ ] Dual-molecule split comparison mode.
+
+### Crystal Lattices & Solid-State Supercells (Diamond, Graphite, Minerals & Metals)
+
+- [ ] Curate and pre-bundle high-precision CIF records for Diamond ($Fd\bar{3}m$), Graphite ($P6_3/mmc$), Silicon, Gold, $\alpha$-Iron, and Quartz in `src/constants/bundledMoleculeData.ts`.
+- [ ] Enhance search resolver (`searchHelper.ts` / `api.ts`) to intercept elemental/mineral queries (Diamond, Carbon allotropes, Silicon) and fallback to COD CIF records instead of single-atom PubChem SDFs.
+- [ ] Implement `replicateUnitCell(nx, ny, nz, model, true)` and `addUnitCell(model, options)` in `src/constants/viewerHtml.ts` with supercell replication and bond re-assignment.
+- [ ] Create `LatticeControls.tsx` drawer with supercell dimension slider ($1\times1\times1$ to $3\times3\times3$), unit cell boundary wireframe toggle, and crystallographic axis vectors ($\vec{a}, \vec{b}, \vec{c}$).
+- [ ] Parse and display crystallographic parameters (Space group, Hermann-Mauguin symbol, Bravais lattice, cell constants, packing efficiency) in `MoleculeInfoSheet.tsx`.
+- [ ] Implement Miller indices $(hkl)$ cleavage plane visualizer (e.g. Diamond $\{111\}$ and $\{100\}$ planes) in 3D WebGL canvas.
+- [ ] Integrate crystal lattice launcher into the Interactive Periodic Table of Elements (1-tap room-temperature crystal structure for solid elements).
 
 ### Notifications & Update Alerts (`expo-notifications`)
 
