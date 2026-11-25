@@ -476,7 +476,13 @@ These features extend Moluxis beyond 3D visualization into an active scientific 
    - Utilize 3Dmol.js's native `replicateUnitCell(nx, ny, nz, model, assignBonds)` method:
      ```javascript
      // Replicate unit cell along a, b, c axes and recalculate covalent bonds across cell boundaries
-     viewer.replicateUnitCell(supercellX, supercellY, supercellZ, currentModel, true);
+     viewer.replicateUnitCell(
+       supercellX,
+       supercellY,
+       supercellZ,
+       currentModel,
+       true,
+     );
      ```
    - **$1 \times 1 \times 1$**: Shows the primitive unit cell with fractional coordinate boundary atoms.
    - **$2 \times 2 \times 2$**: Generates 64 atoms for diamond, completing closed interlocking tetrahedral cages and puckered chair-conformation 6-carbon rings.
@@ -485,13 +491,13 @@ These features extend Moluxis beyond 3D visualization into an active scientific 
    - Render the bounding parallelepiped box with color-coded crystallographic axes:
      ```javascript
      viewer.addUnitCell(currentModel, {
-       box: { color: 0x06B6D4 },      // Cyan bounding box
-       astyle: { color: 0xEF4444 },    // Red a-axis vector
-       bstyle: { color: 0x10B981 },    // Emerald b-axis vector
-       cstyle: { color: 0x3B82F6 },    // Blue c-axis vector
+       box: { color: 0x06b6d4 }, // Cyan bounding box
+       astyle: { color: 0xef4444 }, // Red a-axis vector
+       bstyle: { color: 0x10b981 }, // Emerald b-axis vector
+       cstyle: { color: 0x3b82f6 }, // Blue c-axis vector
        alabel: "a",
        blabel: "b",
-       clabel: "c"
+       clabel: "c",
      });
      ```
    - The unit cell wireframe remains visible inside the expanded $2 \times 2 \times 2$ or $3 \times 3 \times 3$ supercell, allowing users to visually distinguish between the single repeating unit cell and the macro-lattice.
@@ -510,7 +516,7 @@ These features extend Moluxis beyond 3D visualization into an active scientific 
   - **Wireframe Boundary Toggle**: Toggle unit cell bounding box on/off.
   - **Basis Vectors Toggle**: Toggle crystallographic axes ($\vec{a}, \vec{b}, \vec{c}$) with live length readouts.
   - **Miller Cleavage Plane Selector**: Toggle overlays for $(100)$, $(110)$, or $(111)$ planes.
-  - **Allotrope Polymorph Switcher**: When viewing Carbon, 1-tap tabs to switch between **Diamond** $\leftrightarrow$ **Graphite** $\leftrightarrow$ **Lonsdaleite** $\leftrightarrow$ **Fullerene ($C_{60}$)**.
+  - **Allotrope Polymorph Switcher**: When viewing Carbon, 1-tap tabs to switch between **Diamond** $\leftrightarrow$ **Graphite** $\leftrightarrow$ **Lonsdaleite** $\leftrightarrow$ **Fullerene ($C\_{60}$)**.
 - **Crystallographic Properties Card (`MoleculeInfoSheet.tsx`)**:
   - **Space Group**: Hermann-Mauguin symbol, Hall notation, and space group number (e.g. $Fd\bar{3}m$, No. 227 for Diamond; $P6_3/mmc$, No. 194 for Graphite).
   - **Crystal System & Bravais Lattice**: Cubic (FCC), Hexagonal (HCP), Tetragonal, Orthorhombic, Monoclinic, Triclinic, Trigonal.
