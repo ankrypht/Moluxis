@@ -18,6 +18,7 @@ This document captures Android-focused architectural patterns, future blueprints
   - [💎 Elemental Crystal Lattices & Solid-State Supercells (Diamond, Graphite, Silicon & Metals)](#-elemental-crystal-lattices--solid-state-supercells-diamond-graphite-silicon--metals)
 - [🤖 Part 3: Android-Native Integrations (Planned)](#-part-3-android-native-integrations-planned)
   - [⚡ Android App Launcher Quick Actions (`expo-quick-actions`)](#-android-app-launcher-quick-actions-expo-quick-actions)
+  - [📲 Google Play In-App Updates Engine (`expo-in-app-updates`)](#-google-play-in-app-updates-engine-expo-in-app-updates)
   - [👓 Augmented Reality (AR) Tabletop Mode (Android Scene Viewer)](#-augmented-reality-ar-tabletop-mode-android-scene-viewer)
   - [🎙️ Voice Chemical Search](#️-voice-chemical-search)
   - [🔄 Android 14+ Predictive Back Navigation](#-android-14-predictive-back-navigation)
@@ -563,6 +564,137 @@ Features taking full advantage of the Android operating system to make Moluxis f
 
 ---
 
+### 📲 Google Play In-App Updates Engine (`expo-in-app-updates`)
+
+- **Concept**: Upgrade Moluxis from external deep-link redirects to first-class, seamless in-app updating using Android's native **Google Play In-App Updates API (Play Core)** via `expo-in-app-updates`.
+
+#### The Problem: External App Store Handoff
+
+1. **Current Flow**:
+   - Moluxis currently detects new releases using a GitHub Releases API version oracle combined with an Android WorkManager periodic background task.
+   - When an update is detected, `UpdateAvailableModal` displays release info with an **"Update on Google Play"** button.
+   - Tapping the button executes `Linking.openURL("market://details?id=com.ankushsarkar.moluxis")`, kicking the user out of Moluxis into the Google Play Store application.
+2. **The Friction**:
+   - For an immersive 3D scientific workbench, forcing the user to leave the app disrupts active molecule inspections, unsaved measurements, or crystal comparisons.
+   - The user must wait in the Play Store, tap Update, and manually relaunch Moluxis.
+
+#### Two Native Google Play Update Flows
+
+`expo-in-app-updates` unlocks Android's two native Play Core update experiences:
+
+1. **Flexible In-App Update (`FLEXIBLE`)**:
+   - **Best For**: Minor feature releases, periodic compound database additions, and non-breaking improvements.
+   - **User Flow**:
+     - A non-intrusive in-app banner or card alerts the user that an update is available.
+     - Upon acceptance, Google Play streams and downloads the update package silently in the background while the user continues rotating molecules and taking measurements.
+     - An install progress listener tracks `bytesDownloaded` and `totalBytesToDownload`.
+     - When the download finishes (`InstallStatus.DOWNLOADED`), Moluxis displays an action banner:
+       ```
+       ┌────────────────────────────────────────────────────────┐
+       │ 🧪 Update downloaded! Restart to apply latest version. │
+       │                                     [ 🔄 Restart Now ] │
+       └────────────────────────────────────────────────────────┘
+       ```
+     - Tapping **Restart Now** calls `completeUpdate()`, instantly applying the update and restarting the app without leaving the foreground.
+2. **Immediate In-App Update (`IMMEDIATE`)**:
+   - **Best For**: Critical security patches, breaking database/SDF migrations, or deprecated API endpoints.
+   - **User Flow**:
+     - Google Play displays a native, full-screen blocking modal over Moluxis.
+     - The user is prevented from interacting with outdated features while Google Play downloads and installs the update.
+     - Once installation completes, Play Core automatically reboots Moluxis into the new version.
+
+#### Resilient Hybrid Architecture & Graceful Fallbacks
+
+```
+                    ┌───────────────────────────────┐
+                    │     App Launch / Foreground   │
+                    └───────────────┬───────────────┘
+                                    │
+                     Is production Google Play build?
+                                   / \
+                                  /   \
+                             YES /     \ NO (Dev / Sideload)
+                                v       v
+      ┌───────────────────────────┐   ┌───────────────────────────┐
+      │   expo-in-app-updates     │   │ GitHub Releases API check │
+      │  (Play Core checkUpdate)  │   │  (checkForAppUpdate)      │
+      └─────────────┬─────────────┘   └─────────────┬─────────────┘
+                    │                               │
+           Update available?               Update available?
+                  / \                             / \
+             YES /   \ NO                    YES /   \ NO
+                v     v                         v     v
+         [Flexible / Immediate]  (Idle)  [UpdateAvailableModal] (Idle)
+```
+
+- **Production Google Play Channel**:
+  - `ExpoInAppUpdates.checkUpdate()` queries Google Play directly.
+  - Automatically selects `FLEXIBLE` for minor updates or `IMMEDIATE` for breaking/critical version jumps (configured via Google Play Console update priority $0\text{--}5$).
+- **Development & Sideload Fallback**:
+  - If Play Core reports `UPDATE_NOT_AVAILABLE`, errors out (e.g. offline, rate-limited), or runs in a debug build, the app seamlessly falls back to the existing GitHub Releases API version oracle (`checkForAppUpdate()`) and presents the `UpdateAvailableModal` dialog.
+
+#### Technical Implementation Blueprint
+
+##### Step 1: Install Dependency
+```bash
+npx expo install expo-in-app-updates
+```
+
+##### Step 2: Update Service Layer (`src/services/updates/playUpdateService.ts`)
+```typescript
+import * as ExpoInAppUpdates from "expo-in-app-updates";
+import { checkForAppUpdate } from "./appUpdateChecker";
+
+export type PlayUpdateState =
+  | "idle"
+  | "checking"
+  | "available"
+  | "downloading"
+  | "downloaded"
+  | "failed";
+
+export interface PlayUpdateProgress {
+  bytesDownloaded: number;
+  totalBytesToDownload: number;
+  progressPercent: number;
+}
+
+export const startPlayInAppUpdate = async (isImmediate = false): Promise<boolean> => {
+  try {
+    const updateInfo = await ExpoInAppUpdates.checkUpdate();
+    if (updateInfo.updateAvailable) {
+      await ExpoInAppUpdates.startUpdate(isImmediate);
+      return true;
+    }
+  } catch (error) {
+    console.warn("[PlayInAppUpdates] Play Core unavailable, falling back to GitHub API:", error);
+    // Graceful fallback to existing GitHub release check + modal
+    await checkForAppUpdate({ bypassCooldown: true });
+  }
+  return false;
+};
+
+export const completePlayFlexibleUpdate = async (): Promise<void> => {
+  try {
+    await ExpoInAppUpdates.completeUpdate();
+  } catch (error) {
+    console.error("[PlayInAppUpdates] Failed to complete flexible update:", error);
+  }
+};
+```
+
+##### Step 3: Wire into Notification & Update Engine (`useNotificationsAndUpdates.ts`)
+- Subscribe to download progress events when a flexible update is in flight.
+- Expose `playUpdateStatus` and `completeFlexibleUpdate` to the root `HomeScreen` for displaying the bottom completion banner.
+- Add an **"Update In-App"** primary action in `UpdateAvailableModal.tsx` while keeping the external Google Play deep link as secondary fallback.
+
+##### Step 4: Testing & QA via Internal App Sharing
+- Play Core in-app update flows cannot be fully triggered from local unsigned debug builds.
+- Testing will be conducted by publishing incremental `versionCode` builds to **Google Play Internal App Sharing** or the **Internal Testing Track**.
+- `DevTestModal.tsx` will include simulated in-app update states (`Simulate Flexible Download`, `Simulate Downloaded Ready`) to verify UI transitions offline.
+
+---
+
 ### 👓 Augmented Reality (AR) Tabletop Mode (Android Scene Viewer)
 
 - **Concept**: Place a life-size or tabletop 3D molecule / mineral lattice on a desk or floor using Android's native **Scene Viewer** / ARCore.
@@ -665,6 +797,11 @@ Transforming Moluxis into the ultimate educational and discovery platform for ch
 ### Native Android Integrations & Quick Actions
 
 - [ ] Install `expo-quick-actions` and register launcher shortcuts (Search, Crystals, Bookmarks, Random).
+- [ ] Install and configure `expo-in-app-updates` for native Google Play Core In-App Updates.
+- [ ] Implement Flexible Update flow (`FLEXIBLE`) with background download progress and in-app restart prompt.
+- [ ] Implement Immediate Update flow (`IMMEDIATE`) for critical/breaking release enforcement.
+- [ ] Implement hybrid fallback: use Play Core in production builds and GitHub Releases API in dev/sideload builds.
+- [ ] Add DevTestModal controls for simulating Play Core update states (`AVAILABLE`, `DOWNLOADING`, `DOWNLOADED`).
 - [ ] AR Scene Viewer export and Android intent launcher.
 - [ ] Voice chemical search via speech-to-text.
 - [ ] Android 14+ predictive back gesture navigation.
@@ -720,6 +857,9 @@ Moluxis now features an automated, serverless update and notification system bui
    - Accessible by long-pressing the Moluxis header logo in development builds (`IS_DEV_TEST_ENABLED`).
    - Displays live permissions, WorkManager registration, snooze timestamps, and scheduled notification counts.
    - Offers 1-tap testing for immediate notifications, delayed spotlights (5s), simulated upgrades, and storage resets.
+8. **Planned Evolution: Native Play Core In-App Updates (`expo-in-app-updates`):**
+   - Upgrading from the external `market://` deep link redirect to native Google Play In-App Updates.
+   - Adds Flexible background downloading and Immediate blocking update flows without kicking the user out of Moluxis, maintaining the current GitHub API checker as a zero-downtime fallback for development and sideload environments.
 
 ---
 
